@@ -1,0 +1,47 @@
+[package]
+name = "librms"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "librms"
+
+[dependencies]
+
+# [local-dependencies]
+tonic-client-wrapper = { path = "../tonic-client-wrapper", default-features = false }
+chrono = { features = ["serde"], workspace = true }
+eyre = { workspace = true }
+hyper = { workspace = true, features = ["full"] }
+hyper-rustls = { workspace = true, features = ["http2"] }
+hyper-util = { features = [
+  "server",
+  "http1",
+  "http2",
+  "tokio",
+  "client",
+  "client-legacy",
+], workspace = true }
+prost = { workspace = true }
+rustls-pemfile = { workspace = true }
+serde = { features = ["derive"], workspace = true }
+tokio = { workspace = true }
+tonic = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+tonic-prost = { workspace = true }
+tonic-prost-build = { workspace = true }
+tryhard = { workspace = true }
+rustls = { workspace = true, features = ["default", "ring"] }
+async-trait = { workspace = true }
+hyper-timeout = { workspace = true }
+
+[build-dependencies]
+tonic-prost-build = { workspace = true }
+tonic-client-wrapper = { path = "../tonic-client-wrapper" }
+
+[lints]
+workspace = true

@@ -1,0 +1,901 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package rack_manager;
+
+import "google/protobuf/empty.proto";
+
+/*******************************************************************************
+ * ENUMERATIONS
+ ******************************************************************************/
+
+// PowerOperation defines the power control actions for individual nodes.
+enum PowerOperation {
+  POWER_OFF   = 0;  // Power off the node (graceful shutdown)
+  POWER_ON    = 1;  // Power on the node
+  POWER_RESET = 2;  // Power cycle the node (off then on)
+}
+
+/* 
+ * RackPowerOperation defines power control actions for an entire rack.
+ * These operations respect the power-on order configuration for sequenced boot.
+ */
+enum RackPowerOperation {
+  RACK_POWER_ON    = 0;  // Power on all nodes in the rack following power-on order
+  RACK_POWER_OFF   = 1;  // Power off all nodes in the rack
+  RACK_POWER_CYCLE = 2;  // Power cycle all nodes in the rack
+}
+
+// ReturnCode indicates the overall success or failure of an RPC operation.
+enum ReturnCode {
+  SUCCESS = 0;  // Operation completed successfully
+  FAILURE = 1;  // Operation failed (see message field for details)
+}
+
+// FirmwareUpdateError provides detailed error codes for firmware update operations.
+enum FirmwareUpdateError {
+  FW_UPDATE_SUCCESS            = 0;   // Firmware update completed successfully
+  FW_UPDATE_FILE_NOT_FOUND     = 1;   // Specified firmware file does not exist
+  FW_UPDATE_CLIENT_FAILURE     = 2;   // HTTP/Redfish client communication failure
+  FW_UPDATE_TARGET_NOT_FOUND   = 3;   // Target component for update not found on node
+  FW_UPDATE_SERVER_ERROR       = 4;   // Server returned an error response
+  FW_UPDATE_TASK_FAILED        = 5;   // Firmware update task reported failure
+  FW_UPDATE_NO_TASK_INFO       = 6;   // Unable to retrieve task status information
+  FW_UPDATE_EXCEPTION          = 7;   // Exception occurred during update process
+  FW_UPDATE_INVALID_RESPONSE   = 8;   // Received invalid or malformed response
+  FW_UPDATE_MONITORING_TIMEOUT = 9;   // Timed out waiting for update to complete
+  FW_UPDATE_TASK_EXCEPTION     = 10;  // Exception in task monitoring
+  FW_UPDATE_UNKNOWN            = 11;  // Unknown or unclassified error
+}
+
+// NodeType identifies the category of a node in the rack.
+enum NodeType {
+  NODE_TYPE_UNKNOWN    = 0;  // Unknown or unclassified node type
+  NODE_TYPE_COMPUTE    = 1;  // Compute node (GPU server, CPU server)
+  NODE_TYPE_POWERSHELF = 2;  // Power shelf (power distribution unit)
+  NODE_TYPE_SWITCH     = 3;  // Network switch
+}
+
+// SwitchFirmwareComponentType identifies the firmware component type on a switch.
+enum SwitchFirmwareComponentType {
+  SWITCH_FW_COMPONENT_UNKNOWN     = 0;  // Unknown component type
+  SWITCH_FW_COMPONENT_BMC         = 1;  // Baseboard Management Controller
+  SWITCH_FW_COMPONENT_FPGA        = 2;  // Field Programmable Gate Array
+  SWITCH_FW_COMPONENT_EROT        = 3;  // Embedded Root of Trust
+  SWITCH_FW_COMPONENT_CPLD        = 4;  // Complex Programmable Logic Device
+  SWITCH_FW_COMPONENT_BIOS        = 5;  // Basic Input/Output System
+  SWITCH_FW_COMPONENT_TRANSCEIVER = 6;  // Optical transceiver
+}
+
+/*******************************************************************************
+ * COMMON MESSAGES
+ ******************************************************************************/
+
+/*
+ * Metadata is included in every request and response for tracing and debugging.
+ * It enables correlation of requests with responses and tracking of message flow.
+ */
+message Metadata {
+  int32 sender_id = 1;  // Identifier of the sending entity (client or server)
+  int64 timestamp = 2;  // Unix timestamp in milliseconds when message was created
+  int32 msg_id    = 3;  // Unique message identifier for request/response correlation
+}
+
+/*******************************************************************************
+ * SHARED DATA TYPES
+ ******************************************************************************/
+
+// NewNodeInfo contains all information needed to register a new node in the inventory.
+message NewNodeInfo {
+  string node_id = 1;             // Unique identifier for the node within the rack
+  string mac_address = 2;         // MAC address of the node's BMC interface
+  string ip_address = 3;          // IP address of the node's BMC interface
+  int32 port = 4;                 // Port number for BMC communication
+  optional string username = 5;   // BMC username for testing only
+  optional string password = 6;   // BMC password for testing only
+  optional NodeType type = 7;     // Type/category of the node
+  string rack_id = 8;             // Identifier of the rack containing this node
+  string vault_path = 9;          // Vault path to the creds of the Node
+}
+
+/*
+ * NodeUpdateInfo contains fields that can be updated for an existing node.
+ * Only specified fields will be updated; unset fields remain unchanged.
+ */
+message NodeUpdateInfo {
+  optional string ip_address = 1;  // New IP address for the node's BMC
+  optional int32 port = 2;         // New port number for BMC communication
+  optional string username = 3;    // New BMC username for testing only
+  optional string password = 4;    // New BMC password for testing only
+}
+
+// NodeInventoryInfo represents complete inventory information for a node.
+message NodeInventoryInfo {
+  string node_id = 1;                       // Unique identifier for the node
+  string product = 2;                       // Product name/model of the node
+  string health = 3;                        // Health status 
+  string ip_address = 4;                    // IP address of the node's BMC
+  int32 port = 5;                           // Port number for BMC communication
+  NodeType type = 6;                        // Type/category of the node
+  repeated DeviceInventoryInfo devices = 7; // List of devices/components within the node
+  string mac_address = 8;                   // MAC address of the node's BMC interface
+  string rack_id = 9;                       // Identifier of the rack containing this node
+  string vault_path = 10;                   // Vault path to the creds of the Node
+}
+
+// DeviceInventoryInfo represents inventory information for a device/component within a node.
+message DeviceInventoryInfo {
+  string device_id = 1;       // Unique identifier for the device within the node
+  string health = 2;          // Health status
+  string state = 3;           // Operational state (e.g., "Enabled", "Disabled")
+  string model = 4;           // Model name/number of the device
+  string serial_number = 5;   // Serial number of the device
+  string description = 6;     // Human-readable description of the device
+  string hardware_type = 7;   // Type of hardware (e.g., "GPU", "NIC", "Storage")
+  int32 type = 8;             // Numeric device type identifier
+}
+
+// FirmwareInventoryInfo represents firmware information for a component.
+message FirmwareInventoryInfo {
+  string name = 1;          // Name of the firmware component
+  string version = 2;       // Current firmware version string
+  string updateable = 3;    // Whether firmware can be updated
+  string target = 4;        // Target URI for firmware updates
+  string health = 5;        // Health status of the firmware component
+  int32  firmware_type = 6; // Type of firmware
+}
+
+// PowerOnOrderItem defines a single entry in the rack power-on sequence.
+message PowerOnOrderItem {
+  string node_id = 1;                    // Node to power on at this position in sequence
+  CompletionCheck completion_check = 2;  // Configuration for boot completion verification
+}
+
+// CompletionCheck configures how to verify a node has completed booting.
+message CompletionCheck {
+  bool enabled = 1;           // Whether to wait for boot completion before proceeding
+  int32 timeout_seconds = 2;  // Maximum time to wait for boot completion
+}
+
+// NodeFirmwareInventory groups firmware information for a specific node.
+message NodeFirmwareInventory {
+  string node_id = 1;                                // Node identifier
+  repeated FirmwareInventoryInfo firmware_list = 2;  // List of firmware components on the node
+}
+
+// NodeUpdateResult reports the outcome of a firmware update on a specific node.
+message NodeUpdateResult {
+  string node_id = 1;                  // Node that was updated
+  FirmwareUpdateError error_code = 2;  // Result code for this node's update
+  string error_message = 3;            // Human-readable error message
+}
+
+/*******************************************************************************
+ * SERVICE DEFINITION
+ *
+ * RackManager provides gRPC APIs for managing compute racks, including power
+ * control, inventory management, firmware updates, and network switch 
+ * configuration.
+ ******************************************************************************/
+
+service RackManager {
+  
+  /*---------------------------------------------------------------------------
+   * Power Control RPCs
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * SetPowerState controls the power state of a single node.
+   * Supports power on, power off, and power reset operations.
+   */
+  rpc SetPowerState(SetPowerStateRequest) returns (SetPowerStateResponse) {}
+  
+  /*
+   * GetPowerState retrieves the current power state of a node.
+   * Returns the current state (ON, OFF, or UNKNOWN).
+   */
+  rpc GetPowerState(GetPowerStateRequest) returns (GetPowerStateResponse) {}
+  
+  /*
+   * SequenceRackPower controls the power state of all nodes in a rack.
+   * Operations follow the configured power-on order for sequenced boot.
+   * Requires a valid power-on order to be set before use.
+   */
+  rpc SequenceRackPower(SequenceRackPowerRequest) returns (SequenceRackPowerResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * Inventory Control RPCs
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * GetAllInventory retrieves the complete inventory of all nodes across all racks.
+   */
+  rpc GetAllInventory(GetAllInventoryRequest) returns (GetAllInventoryResponse) {}
+  
+  /*
+   * AddNode registers one or more new nodes in the inventory.
+   * Supports batch addition of multiple nodes in a single request.
+   */
+  rpc AddNode(AddNodeRequest) returns (AddNodeResponse) {}
+  
+  /*
+   * UpdateNode modifies the configuration of an existing node.
+   * Only specified fields in the update_info will be changed.
+   */
+  rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeResponse) {}
+  
+  /*
+   * RemoveNode removes a node from the inventory. The node must exist in the specified rack.
+  */
+  rpc RemoveNode(RemoveNodeRequest) returns (RemoveNodeResponse) {}
+  
+  /*
+   * GetRackPowerOnSequence retrieves the configured boot sequence for a rack.
+   */
+  rpc GetRackPowerOnSequence(GetRackPowerOnSequenceRequest) returns (GetRackPowerOnSequenceResponse) {}
+  
+  /*
+   * SetRackPowerOnSequence configures the boot sequence for a rack.
+   * Must be set before using RackPower operations.
+   * Nodes boot in the specified order with optional completion verification.
+   */
+  rpc SetRackPowerOnSequence(SetRackPowerOnSequenceRequest) returns (SetRackPowerOnSequenceResponse) {}
+  
+  /*
+   * ListRacks returns a list of all rack IDs in the system.
+  */
+  rpc ListRacks(ListRacksRequest) returns (ListRacksResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * Firmware Control RPCs
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * GetNodeFirmwareInventory retrieves all firmware component information for a node.
+   * Returns version, update status, and health for each firmware component.
+   */
+  rpc GetNodeFirmwareInventory(GetNodeFirmwareInventoryRequest) returns (GetNodeFirmwareInventoryResponse) {}
+  
+  /*
+   * UpdateNodeFirmware initiates a firmware update on a specific node.
+   * Optionally activates the new firmware immediately after installation.
+   */
+  rpc UpdateNodeFirmware(UpdateNodeFirmwareRequest) returns (UpdateNodeFirmwareResponse) {}
+  
+  /*
+   * UpdateFirmwareByNodeType updates firmware on all nodes of a specific type in a rack.
+   * Useful for bulk updates across all compute nodes, switches, etc.
+   * Returns individual results for each node in the update batch.
+   */
+  rpc UpdateFirmwareByNodeType(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeResponse) {}
+  
+  /*
+   * GetRackFirmwareInventory retrieves firmware information for all nodes in a rack.
+   * Provides a comprehensive view of firmware versions across the rack.
+   */
+  rpc GetRackFirmwareInventory(GetRackFirmwareInventoryRequest) returns (GetRackFirmwareInventoryResponse) {}
+
+
+  /*
+   * ListFirmwareOnSwitch lists the firmware for switch.
+   * Returns version, update status, and health for switch firmware component. 
+   */
+   rpc ListFirmwareOnSwitch(ListFirmwareOnSwitchCommand) returns (ListFirmwareOnSwitchResponse) {}
+
+   /*
+   * PushFirmwareToSwitch Push a firmware binary to target Switch
+   * Returns success or error_message 
+   */
+   rpc PushFirmwareToSwitch(PushFirmwareToSwitchCommand) returns (PushFirmwareToSwitchResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * Scale Up switch control RPCs
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
+   * This includes enabling the scale fabric services services,configuring gRPC access,and sets
+   * multi-node scaleup topology based on the hardware platform.
+   * Requires Vault for switch credential management.
+   */
+  rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * Switch Control RPCs
+   * All switch operations require Vault for credential management.
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * FetchSwitchSystemImage downloads a switch OS image from a remote URL to the switch.
+   * Returns a job ID for tracking the download progress.
+   */
+  rpc FetchSwitchSystemImage(FetchSwitchSystemImageRequest) returns (FetchSwitchSystemImageResponse) {}
+  
+  /*
+   * InstallSwitchSystemImage installs a previously fetched OS image on the switch.
+   * Returns a job ID for tracking the installation progress.
+   */
+  rpc InstallSwitchSystemImage(InstallSwitchSystemImageRequest) returns (InstallSwitchSystemImageResponse) {}
+  
+  /*
+   * ListSwitchSystemImages retrieves the list of OS images available on the switch.
+   * Returns information about installed and staged images.
+   */
+  rpc ListSwitchSystemImages(ListSwitchSystemImagesRequest) returns (ListSwitchSystemImagesResponse) {}
+  
+  /*
+   * UpdateScaleUpFabricConfig enables or disables the FabricState of a switch.
+   * FabricState must be enabled before using ScaleUpFabricManager Feature
+   */
+  rpc UpdateScaleUpFabricConfig(UpdateScaleUpFabricConfigRequest) returns (UpdateScaleUpFabricConfigResponse) {}
+  
+  /*
+   * GetScaleUpFabricState retrieves the current FabricState.
+   * Returns whether the FabricState is enabled, disabled, or in transition.
+   */
+  rpc GetScaleUpFabricState(GetScaleUpFabricStateRequest) returns (GetScaleUpFabricStateResponse) {}
+  
+  /*
+   * GetScaleUpFabricServicesStatus retrieves the status of a FabricManager application.
+   * Used to check if applications like ScaleUpFabricManager or ScaleUpFabricTelemetry are running properly.
+   */
+  rpc GetScaleUpFabricServicesStatus(GetScaleUpFabricServicesStatusRequest) returns (GetScaleUpFabricServicesStatusResponse) {}
+  
+  /*
+   * EnableScaleUpFabricManager enables or disables external access to ScaleUpFabricManager.
+   * Required for external clients to communicate with the ScaleUpFabricManager.
+   */
+  rpc EnableScaleUpFabricManager(EnableScaleUpFabricManagerRequest) returns (EnableScaleUpFabricManagerResponse) {}
+  
+  /*
+   * RestartScaleUpFabricServices restarts a ScaleUpFabricServices on the switch.
+   * Useful for recovering from application errors or applying configuration changes.
+   */
+  rpc RestartScaleUpFabricServices(RestartScaleUpFabricServicesRequest) returns (RestartScaleUpFabricServicesResponse) {}
+  
+  /*
+   * CheckScaleUpFabricServicesConnectivity verifies gRPC connectivity to the ScaleUpFabricServices.
+   * Confirms that external clients can communicate with the ScaleUpFabricServices.
+   */
+  rpc CheckScaleUpFabricServicesConnectivity(CheckScaleUpFabricServicesConnectivityRequest) returns (CheckScaleUpFabricServicesConnectivityResponse) {}
+  
+  /*
+   * EnableScaleUpFabricTelemetryInterface enables or disables the FabricTelemetryInterface service.
+   * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
+   */
+  rpc EnableScaleUpFabricTelemetryInterface(EnableScaleUpFabricTelemetryInterfaceRequest) returns (EnableScaleUpFabricTelemetryInterfaceResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * Utility RPCs
+   *-------------------------------------------------------------------------*/
+  
+  /*
+   * Version returns server version information.
+   * Currently returns empty response; version info may be added in future releases.
+   */
+  rpc Version(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  /*
+   * PollJobStatus poll given job id in an interval.
+   */
+   rpc PollJobStatus(PollJobStatusCommand) returns (PollJobStatusResponse) {}
+}
+
+
+/*******************************************************************************
+ * POWER CONTROL MESSAGES
+ ******************************************************************************/
+
+// SetPowerStateRequest controls the power state of a single node.
+message SetPowerStateRequest {
+  Metadata metadata = 1;
+  string node_id = 2;           // Target node identifier
+  PowerOperation operation = 3; // Power operation to perform
+  string rack_id = 4;           // Rack containing the target node
+}
+
+// SetPowerStateResponse confirms the power operation result.
+message SetPowerStateResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if power operation completed, FAILURE otherwise
+}
+
+// GetPowerStateRequest queries the current power state of a node.
+message GetPowerStateRequest {
+  Metadata metadata = 1;
+  string node_id = 2;     // Target node identifier
+  string rack_id = 3;     // Rack containing the target node
+}
+
+// GetPowerStateResponse returns the current power state of a node.
+message GetPowerStateResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if query completed, FAILURE otherwise
+  string node_id = 3;      // Node identifier (echoed from request)
+  string pstate = 4;       // Current power state: "ON", "OFF", or "UNKNOWN"
+  string rack_id = 5;      // Rack identifier (echoed from request)
+}
+
+// RackPowerRequest controls power for all nodes in a rack.
+message SequenceRackPowerRequest {
+  Metadata metadata = 1;
+  RackPowerOperation operation = 2; // Rack-wide power operation to perform
+  string rack_id = 3;               // Target rack identifier
+  string vault_path = 4;            // Vault path for switch credentials  
+}
+
+// RackPowerResponse confirms the rack power operation result.
+message SequenceRackPowerResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if operation completed, FAILURE otherwise
+  string message = 3;      // Human-readable status or error message
+}
+
+
+/*******************************************************************************
+ * INVENTORY CONTROL MESSAGES
+ ******************************************************************************/
+
+// GetInventoryRequest retrieves the complete system inventory.
+message GetAllInventoryRequest {
+  Metadata metadata = 1;
+}
+
+// GetInventoryResponse returns all nodes and their components.
+message GetAllInventoryResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                // SUCCESS if inventory retrieved, FAILURE otherwise
+  repeated NodeInventoryInfo nodes = 3; // Complete list of nodes across all racks
+}
+
+// AddNodeRequest registers new nodes in the inventory.
+message AddNodeRequest {
+  Metadata metadata = 1;
+  repeated NewNodeInfo node_info = 2; // List of nodes to add (batch operation supported)
+}
+
+// AddNodeResponse reports the results of adding nodes.
+message AddNodeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if all nodes added, FAILURE if any failed
+  string message = 3;      // Summary of additions including success/failure counts
+}
+
+// UpdateNodeRequest modifies an existing node's configuration.
+message UpdateNodeRequest {
+  Metadata metadata = 1;
+  string node_id = 2;             // Target node identifier
+  NodeUpdateInfo update_info = 3; // Fields to update (only set fields are changed)
+  string rack_id = 4;             // Rack containing the target node
+}
+
+// UpdateNodeResponse confirms the update result.
+message UpdateNodeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if update completed, FAILURE otherwise
+  string message = 3;      // Human-readable status or error message
+}
+
+// RemoveNodeRequest deletes a node from the inventory.
+message RemoveNodeRequest {
+  Metadata metadata = 1;
+  string node_id = 2;     // Target node identifier to remove
+  string rack_id = 3;     // Rack containing the target node
+}
+
+// RemoveNodeResponse confirms the removal result.
+message RemoveNodeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if node removed, FAILURE otherwise
+  string message = 3;      // Human-readable status or error message
+}
+
+// GetPowerOnOrderRequest retrieves the boot sequence for a rack.
+message GetRackPowerOnSequenceRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Target rack identifier
+}
+
+// GetPowerOnOrderResponse returns the configured boot sequence.
+message GetRackPowerOnSequenceResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                        // SUCCESS if retrieved, FAILURE otherwise
+  repeated PowerOnOrderItem power_on_order = 3; // Ordered list of nodes for boot sequence
+  bool is_valid = 4;                            // Whether the power-on order is valid for use
+}
+
+// SetPowerOnOrderRequest configures the boot sequence for a rack.
+message SetRackPowerOnSequenceRequest {
+  Metadata metadata = 1;
+  repeated PowerOnOrderItem power_on_order = 2; // Ordered list of nodes for boot sequence
+  string rack_id = 3;                           // Target rack identifier
+}
+
+// SetPowerOnOrderResponse confirms the configuration result.
+message SetRackPowerOnSequenceResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if configured, FAILURE otherwise
+  string message = 3;      // Human-readable status or error message
+}
+
+// ListRacksRequest retrieves all rack identifiers.
+message ListRacksRequest {
+  Metadata metadata = 1;
+}
+
+// ListRacksResponse returns all rack identifiers in the system.
+message ListRacksResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;        // SUCCESS if retrieved, FAILURE otherwise
+  repeated string rack_ids = 3; // List of all rack identifiers
+}
+
+
+/*******************************************************************************
+ * FIRMWARE CONTROL MESSAGES
+ ******************************************************************************/
+
+// GetNodeFirmwareInventoryRequest retrieves firmware info for a specific node.
+message GetNodeFirmwareInventoryRequest {
+  Metadata metadata = 1;
+  string node_id = 2;     // Target node identifier
+  string rack_id = 3;     // Rack containing the target node
+}
+
+// GetNodeFirmwareInventoryResponse returns firmware component information.
+message GetNodeFirmwareInventoryResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                            // SUCCESS if retrieved, FAILURE otherwise
+  repeated FirmwareInventoryInfo firmware_list = 3; // List of firmware components on the node
+}
+
+// UpdateFirmwareRequest initiates a firmware update on a node.
+// Use api for switches 
+message UpdateNodeFirmwareRequest {
+  Metadata metadata = 1;
+  string node_id = 2;     // Target node identifier
+  string filename = 3;    // Firmware filename (relative to firmware directory or absolute path)
+  string target = 4;      // Redfish UpdateService target URI for the component to update
+  bool activate = 5;      // Whether to immediately activate the firmware after installation
+  string rack_id = 6;     // Rack containing the target node
+  string vault_path = 7;  // Required for switch nodes: Vault path 
+}
+
+// UpdateFirmwareResponse reports the firmware update result.
+message UpdateNodeFirmwareResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;              // SUCCESS if update completed, FAILURE otherwise
+  string message = 3;                 // Human-readable status or error message
+  FirmwareUpdateError error_code = 4; // Detailed error code for troubleshooting
+  string job_id = 5; // Optional: Job ID for asynchronous operations (e.g., switch firmware updates)
+}
+
+// UpdateFirmwareByNodeTypeRequest updates firmware on all nodes of a type.
+message UpdateFirmwareByNodeTypeRequest {
+  Metadata metadata = 1;
+  NodeType node_type = 2; // Type of nodes to update
+  string filename = 3;    // Firmware filename (relative to firmware directory or absolute path)
+  string target = 4;      // Redfish UpdateService target URI for the component to update
+  string rack_id = 5;     // Target rack identifier
+}
+
+// UpdateFirmwareByNodeTypeResponse reports bulk update results.
+message UpdateFirmwareByNodeTypeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                      // SUCCESS if all updates succeeded, FAILURE if any failed
+  string message = 3;                         // Human-readable summary message
+  int32 total_nodes = 4;                      // Total number of nodes targeted for update
+  int32 successful_updates = 5;               // Number of nodes successfully updated
+  int32 failed_updates = 6;                   // Number of nodes that failed to update
+  repeated NodeUpdateResult node_results = 7; // Individual results for each node
+}
+
+// GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
+message GetRackFirmwareInventoryRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Target rack identifier
+}
+
+// GetRackFirmwareInventoryResponse returns firmware info for all nodes.
+message GetRackFirmwareInventoryResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                    // SUCCESS if retrieved, FAILURE otherwise
+  repeated NodeFirmwareInventory nodes = 3; // Firmware inventory grouped by node
+}
+
+/*******************************************************************************
+ * Switch ScaleUpFabricServices CONTROL MESSAGES
+ ******************************************************************************/
+
+/*
+ * ConfigureScaleUpFabricManagerRequest performs complete ScaleUpFabricManager setup on a switch.
+ * This operation enables the ScaleUpFabricManager, configures ScaleUpFabricManager access, and sets topology.
+ */
+message ConfigureScaleUpFabricManagerRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;           // Rack containing the target switch (required)
+  string node_id = 3;           // Target switch node identifier (required)
+  string vault_path = 4;        // Vault path for switch credentials 
+  string hardware_platform = 5; // Hardware platform identifier 
+  int32 switch_port = 6;        // API port number (default: 443)
+  bool verify_ssl = 7;          // Whether to verify SSL certificates for HTTPS connections
+}
+
+// ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
+message ConfigureScaleUpFabricManagerResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;      // SUCCESS if configuration completed, FAILURE otherwise
+  string message = 3;         // Human-readable status or error message
+  string topology_used = 4;   // multi-node scaleup topology that was applied
+  bool scale_up_fabric_state_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
+  bool grpc_enabled = 6;      // Whether gRPC access is now enabled
+}
+
+
+/*******************************************************************************
+ * SWITCH CONTROL MESSAGES
+ *
+ * These messages are used for managing NVIDIA network switches via API.
+ * All switch operations require Vault for credential management.
+ ******************************************************************************/
+
+// FetchSwitchSystemImageRequest downloads an OS image to a switch.
+message FetchSwitchSystemImageRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;      // Rack containing the target switch (required)
+  string node_id = 3;      // Target switch node identifier (required)
+  string vault_path = 4;   // Vault path for switch credentials (required)
+  int32 port = 5;          // API port number (default: 443)
+  bool verify_ssl = 6;     // Whether to verify SSL certificates
+  string remote_url = 7;   // URL to download the system image from
+}
+
+// FetchSwitchSystemImageResponse reports the download initiation result.
+message FetchSwitchSystemImageResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if download started, FAILURE otherwise
+  string job_id = 3;        // Job identifier for tracking download progress
+  string error_message = 4; // Error details if download failed to start
+}
+
+// InstallSwitchSystemImageRequest installs an OS image on a switch.
+message InstallSwitchSystemImageRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;         // Rack containing the target switch (required)
+  string node_id = 3;         // Target switch node identifier (required)
+  string vault_path = 4;      // Vault path for switch credentials (required)
+  int32 port = 5;             // API port number (default: 443)
+  bool verify_ssl = 6;        // Whether to verify SSL certificates
+  string image_filename = 7;  // Filename of the image to install (must be fetched first)
+}
+
+// InstallSwitchSystemImageResponse reports the installation initiation result.
+message InstallSwitchSystemImageResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if installation started, FAILURE otherwise
+  string job_id = 3;        // Job identifier for tracking installation progress
+  string error_message = 4; // Error details if installation failed to start
+}
+
+// ListSwitchSystemImagesRequest retrieves available OS images on a switch.
+message ListSwitchSystemImagesRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+}
+
+// ListSwitchSystemImagesResponse returns available OS images.
+message ListSwitchSystemImagesResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  string images_json = 3;   // JSON array containing image information
+  string error_message = 4; // Error details if query failed
+}
+
+// UpdateScaleUpFabricConfigRequest enables or disables the ScaleUpFabricMgr feature.
+message UpdateScaleUpFabricConfigRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  bool enabled = 7;       // true to enable ScaleUpFabricMgr, false to disable
+}
+
+// UpdateScaleUpFabricConfigResponse reports the configuration result.
+message UpdateScaleUpFabricConfigResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  bool success = 3;         // Whether the configuration change was applied
+  string error_message = 4; // Error details if configuration failed
+}
+
+// GetScaleUpFabricStateRequest retrieves the ScaleUpFabric state.
+message GetScaleUpFabricStateRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+}
+
+// GetScaleUpFabricStateResponse returns the ScaleUpFabric  state.
+message GetScaleUpFabricStateResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  string state_json = 3;    // JSON object containing ScaleUpFabricState information
+  string error_message = 4; // Error details if query failed
+}
+
+// GetScaleUpFabricServicesStatusRequest retrieves status of a FabricService .
+message GetScaleUpFabricServicesStatusRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  string app_name = 7;    // Application name to query, e.g., "ScaleUpFabricManager"
+}
+
+// GetScaleUpFabricServicesStatusResponse returns application status.
+message GetScaleUpFabricServicesStatusResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  string status_json = 3;   // JSON object containing application status
+  string error_message = 4; // Error details if query failed
+}
+
+// EnableScaleUpFabricManagerRequest enables or disables ScaleUpFabricManager.
+message EnableScaleUpFabricManagerRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  string app_name = 7;    // Application name, e.g., "ScaleUpFabricManager"
+  bool enabled = 8;       // true to enable gRPC, false to disable
+}
+
+// EnableScaleUpFabricManagerResponse reports the ScaleUpFabricManager result.
+message EnableScaleUpFabricManagerResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3;   // JSON object containing configuration result
+  string error_message = 4; // Error details if configuration failed
+}
+
+// RestartScaleUpFabricServicesRequest restarts FabricServices.
+message RestartScaleUpFabricServicesRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  string app_name = 7;    // Application name to restart, e.g., "ScaleUpFabricManager"
+}
+
+// RestartScaleUpFabricServicesResponse reports the restart result.
+message RestartScaleUpFabricServicesResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if restarted, FAILURE otherwise
+  bool success = 3;         // Whether the restart was successful
+  string error_message = 4; // Error details if restart failed
+}
+
+// CheckScaleUpFabricServicesConnectivityRequest verifies external connectivity to ScaleUpFabricService.
+message CheckScaleUpFabricServicesConnectivityRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;            // Rack containing the target switch (required)
+  string node_id = 3;            // Target switch node identifier (required)
+  string vault_path = 4;         // Vault path for switch credentials (required)
+  int32 port = 5;                // API port number (default: 443)
+  bool verify_ssl = 6;           // Whether to verify SSL certificates
+  string app_name = 7;           // Application name, e.g., "ScaleUpFabricManager"
+  string target_switch_name = 8; // Target switch hostname/IP for connectivity test
+}
+
+// CheckScaleUpFabricServicesConnectivityResponse returns response on enabling ScaleUpFabricService.
+message CheckScaleUpFabricServicesConnectivityResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if check completed, FAILURE otherwise
+  string status_json = 3;   // JSON object containing connectivity status and details
+  string error_message = 4; // Error details if check failed
+}
+
+// EnableScaleUpFabricTelemetryInterfaceRequest enables or disables the FabricTelemetryInterface.
+message EnableScaleUpFabricTelemetryInterfaceRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target switch (required)
+  string node_id = 3;     // Target switch node identifier (required)
+  string vault_path = 4;  // Vault path for switch credentials (required)
+  int32 port = 5;         // API port number (default: 443)
+  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  bool enabled = 7;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
+}
+
+// EnableScaleUpFabricTelemetryInterfaceResponse reports the FabricTelemetryInterface status.
+message EnableScaleUpFabricTelemetryInterfaceResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3;   // JSON object containing configuration result
+  string error_message = 4; // Error details if configuration failed
+}
+
+message ListFirmwareOnSwitchCommand {
+  Metadata metadata = 1;
+  string rack_id = 2;           			    // Required: Rack ID for inventory lookup
+  string node_id = 3;           			    // Required: Node ID for inventory lookup
+  string vault_path = 4;        			    // Required: Full Vault path.
+  SwitchFirmwareComponentType component_type = 5;  	    // Required: Firmware component type enum
+  int32 port = 6;              				    // Optional: API port (default: 443)
+  bool verify_ssl = 7;         				    // Optional: Whether to verify SSL certificates
+}
+
+message ListFirmwareOnSwitchResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3;   // JSON object containing configuration result
+  string error_message = 4; // Error details if configuration failed
+}
+
+// PushFirmwareToSwitch command/response
+message PushFirmwareToSwitchCommand {
+  Metadata metadata = 1;
+  string rack_id = 2;           		   // Required: Rack ID for inventory lookup
+  string node_id = 3;           		   // Required: Node ID for inventory lookup
+  string vault_path = 4;        		   // Required: Full Vault path 
+  SwitchFirmwareComponentType component_type = 5;  // Required: Firmware component type enum
+  string filename = 6;          		   // Required: Desired filename on the switch (used as-is, no suffix modification)
+  string local_file_path = 7;   		   // Required: Local file path on rackmanager host (file must be at least 1KB)
+}
+
+message PushFirmwareToSwitchResponse {
+  Metadata metadata = 1;    
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3;   // JSON object containing configuration result
+  string error_message = 4; // Error details if configuration failed
+}
+
+message PollJobStatusCommand {
+  Metadata metadata = 1;
+  string rack_id = 2;               // Required: Rack ID for inventory lookup       
+  string node_id = 3;               // Required: Node ID for inventory lookup       
+  string vault_path = 4;  	    // Required: Full Vault path 
+  string job_id = 5;                // Job id for previously submitted job         
+  int32 port = 6;                   // Optional:  API port (default: 443)
+  bool verify_ssl = 7;              // Optional: Whether to verify SSL certificates    
+  int32 timeout_seconds = 8;        // Optional: Timeout for the polling job
+  int32 poll_interval_seconds = 9;  // Optional: Poll interval in seconds (default: 5)
+}
+
+message PollJobStatusResponse {
+  Metadata metadata = 1;   
+  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
+  string state = 3;        // State of the job (active,pending,running)   
+  string result_json = 4; // JSON object containing configuration result
+  string error_message = 5; // Error details if configuration failed
+}
