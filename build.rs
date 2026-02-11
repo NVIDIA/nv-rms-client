@@ -14,7 +14,7 @@
 
 use std::path::PathBuf;
 
-use tonic_client_wrapper::codegen;
+use ::tonic_client_wrapper::codegen;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let out_dir = PathBuf::from(std::env::var_os("OUT_DIR").unwrap());

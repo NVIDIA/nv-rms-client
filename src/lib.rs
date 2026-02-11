@@ -99,13 +99,13 @@ impl RmsClientPool {
 
 #[async_trait::async_trait]
 pub trait RackManagerClientPool: Send + Sync + 'static {
-    async fn create_client(&self) -> Arc<Box<dyn RmsApi>>;
+    async fn create_client(&self) -> Arc<dyn RmsApi>;
 }
 
 #[async_trait::async_trait]
 impl RackManagerClientPool for RmsClientPool {
-    async fn create_client(&self) -> Arc<Box<dyn RmsApi>> {
-        Arc::new(Box::new(self.client.clone()))
+    async fn create_client(&self) -> Arc<dyn RmsApi> {
+        Arc::new(self.client.clone())
     }
 }
 
