@@ -1,9 +1,9 @@
 [package]
 name = "tonic-client-wrapper"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
-authors.workspace = true
+version = "1.0.0"
+edition = "2024"
+license = "Apache-2.0"
+authors = [ "NVIDIA Engineering <dcss-forge-rms@exchange.nvidia.com>" ]
 
 [features]
 default = ["codegen"]
@@ -19,20 +19,17 @@ codegen = [
 ]
 
 [dependencies]
-thiserror = { workspace = true }
-tonic = { workspace = true }
-async-trait = { workspace = true }
-proc-macro2 = { optional = true, workspace = true }
-tonic-prost-build = { optional = true, workspace = true }
-quote = { optional = true, workspace = true }
-syn = { optional = true, workspace = true }
-prettyplease = { optional = true, workspace = true }
-heck = { optional = true, workspace = true }
-prost-types = { optional = true, workspace = true }
-lazy_static = { optional = true, workspace = true }
+thiserror = "2.0.14"
+tonic = { version = "0.14", features = ["tls-ring"] }
+async-trait = "0.1.88"
+proc-macro2 = { optional = true, default-features = false, version = "1.0.92" }
+tonic-prost-build = { optional = true, version = "0.14" }
+quote = { optional = true, default-features = false, version = "1.0" }
+syn = { optional = true, default-features = false, version = "2.0" }
+prettyplease = { optional = true, version = "0.2.30" }
+heck = { optional = true, version = "0.5.0" }
+prost-types = { optional = true, version = "0.14.1" }
+lazy_static = { optional = true, version = "1.5.0" }
 
 [dev-dependencies]
-temp-dir = { workspace = true }
-
-[lints]
-workspace = true
+temp-dir = { version = "0.2.0" }
