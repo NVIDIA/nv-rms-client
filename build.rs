@@ -50,6 +50,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.UpgradeStage",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.NewNodeInfo",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
@@ -303,6 +307,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .type_attribute(
             "rack_manager.PushFirmwareToSwitchResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpgradeFirmwareOnSwitchCommand",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpgradeFirmwareOnSwitchResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
