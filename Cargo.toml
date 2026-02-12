@@ -1,11 +1,10 @@
-
 [package]
 name = "librms"
 description = "NVIDIA Rack Manager Service client"
 authors = [ "NVIDIA Engineering <dcss-forge-rms@exchange.nvidia.com>" ]
 repository = "https://github.com/NVIDIA/nv-rms-client.git"
 license = "Apache-2.0"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2024"
 
 [dependencies]
