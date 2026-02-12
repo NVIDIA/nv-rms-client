@@ -83,6 +83,18 @@ enum SwitchFirmwareComponentType {
   SWITCH_FW_COMPONENT_TRANSCEIVER = 6;  // Optical transceiver
 }
 
+// UpgradeStage identifies the stage of firmware upgrade process on a switch.
+enum UpgradeStage {
+  UPGRADE_STAGE_UNKNOWN = 0;                    // Unknown stage
+  UPGRADE_STAGE_CHECK_CURRENT_VERSION = 1;      // Checking current firmware version
+  UPGRADE_STAGE_PUSH_FIRMWARE = 2;              // Pushing firmware file to switch
+  UPGRADE_STAGE_INSTALL_FIRMWARE = 3;           // Installing firmware on switch
+  UPGRADE_STAGE_POWER_CYCLE = 4;                // Power cycling the switch
+  UPGRADE_STAGE_WAIT_FOR_HEALTH = 5;            // Waiting for switch to become healthy
+  UPGRADE_STAGE_VERIFY_VERSION = 6;              // Verifying upgraded firmware version
+  UPGRADE_STAGE_COMPLETE = 7;                    // Upgrade completed successfully
+}
+
 /*******************************************************************************
  * COMMON MESSAGES
  ******************************************************************************/
@@ -123,6 +135,7 @@ message NodeUpdateInfo {
   optional int32 port = 2;         // New port number for BMC communication
   optional string username = 3;    // New BMC username for testing only
   optional string password = 4;    // New BMC password for testing only
+  optional string vault_path = 5;  // New Vault path for credential lookup (e.g., "switch_nvos/{mac_address}/admin")
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
@@ -304,6 +317,14 @@ service RackManager {
    */
    rpc PushFirmwareToSwitch(PushFirmwareToSwitchCommand) returns (PushFirmwareToSwitchResponse) {}
 
+   /*
+    * UpgradeFirmwareOnSwitch performs a complete firmware upgrade workflow for a switch component.
+    * This includes: checking current version, pushing firmware file, installing firmware,
+    * power cycling the switch, waiting for health, and verifying the new version.
+    * Returns the stage where upgrade failed (if any) along with error details.
+    */
+   rpc UpgradeFirmwareOnSwitch(UpgradeFirmwareOnSwitchCommand) returns (UpgradeFirmwareOnSwitchResponse) {}
+
   /*---------------------------------------------------------------------------
    * Scale Up switch control RPCs
    *-------------------------------------------------------------------------*/
@@ -408,6 +429,7 @@ message SetPowerStateRequest {
   string node_id = 2;           // Target node identifier
   PowerOperation operation = 3; // Power operation to perform
   string rack_id = 4;           // Rack containing the target node
+  string vault_path = 5;        // Required for switch nodes: Vault path
 }
 
 // SetPowerStateResponse confirms the power operation result.
@@ -643,7 +665,7 @@ message ConfigureScaleUpFabricManagerResponse {
   ReturnCode status = 2;      // SUCCESS if configuration completed, FAILURE otherwise
   string message = 3;         // Human-readable status or error message
   string topology_used = 4;   // multi-node scaleup topology that was applied
-  bool scale_up_fabric_state_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
+  bool ScaleUpFabricState_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
   bool grpc_enabled = 6;      // Whether gRPC access is now enabled
 }
 
@@ -878,6 +900,29 @@ message PushFirmwareToSwitchResponse {
   ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
   string result_json = 3;   // JSON object containing configuration result
   string error_message = 4; // Error details if configuration failed
+}
+
+// UpgradeFirmwareOnSwitchCommand performs complete firmware upgrade workflow for a switch component.
+// If node_id is empty, upgrades all switches in the rack in parallel.
+message UpgradeFirmwareOnSwitchCommand {
+  Metadata metadata = 1;
+  string rack_id = 2;                                    // Required: Rack ID for inventory lookup
+  optional string node_id = 3;                           // Optional: Node ID for inventory lookup. If empty, upgrades all switches in rack
+  string vault_path = 4;                                 // Required: Full Vault path (or empty if node_id is empty, will be extracted from each node)
+  SwitchFirmwareComponentType component = 5;             // Required: Firmware component type enum
+  string filename = 6;                                   // Required: Local filesystem path to firmware file (filename contains package-name-version)
+  int32 port = 7;                                        // Optional: API port (default: 443)
+  bool verify_ssl = 8;                                   // Optional: Whether to verify SSL certificates
+}
+
+message UpgradeFirmwareOnSwitchResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                                // SUCCESS if upgrade completed, FAILURE otherwise
+  UpgradeStage failed_stage = 3;                         // Stage where upgrade failed (if status is FAILURE)
+  string error_message = 4;                             // Error details if upgrade failed (or summary message for multi-switch mode)
+  string current_filename = 5;                          // Firmware filename before upgrade (single switch mode only)
+  string new_filename = 6;                              // Firmware filename after upgrade (if successful, single switch mode only)
+  string result_json = 7;                               // JSON array with detailed results for all switches (multi-switch mode only)
 }
 
 message PollJobStatusCommand {

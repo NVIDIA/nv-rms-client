@@ -22,6 +22,7 @@ use tonic::Status;
 use crate::client::{RackManagerClientT, RetryConfig, RmsApiConfig, RmsTlsClient};
 use crate::client_config::RmsClientConfig;
 use crate::protos::rack_manager as rms;
+use crate::protos::rack_manager::{UpgradeFirmwareOnSwitchCommand, UpgradeFirmwareOnSwitchResponse};
 use crate::protos::rack_manager_client::RackManagerApiClient;
 pub mod client;
 pub mod client_config;
@@ -198,6 +199,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::PushFirmwareToSwitchCommand,
     ) -> Result<rms::PushFirmwareToSwitchResponse, RackManagerError>;
+    async fn upgrade_firmware_on_switch(
+        &self,
+        cmd: rms::UpgradeFirmwareOnSwitchCommand,
+    ) -> Result<rms::UpgradeFirmwareOnSwitchResponse, RackManagerError>;
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
@@ -392,6 +397,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::PushFirmwareToSwitchResponse, RackManagerError> {
         self.client
             .push_firmware_to_switch(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn upgrade_firmware_on_switch(
+        &self,
+        cmd: UpgradeFirmwareOnSwitchCommand,
+    ) -> Result<UpgradeFirmwareOnSwitchResponse, RackManagerError> {
+        self.client
+            .upgrade_firmware_on_switch(cmd)
             .await
             .map_err(RackManagerError::from)
     }
