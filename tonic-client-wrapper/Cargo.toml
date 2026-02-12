@@ -32,4 +32,4 @@ prost-types = { optional = true, version = "0.14.1" }
 lazy_static = { optional = true, version = "1.5.0" }
 
 [dev-dependencies]
-temp-dir = { version = "0.2.0" }
+temp-dir = { version = "0.1.14" }

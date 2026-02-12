@@ -32,7 +32,7 @@ tryhard = "0.5.1"
 
 [build-dependencies]
 tonic-client-wrapper = { path = "tonic-client-wrapper", default-features = false, features = ["codegen"] }
-tonic-prost-build = "0.14.3"
+tonic-prost-build = "0.14"
 
 [lints.clippy]
 cloned_instead_of_copied = "warn"
