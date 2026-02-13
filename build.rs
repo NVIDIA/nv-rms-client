@@ -325,6 +325,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.PollJobStatusResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
+        .type_attribute(
+            "rack_manager.FirmwareJobState",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.FirmwareTarget",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.NodeFirmwareJobInfo",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateFirmwareByNodeTypeAsyncResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetFirmwareJobStatusRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetFirmwareJobStatusResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .include_file("prost_common.rs")
         .build_server(false)
         .build_client(true)
