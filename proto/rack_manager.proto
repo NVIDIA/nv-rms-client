@@ -354,7 +354,7 @@ service RackManager {
    *-------------------------------------------------------------------------*/
   
   /*
-   * ConfigurScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
+   * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
    * This includes enabling the scale fabric services services,configuring gRPC access,and sets
    * multi-node scaleup topology based on the hardware platform.
    * Requires Vault for switch credential management.
