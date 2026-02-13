@@ -83,6 +83,14 @@ enum SwitchFirmwareComponentType {
   SWITCH_FW_COMPONENT_TRANSCEIVER = 6;  // Optical transceiver
 }
 
+// FirmwareJobState represents the lifecycle state of an asynchronous firmware job.
+enum FirmwareJobState {
+  FW_JOB_QUEUED     = 0;  // Job has been created and is waiting to start
+  FW_JOB_RUNNING    = 1;  // Job is actively executing
+  FW_JOB_COMPLETED  = 2;  // Job finished successfully
+  FW_JOB_FAILED     = 3;  // Job finished with an error
+}
+
 // UpgradeStage identifies the stage of firmware upgrade process on a switch.
 enum UpgradeStage {
   UPGRADE_STAGE_UNKNOWN = 0;                    // Unknown stage
@@ -119,8 +127,8 @@ message NewNodeInfo {
   string mac_address = 2;         // MAC address of the node's BMC interface
   string ip_address = 3;          // IP address of the node's BMC interface
   int32 port = 4;                 // Port number for BMC communication
-  optional string username = 5;   // BMC username for testing only
-  optional string password = 6;   // BMC password for testing only
+  optional string username = 5;   // BMC username
+  optional string password = 6;   // BMC password
   optional NodeType type = 7;     // Type/category of the node
   string rack_id = 8;             // Identifier of the rack containing this node
   string vault_path = 9;          // Vault path to the creds of the Node
@@ -133,8 +141,8 @@ message NewNodeInfo {
 message NodeUpdateInfo {
   optional string ip_address = 1;  // New IP address for the node's BMC
   optional int32 port = 2;         // New port number for BMC communication
-  optional string username = 3;    // New BMC username for testing only
-  optional string password = 4;    // New BMC password for testing only
+  optional string username = 3;    // New BMC username
+  optional string password = 4;    // New BMC password
   optional string vault_path = 5;  // New Vault path for credential lookup (e.g., "switch_nvos/{mac_address}/admin")
 }
 
@@ -288,15 +296,31 @@ service RackManager {
   /*
    * UpdateNodeFirmware initiates a firmware update on a specific node.
    * Optionally activates the new firmware immediately after installation.
+   * This is a synchronous (blocking) call that returns when the update completes.
    */
   rpc UpdateNodeFirmware(UpdateNodeFirmwareRequest) returns (UpdateNodeFirmwareResponse) {}
+
+  /*
+   * UpdateNodeFirmwareAsync initiates a firmware update on a specific node asynchronously.
+   * Returns a job ID immediately. Use GetFirmwareJobStatus to track progress.
+   * Works for all node types (compute, powershelf, switch).
+   */
+  rpc UpdateNodeFirmwareAsync(UpdateNodeFirmwareRequest) returns (UpdateNodeFirmwareResponse) {}
   
   /*
    * UpdateFirmwareByNodeType updates firmware on all nodes of a specific type in a rack.
    * Useful for bulk updates across all compute nodes, switches, etc.
    * Returns individual results for each node in the update batch.
+   * This is a synchronous (blocking) call that returns when all updates complete.
    */
   rpc UpdateFirmwareByNodeType(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeResponse) {}
+
+  /*
+   * UpdateFirmwareByNodeTypeAsync initiates firmware updates on all nodes of a specific
+   * type in a rack asynchronously. Returns a parent job ID for tracking overall batch status,
+   * along with individual node job IDs. Use GetFirmwareJobStatus to track progress.
+   */
+  rpc UpdateFirmwareByNodeTypeAsync(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeAsyncResponse) {}
   
   /*
    * GetRackFirmwareInventory retrieves firmware information for all nodes in a rack.
@@ -330,7 +354,7 @@ service RackManager {
    *-------------------------------------------------------------------------*/
   
   /*
-   * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
+   * ConfigurScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
    * This includes enabling the scale fabric services services,configuring gRPC access,and sets
    * multi-node scaleup topology based on the hardware platform.
    * Requires Vault for switch credential management.
@@ -416,6 +440,13 @@ service RackManager {
    * PollJobStatus poll given job id in an interval.
    */
    rpc PollJobStatus(PollJobStatusCommand) returns (PollJobStatusResponse) {}
+
+  /*
+   * GetFirmwareJobStatus retrieves the current status of an asynchronous firmware job.
+   * Returns state and error information for the specified job ID.
+   * Works for all node types (compute, powershelf, switch) and parent batch jobs.
+   */
+  rpc GetFirmwareJobStatus(GetFirmwareJobStatusRequest) returns (GetFirmwareJobStatusResponse) {}
 }
 
 
@@ -429,7 +460,7 @@ message SetPowerStateRequest {
   string node_id = 2;           // Target node identifier
   PowerOperation operation = 3; // Power operation to perform
   string rack_id = 4;           // Rack containing the target node
-  string vault_path = 5;        // Required for switch nodes: Vault path
+  string vault_path = 5;        // Required for switch nodes: Vault path 
 }
 
 // SetPowerStateResponse confirms the power operation result.
@@ -587,16 +618,24 @@ message GetNodeFirmwareInventoryResponse {
   repeated FirmwareInventoryInfo firmware_list = 3; // List of firmware components on the node
 }
 
+// FirmwareTarget pairs a firmware component target with its firmware package file.
+message FirmwareTarget {
+  string target = 1;    // Redfish UpdateService target URI or switch component name (e.g., "bmc", "fpga")
+  string filename = 2;  // Firmware filename (relative to firmware directory or absolute path)
+}
+
 // UpdateFirmwareRequest initiates a firmware update on a node.
-// Use api for switches 
+// Supports single target (filename + target fields) or multiple targets (firmware_targets list).
+// If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
 message UpdateNodeFirmwareRequest {
   Metadata metadata = 1;
   string node_id = 2;     // Target node identifier
-  string filename = 3;    // Firmware filename (relative to firmware directory or absolute path)
-  string target = 4;      // Redfish UpdateService target URI for the component to update
+  string filename = 3;    // Single firmware filename (used when firmware_targets is empty)
+  string target = 4;      // Single Redfish target URI (used when firmware_targets is empty)
   bool activate = 5;      // Whether to immediately activate the firmware after installation
   string rack_id = 6;     // Rack containing the target node
-  string vault_path = 7;  // Required for switch nodes: Vault path 
+  string vault_path = 7;  // Required for switch nodes: Vault path
+  repeated FirmwareTarget firmware_targets = 8;  // Multiple (target, filename) pairs for batch component updates
 }
 
 // UpdateFirmwareResponse reports the firmware update result.
@@ -605,16 +644,20 @@ message UpdateNodeFirmwareResponse {
   ReturnCode status = 2;              // SUCCESS if update completed, FAILURE otherwise
   string message = 3;                 // Human-readable status or error message
   FirmwareUpdateError error_code = 4; // Detailed error code for troubleshooting
-  string job_id = 5; // Optional: Job ID for asynchronous operations (e.g., switch firmware updates)
+  string job_id = 5; // Job ID for async operations (use with GetFirmwareJobStatus to track progress)
 }
 
 // UpdateFirmwareByNodeTypeRequest updates firmware on all nodes of a type.
+// Supports single target (filename + target fields) or multiple targets (firmware_targets list).
+// If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
 message UpdateFirmwareByNodeTypeRequest {
   Metadata metadata = 1;
   NodeType node_type = 2; // Type of nodes to update
-  string filename = 3;    // Firmware filename (relative to firmware directory or absolute path)
-  string target = 4;      // Redfish UpdateService target URI for the component to update
+  string filename = 3;    // Single firmware filename (used when firmware_targets is empty)
+  string target = 4;      // Single Redfish target URI (used when firmware_targets is empty)
   string rack_id = 5;     // Target rack identifier
+  repeated FirmwareTarget firmware_targets = 6;  // Multiple (target, filename) pairs for batch component updates
+  bool activate = 7;      // Whether to activate firmware after all targets are flashed
 }
 
 // UpdateFirmwareByNodeTypeResponse reports bulk update results.
@@ -626,6 +669,22 @@ message UpdateFirmwareByNodeTypeResponse {
   int32 successful_updates = 5;               // Number of nodes successfully updated
   int32 failed_updates = 6;                   // Number of nodes that failed to update
   repeated NodeUpdateResult node_results = 7; // Individual results for each node
+}
+
+// NodeFirmwareJobInfo pairs a node ID with its async firmware job ID.
+message NodeFirmwareJobInfo {
+  string node_id = 1;  // Node identifier
+  string job_id = 2;   // Firmware job ID (use with GetFirmwareJobStatus to track progress)
+}
+
+// UpdateFirmwareByNodeTypeAsyncResponse reports the created async jobs.
+message UpdateFirmwareByNodeTypeAsyncResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                            // SUCCESS if jobs created, FAILURE otherwise
+  string message = 3;                               // Human-readable summary message
+  string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
+  int32 total_nodes = 5;                            // Total number of nodes targeted
+  repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per node
 }
 
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
@@ -943,4 +1002,30 @@ message PollJobStatusResponse {
   string state = 3;        // State of the job (active,pending,running)   
   string result_json = 4; // JSON object containing configuration result
   string error_message = 5; // Error details if configuration failed
+}
+
+/*******************************************************************************
+ * FIRMWARE JOB STATUS MESSAGES
+ ******************************************************************************/
+
+// GetFirmwareJobStatusRequest queries the status of an asynchronous firmware job.
+message GetFirmwareJobStatusRequest {
+  Metadata metadata = 1;
+  string job_id = 2;       // Job ID returned from UpdateNodeFirmwareAsync or UpdateFirmwareByNodeTypeAsync
+}
+
+// GetFirmwareJobStatusResponse returns the current state of a firmware job.
+message GetFirmwareJobStatusResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                 // SUCCESS if job found, FAILURE if job_id not found
+  string job_id = 3;                     // Echoed job ID
+  FirmwareJobState job_state = 4;        // Current state of the firmware job
+  string state_description = 5;          // Human-readable description of current state (e.g., "Installing firmware")
+  string rack_id = 6;                    // Rack ID associated with this job
+  string node_id = 7;                    // Node ID associated with this job
+  FirmwareUpdateError error_code = 8;    // Error code if job failed
+  string error_message = 9;             // Error details if job failed
+  string result_json = 10;              // JSON with detailed result data (populated on completion)
+  int64 created_at = 11;                // Unix timestamp (ms) when job was created
+  int64 updated_at = 12;                // Unix timestamp (ms) when job was last updated
 }
