@@ -127,8 +127,8 @@ message NewNodeInfo {
   string mac_address = 2;         // MAC address of the node's BMC interface
   string ip_address = 3;          // IP address of the node's BMC interface
   int32 port = 4;                 // Port number for BMC communication
-  optional string username = 5;   // BMC username
-  optional string password = 6;   // BMC password
+  optional string username = 5;   // BMC username for testing only
+  optional string password = 6;   // BMC password for testing only
   optional NodeType type = 7;     // Type/category of the node
   string rack_id = 8;             // Identifier of the rack containing this node
   string vault_path = 9;          // Vault path to the creds of the Node
@@ -141,8 +141,8 @@ message NewNodeInfo {
 message NodeUpdateInfo {
   optional string ip_address = 1;  // New IP address for the node's BMC
   optional int32 port = 2;         // New port number for BMC communication
-  optional string username = 3;    // New BMC username
-  optional string password = 4;    // New BMC password
+  optional string username = 3;    // New BMC username for testing only
+  optional string password = 4;    // New BMC password for testing only
   optional string vault_path = 5;  // New Vault path for credential lookup (e.g., "switch_nvos/{mac_address}/admin")
 }
 
