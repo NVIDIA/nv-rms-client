@@ -252,6 +252,18 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::PollJobStatusCommand,
     ) -> Result<rms::PollJobStatusResponse, RackManagerError>;
+    async fn update_node_firmware_async(
+        &self,
+        cmd: rms::UpdateNodeFirmwareRequest,
+    ) -> Result<rms::UpdateNodeFirmwareResponse, RackManagerError>;
+    async fn update_firmware_by_node_type_async(
+        &self,
+        cmd: rms::UpdateFirmwareByNodeTypeRequest,
+    ) -> Result<rms::UpdateFirmwareByNodeTypeAsyncResponse, RackManagerError>;
+    async fn get_firmware_job_status(
+        &self,
+        cmd: rms::GetFirmwareJobStatusRequest,
+    ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError>;
 }
 
 #[async_trait::async_trait]
@@ -517,6 +529,33 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::PollJobStatusResponse, RackManagerError> {
         self.client
             .poll_job_status(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn update_node_firmware_async(
+        &self,
+        cmd: rms::UpdateNodeFirmwareRequest,
+    ) -> Result<rms::UpdateNodeFirmwareResponse, RackManagerError> {
+        self.client
+            .update_node_firmware_async(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn update_firmware_by_node_type_async(
+        &self,
+        cmd: rms::UpdateFirmwareByNodeTypeRequest,
+    ) -> Result<rms::UpdateFirmwareByNodeTypeAsyncResponse, RackManagerError> {
+        self.client
+            .update_firmware_by_node_type_async(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn get_firmware_job_status(
+        &self,
+        cmd: rms::GetFirmwareJobStatusRequest,
+    ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError> {
+        self.client
+            .get_firmware_job_status(cmd)
             .await
             .map_err(RackManagerError::from)
     }
