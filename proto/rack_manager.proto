@@ -132,6 +132,8 @@ message NewNodeInfo {
   optional NodeType type = 7;     // Type/category of the node
   string rack_id = 8;             // Identifier of the rack containing this node
   string vault_path = 9;          // Vault path to the creds of the Node
+  repeated string host_mac_addresses = 10;   // Vector of MAC addresses of the node's Host interfaces
+  repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
 }
 
 /*
@@ -144,6 +146,7 @@ message NodeUpdateInfo {
   optional string username = 3;    // New BMC username for testing only
   optional string password = 4;    // New BMC password for testing only
   optional string vault_path = 5;  // New Vault path for credential lookup (e.g., "switch_nvos/{mac_address}/admin")
+  repeated string host_ip_addresses = 6;   // Vector of IP addresses of the node's Host interfaces
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
@@ -158,6 +161,8 @@ message NodeInventoryInfo {
   string mac_address = 8;                   // MAC address of the node's BMC interface
   string rack_id = 9;                       // Identifier of the rack containing this node
   string vault_path = 10;                   // Vault path to the creds of the Node
+  repeated string host_mac_addresses = 11;   // Vector of MAC addresses of the node's Host interfaces
+  repeated string host_ip_addresses = 12;   // Vector of IP addresses of the node's Host interfaces
 }
 
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
