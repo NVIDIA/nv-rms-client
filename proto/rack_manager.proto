@@ -163,6 +163,23 @@ message NodeInventoryInfo {
   string vault_path = 10;                   // Vault path to the creds of the Node
   repeated string host_mac_addresses = 11;   // Vector of MAC addresses of the node's Host interfaces
   repeated string host_ip_addresses = 12;   // Vector of IP addresses of the node's Host interfaces
+  optional NodeDeviceInfo device_info = 13; // Normalized device metadata for the node
+}
+
+// SwitchDeviceInfo represents switch-specific chassis location metadata.
+message SwitchDeviceInfo {
+  string chassis_sn = 1;   // Chassis serial number
+  string slot_number = 2;  // Physical slot number in the rack topology
+  string topology_id = 3;  // Switch topology identifier
+  string tray_index = 4;   // Tray index of the switch
+}
+
+// NodeDeviceInfo represents normalized device metadata for a node.
+message NodeDeviceInfo {
+  string node_id = 1;                     // Node identifier
+  string rack_id = 2;                     // Rack containing the node
+  NodeType node_type = 3;                 // Type/category of the node
+  optional SwitchDeviceInfo switch_info = 4; // Switch-specific metadata
 }
 
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
@@ -287,6 +304,18 @@ service RackManager {
    * ListRacks returns a list of all rack IDs in the system.
   */
   rpc ListRacks(ListRacksRequest) returns (ListRacksResponse) {}
+
+  /*
+   * GetNodeDeviceInfo retrieves normalized device metadata for a specific node.
+   * For switches, this may perform a live NVUE query using the provided or stored Vault path.
+   */
+  rpc GetNodeDeviceInfo(GetNodeDeviceInfoRequest) returns (GetNodeDeviceInfoResponse) {}
+
+  /*
+   * GetRackDeviceInfoByNodeType retrieves normalized device metadata for all nodes
+   * of a specific type in a rack.
+   */
+  rpc GetRackDeviceInfoByNodeType(GetRackDeviceInfoByNodeTypeRequest) returns (GetRackDeviceInfoByNodeTypeResponse) {}
 
   /*---------------------------------------------------------------------------
    * Firmware Control RPCs
@@ -602,6 +631,38 @@ message ListRacksResponse {
   Metadata metadata = 1;
   ReturnCode status = 2;        // SUCCESS if retrieved, FAILURE otherwise
   repeated string rack_ids = 3; // List of all rack identifiers
+}
+
+// GetNodeDeviceInfoRequest retrieves normalized device metadata for a specific node.
+message GetNodeDeviceInfoRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target node
+  string node_id = 3;     // Target node identifier
+  string vault_path = 4;  // Optional Vault path override for switch live fetch
+}
+
+// GetNodeDeviceInfoResponse returns normalized device metadata for a specific node.
+message GetNodeDeviceInfoResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;      // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3;         // Human-readable status or error message
+  NodeDeviceInfo device_info = 4; // Normalized device metadata for the node
+}
+
+// GetRackDeviceInfoByNodeTypeRequest retrieves device metadata for all nodes of a type in a rack.
+message GetRackDeviceInfoByNodeTypeRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Target rack identifier
+  NodeType node_type = 3; // Type of nodes to query
+  string vault_path = 4;  // Optional Vault path override for switch live fetch
+}
+
+// GetRackDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
+message GetRackDeviceInfoByNodeTypeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                   // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3;                      // Human-readable status or error message
+  repeated NodeDeviceInfo node_device_info = 4; // Device metadata grouped by node
 }
 
 

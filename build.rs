@@ -66,6 +66,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.SwitchDeviceInfo",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.NodeDeviceInfo",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.DeviceInventoryInfo",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
@@ -171,6 +179,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .type_attribute(
             "rack_manager.ListRacksResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetNodeDeviceInfoRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetNodeDeviceInfoResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetRackDeviceInfoByNodeTypeRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetRackDeviceInfoByNodeTypeResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
