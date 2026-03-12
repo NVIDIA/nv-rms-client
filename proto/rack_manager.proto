@@ -163,23 +163,16 @@ message NodeInventoryInfo {
   string vault_path = 10;                   // Vault path to the creds of the Node
   repeated string host_mac_addresses = 11;   // Vector of MAC addresses of the node's Host interfaces
   repeated string host_ip_addresses = 12;   // Vector of IP addresses of the node's Host interfaces
-  optional NodeDeviceInfo device_info = 13; // Normalized device metadata for the node
-}
-
-// SwitchDeviceInfo represents switch-specific chassis location metadata.
-message SwitchDeviceInfo {
-  string chassis_sn = 1;   // Chassis serial number
-  string slot_number = 2;  // Physical slot number in the rack topology
-  string topology_id = 3;  // Switch topology identifier
-  string tray_index = 4;   // Tray index of the switch
 }
 
 // NodeDeviceInfo represents normalized device metadata for a node.
 message NodeDeviceInfo {
-  string node_id = 1;                     // Node identifier
-  string rack_id = 2;                     // Rack containing the node
-  NodeType node_type = 3;                 // Type/category of the node
-  optional SwitchDeviceInfo switch_info = 4; // Switch-specific metadata
+  string node_id = 1;            // Node identifier
+  string rack_id = 2;            // Rack containing the node
+  NodeType node_type = 3;        // Type/category of the node
+  optional int64 chassis_sn = 4; // Optional chassis serial number when available
+  optional int32 slot_number = 5; // Optional physical slot number in the rack topology
+  optional int32 tray_index = 6; // Optional tray index when available
 }
 
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
@@ -312,10 +305,10 @@ service RackManager {
   rpc GetNodeDeviceInfo(GetNodeDeviceInfoRequest) returns (GetNodeDeviceInfoResponse) {}
 
   /*
-   * GetRackDeviceInfoByNodeType retrieves normalized device metadata for all nodes
+   * GetDeviceInfoByNodeType retrieves normalized device metadata for all nodes
    * of a specific type in a rack.
    */
-  rpc GetRackDeviceInfoByNodeType(GetRackDeviceInfoByNodeTypeRequest) returns (GetRackDeviceInfoByNodeTypeResponse) {}
+  rpc GetDeviceInfoByNodeType(GetDeviceInfoByNodeTypeRequest) returns (GetDeviceInfoByNodeTypeResponse) {}
 
   /*---------------------------------------------------------------------------
    * Firmware Control RPCs
@@ -649,16 +642,16 @@ message GetNodeDeviceInfoResponse {
   NodeDeviceInfo device_info = 4; // Normalized device metadata for the node
 }
 
-// GetRackDeviceInfoByNodeTypeRequest retrieves device metadata for all nodes of a type in a rack.
-message GetRackDeviceInfoByNodeTypeRequest {
+// GetDeviceInfoByNodeTypeRequest retrieves device metadata for all nodes of a type in a rack.
+message GetDeviceInfoByNodeTypeRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Target rack identifier
   NodeType node_type = 3; // Type of nodes to query
   string vault_path = 4;  // Optional Vault path override for switch live fetch
 }
 
-// GetRackDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
-message GetRackDeviceInfoByNodeTypeResponse {
+// GetDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
+message GetDeviceInfoByNodeTypeResponse {
   Metadata metadata = 1;
   ReturnCode status = 2;                   // SUCCESS if retrieved, FAILURE otherwise
   string message = 3;                      // Human-readable status or error message
