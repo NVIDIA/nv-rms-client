@@ -297,7 +297,6 @@ service RackManager {
 
   /*
    * GetNodeDeviceInfo retrieves normalized device metadata for a specific node.
-   * For switches, this may perform a live NVUE query using the provided or stored Vault path.
    */
   rpc GetNodeDeviceInfo(GetNodeDeviceInfoRequest) returns (GetNodeDeviceInfoResponse) {}
 
