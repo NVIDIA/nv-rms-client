@@ -165,6 +165,13 @@ message NodeInventoryInfo {
   repeated string host_ip_addresses = 12;   // Vector of IP addresses of the node's Host interfaces
 }
 
+// NodeDeviceInfo represents normalized device metadata for a node.
+message NodeDeviceInfo {
+  optional int64 chassis_sn = 4; // Optional chassis serial number when available
+  optional int32 slot_number = 5; // Optional physical slot number in the rack topology
+  optional int32 tray_index = 6; // Optional tray index when available
+}
+
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
 message DeviceInventoryInfo {
   string device_id = 1;       // Unique identifier for the device within the node
@@ -287,6 +294,17 @@ service RackManager {
    * ListRacks returns a list of all rack IDs in the system.
   */
   rpc ListRacks(ListRacksRequest) returns (ListRacksResponse) {}
+
+  /*
+   * GetNodeDeviceInfo retrieves normalized device metadata for a specific node.
+   */
+  rpc GetNodeDeviceInfo(GetNodeDeviceInfoRequest) returns (GetNodeDeviceInfoResponse) {}
+
+  /*
+   * GetDeviceInfoByNodeType retrieves normalized device metadata for all nodes
+   * of a specific type in a rack.
+   */
+  rpc GetDeviceInfoByNodeType(GetDeviceInfoByNodeTypeRequest) returns (GetDeviceInfoByNodeTypeResponse) {}
 
   /*---------------------------------------------------------------------------
    * Firmware Control RPCs
@@ -602,6 +620,38 @@ message ListRacksResponse {
   Metadata metadata = 1;
   ReturnCode status = 2;        // SUCCESS if retrieved, FAILURE otherwise
   repeated string rack_ids = 3; // List of all rack identifiers
+}
+
+// GetNodeDeviceInfoRequest retrieves normalized device metadata for a specific node.
+message GetNodeDeviceInfoRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Rack containing the target node
+  string node_id = 3;     // Target node identifier
+  string vault_path = 4;  // Optional Vault path override for switch live fetch
+}
+
+// GetNodeDeviceInfoResponse returns normalized device metadata for a specific node.
+message GetNodeDeviceInfoResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;      // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3;         // Human-readable status or error message
+  NodeDeviceInfo device_info = 4; // Normalized device metadata for the node
+}
+
+// GetDeviceInfoByNodeTypeRequest retrieves device metadata for all nodes of a type in a rack.
+message GetDeviceInfoByNodeTypeRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;     // Target rack identifier
+  NodeType node_type = 3; // Type of nodes to query
+  string vault_path = 4;  // Optional Vault path override for switch live fetch
+}
+
+// GetDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
+message GetDeviceInfoByNodeTypeResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                   // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3;                      // Human-readable status or error message
+  repeated NodeDeviceInfo node_device_info = 4; // Device metadata grouped by node
 }
 
 
