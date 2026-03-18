@@ -344,7 +344,17 @@ service RackManager {
    * along with individual node job IDs. Use GetFirmwareJobStatus to track progress.
    */
   rpc UpdateFirmwareByNodeTypeAsync(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeAsyncResponse) {}
-  
+
+  /*
+   * UpdateFirmwareByDeviceList initiates firmware updates on a specified list of devices
+   * asynchronously. Each device is identified by its NewNodeInfo. Separate firmware targets
+   * are provided for compute trays, switch trays, and power shelves — the appropriate target
+   * is applied to each device based on its node type.
+   * Returns a parent job ID for tracking overall batch status, along with individual node
+   * job IDs. Use GetFirmwareJobStatus to track progress.
+   */
+  rpc UpdateFirmwareByDeviceList(UpdateFirmwareByDeviceListRequest) returns (UpdateFirmwareByDeviceListResponse) {}
+
   /*
    * GetRackFirmwareInventory retrieves firmware information for all nodes in a rack.
    * Provides a comprehensive view of firmware versions across the rack.
@@ -740,6 +750,28 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
   string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
   int32 total_nodes = 5;                            // Total number of nodes targeted
   repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per node
+}
+
+// UpdateFirmwareByDeviceListRequest initiates firmware updates on a specified list of devices.
+// Separate firmware targets are provided per node type (compute tray, switch tray, power shelf).
+// The appropriate firmware target is applied to each device based on its node type.
+message UpdateFirmwareByDeviceListRequest {
+  Metadata metadata = 1;
+  repeated NewNodeInfo devices = 2;                           // List of devices to update
+  repeated FirmwareTarget compute_tray_firmware_targets = 3;  // Firmware targets for compute tray nodes
+  repeated FirmwareTarget switch_tray_firmware_targets = 4;   // Firmware targets for switch tray nodes
+  repeated FirmwareTarget powershelf_firmware_targets = 5;    // Firmware targets for power shelf nodes
+  bool activate = 6;                                          // Whether to activate firmware after installation
+}
+
+// UpdateFirmwareByDeviceListResponse reports the created async jobs.
+message UpdateFirmwareByDeviceListResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                            // SUCCESS if jobs created, FAILURE otherwise
+  string message = 3;                               // Human-readable summary message
+  string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
+  int32 total_nodes = 5;                            // Total number of devices targeted
+  repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per device
 }
 
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
