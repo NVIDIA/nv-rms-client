@@ -136,6 +136,11 @@ message NewNodeInfo {
   repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
 }
 
+// RackTopology represents a collection of devices, reusable wherever a device list is needed.
+message RackTopology {
+  repeated NewNodeInfo devices = 1;  // List of devices in the topology
+}
+
 /*
  * NodeUpdateInfo contains fields that can be updated for an existing node.
  * Only specified fields will be updated; unset fields remain unchanged.
@@ -757,21 +762,22 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
 // The appropriate firmware target is applied to each device based on its node type.
 message UpdateFirmwareByDeviceListRequest {
   Metadata metadata = 1;
-  repeated NewNodeInfo devices = 2;                           // List of devices to update
+  RackTopology topology = 2;                                  // Devices to update
   repeated FirmwareTarget compute_tray_firmware_targets = 3;  // Firmware targets for compute tray nodes
   repeated FirmwareTarget switch_tray_firmware_targets = 4;   // Firmware targets for switch tray nodes
   repeated FirmwareTarget powershelf_firmware_targets = 5;    // Firmware targets for power shelf nodes
   bool activate = 6;                                          // Whether to activate firmware after installation
 }
 
-// UpdateFirmwareByDeviceListResponse reports the created async jobs.
+// UpdateFirmwareByDeviceListResponse reports firmware update results.
 message UpdateFirmwareByDeviceListResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                            // SUCCESS if jobs created, FAILURE otherwise
+  ReturnCode status = 2;                            // SUCCESS if all updates succeeded, FAILURE if any failed
   string message = 3;                               // Human-readable summary message
-  string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
-  int32 total_nodes = 5;                            // Total number of devices targeted
-  repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per device
+  int32 total_nodes = 4;                            // Total number of devices targeted
+  int32 successful_updates = 5;                     // Number of devices successfully updated
+  int32 failed_updates = 6;                         // Number of devices that failed to update
+  repeated NodeUpdateResult node_results = 7;       // Individual results for each device
 }
 
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
