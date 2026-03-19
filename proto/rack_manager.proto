@@ -136,8 +136,8 @@ message NewNodeInfo {
   repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
 }
 
-// RackTopology represents a collection of devices, reusable wherever a device list is needed.
-message RackTopology {
+// NodeSet represents a collection of devices, reusable wherever a device list is needed.
+message NodeSet {
   repeated NewNodeInfo devices = 1;  // List of devices in the topology
 }
 
@@ -762,7 +762,7 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
 // The appropriate firmware target is applied to each device based on its node type.
 message UpdateFirmwareByDeviceListRequest {
   Metadata metadata = 1;
-  RackTopology topology = 2;                                  // Devices to update
+  NodeSet nodes = 2;                                      // Devices to update
   repeated FirmwareTarget compute_tray_firmware_targets = 3;  // Firmware targets for compute tray nodes
   repeated FirmwareTarget switch_tray_firmware_targets = 4;   // Firmware targets for switch tray nodes
   repeated FirmwareTarget powershelf_firmware_targets = 5;    // Firmware targets for power shelf nodes

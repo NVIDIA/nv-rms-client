@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.RackTopology",
+            "rack_manager.NodeSet",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
