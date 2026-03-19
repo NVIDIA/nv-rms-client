@@ -167,9 +167,10 @@ message NodeInventoryInfo {
 
 // NodeDeviceInfo represents normalized device metadata for a node.
 message NodeDeviceInfo {
-  optional int64 chassis_sn = 4; // Optional chassis serial number when available
-  optional int32 slot_number = 5; // Optional physical slot number in the rack topology
-  optional int32 tray_index = 6; // Optional tray index when available
+  string node_id = 1;
+  optional int64 chassis_sn = 2; // Optional chassis serial number when available
+  optional int32 slot_number = 3; // Optional physical slot number in the rack topology
+  optional int32 tray_index = 4; // Optional tray index when available
 }
 
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
