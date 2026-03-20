@@ -694,6 +694,11 @@ message FirmwareTarget {
   string filename = 2;  // Firmware filename (relative to firmware directory or absolute path)
 }
 
+// FirmwareTargetList wraps a list of firmware targets for use as a map value.
+message FirmwareTargetList {
+  repeated FirmwareTarget targets = 1;
+}
+
 // UpdateFirmwareRequest initiates a firmware update on a node.
 // Supports single target (filename + target fields) or multiple targets (firmware_targets list).
 // If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
@@ -758,15 +763,14 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
 }
 
 // UpdateFirmwareByDeviceListRequest initiates firmware updates on a specified list of devices.
-// Separate firmware targets are provided per node type (compute tray, switch tray, power shelf).
-// The appropriate firmware target is applied to each device based on its node type.
+// Firmware targets are provided per node type via a map keyed by NodeType enum value
+// (e.g., NODE_TYPE_COMPUTE=1, NODE_TYPE_POWERSHELF=2, NODE_TYPE_SWITCH=3).
+// The appropriate firmware targets are applied to each device based on its node type.
 message UpdateFirmwareByDeviceListRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;                                      // Devices to update
-  repeated FirmwareTarget compute_tray_firmware_targets = 3;  // Firmware targets for compute tray nodes
-  repeated FirmwareTarget switch_tray_firmware_targets = 4;   // Firmware targets for switch tray nodes
-  repeated FirmwareTarget powershelf_firmware_targets = 5;    // Firmware targets for power shelf nodes
-  bool activate = 6;                                          // Whether to activate firmware after installation
+  NodeSet nodes = 2;                                          // Devices to update
+  map<int32, FirmwareTargetList> firmware_targets = 3;        // Firmware targets keyed by NodeType
+  bool activate = 4;                                          // Whether to activate firmware after installation
 }
 
 // UpdateFirmwareByDeviceListResponse reports firmware update results.
