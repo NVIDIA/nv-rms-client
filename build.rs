@@ -234,6 +234,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.GetScaleUpFabricDomainInfoRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetScaleUpFabricDomainInfoResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricLocation",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricComputeNode",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricSwitch",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricLinkEndpoint",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricLink",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricPartition",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.ScaleUpFabricDomainInfo",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.FetchSwitchSystemImageRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )

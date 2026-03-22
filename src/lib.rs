@@ -215,6 +215,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
+    async fn get_scale_up_fabric_domain_info(
+        &self,
+        cmd: rms::GetScaleUpFabricDomainInfoRequest,
+    ) -> Result<rms::GetScaleUpFabricDomainInfoResponse, RackManagerError>;
     async fn fetch_switch_system_image(
         &self,
         cmd: rms::FetchSwitchSystemImageRequest,
@@ -453,6 +457,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
         self.client
             .configure_scale_up_fabric_manager(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn get_scale_up_fabric_domain_info(
+        &self,
+        cmd: rms::GetScaleUpFabricDomainInfoRequest,
+    ) -> Result<rms::GetScaleUpFabricDomainInfoResponse, RackManagerError> {
+        self.client
+            .get_scale_up_fabric_domain_info(cmd)
             .await
             .map_err(RackManagerError::from)
     }
