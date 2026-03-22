@@ -20,6 +20,7 @@ syntax = "proto3";
 package rack_manager;
 
 import "google/protobuf/empty.proto";
+import "rack_manager_scaleupfabric_domain_telemetry.proto";
 
 /*******************************************************************************
  * ENUMERATIONS
@@ -384,6 +385,13 @@ service RackManager {
    * Requires Vault for switch credential management.
    */
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
+
+  /*
+   * GetScaleUpFabricDomainInfo retrieves the current cluster-scoped domain structure from
+   * the primary switch hosting NMX-C.
+   * The response is partition-centered for HaaS and related consumers.
+   */
+  rpc GetScaleUpFabricDomainInfo(GetScaleUpFabricDomainInfoRequest) returns (GetScaleUpFabricDomainInfoResponse) {}
 
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
@@ -980,6 +988,21 @@ message EnableScaleUpFabricTelemetryInterfaceResponse {
   ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
   string result_json = 3;   // JSON object containing configuration result
   string error_message = 4; // Error details if configuration failed
+}
+
+// GetScaleUpFabricDomainInfoRequest retrieves the current ScaleUpFabric domain structure.
+message GetScaleUpFabricDomainInfoRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;                  // Rack containing the primary switch (required)
+  string primary_switch_node_id = 3;   // Inventory node ID of the primary switch running NMX-C (required)
+}
+
+// GetScaleUpFabricDomainInfoResponse returns the current ScaleUpFabric domain structure.
+message GetScaleUpFabricDomainInfoResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                 // SUCCESS if domain info was retrieved, FAILURE otherwise
+  ScaleUpFabricDomainInfo domain_info = 3;
+  string error_message = 4;              // Error details if retrieval failed
 }
 
 message ListFirmwareOnSwitchCommand {
