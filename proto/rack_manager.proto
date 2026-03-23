@@ -783,6 +783,8 @@ message UpdateFirmwareByDeviceListResponse {
   int32 successful_updates = 5;                     // Number of devices successfully updated
   int32 failed_updates = 6;                         // Number of devices that failed to update
   repeated NodeUpdateResult node_results = 7;       // Individual results for each device
+  string job_id = 8;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
+  repeated NodeFirmwareJobInfo node_jobs = 9;       // Individual job ID per node
 }
 
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
