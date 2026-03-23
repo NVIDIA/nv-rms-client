@@ -58,6 +58,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.NodeSet",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.NodeUpdateInfo",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
@@ -354,11 +358,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.FirmwareTargetList",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.NodeFirmwareJobInfo",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
             "rack_manager.UpdateFirmwareByNodeTypeAsyncResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateFirmwareByDeviceListRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateFirmwareByDeviceListResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(

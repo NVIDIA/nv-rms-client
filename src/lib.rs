@@ -268,6 +268,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::UpdateFirmwareByNodeTypeRequest,
     ) -> Result<rms::UpdateFirmwareByNodeTypeAsyncResponse, RackManagerError>;
+    async fn update_firmware_by_device_list(
+        &self,
+        cmd: rms::UpdateFirmwareByDeviceListRequest,
+    ) -> Result<rms::UpdateFirmwareByDeviceListResponse, RackManagerError>;
     async fn get_firmware_job_status(
         &self,
         cmd: rms::GetFirmwareJobStatusRequest,
@@ -573,6 +577,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::UpdateFirmwareByNodeTypeAsyncResponse, RackManagerError> {
         self.client
             .update_firmware_by_node_type_async(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn update_firmware_by_device_list(
+        &self,
+        cmd: rms::UpdateFirmwareByDeviceListRequest,
+    ) -> Result<rms::UpdateFirmwareByDeviceListResponse, RackManagerError> {
+        self.client
+            .update_firmware_by_device_list(cmd)
             .await
             .map_err(RackManagerError::from)
     }

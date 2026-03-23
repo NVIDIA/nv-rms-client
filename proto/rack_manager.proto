@@ -136,6 +136,11 @@ message NewNodeInfo {
   repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
 }
 
+// NodeSet represents a collection of devices, reusable wherever a device list is needed.
+message NodeSet {
+  repeated NewNodeInfo devices = 1;  // List of devices in the topology
+}
+
 /*
  * NodeUpdateInfo contains fields that can be updated for an existing node.
  * Only specified fields will be updated; unset fields remain unchanged.
@@ -345,7 +350,17 @@ service RackManager {
    * along with individual node job IDs. Use GetFirmwareJobStatus to track progress.
    */
   rpc UpdateFirmwareByNodeTypeAsync(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeAsyncResponse) {}
-  
+
+  /*
+   * UpdateFirmwareByDeviceList initiates firmware updates on a specified list of devices
+   * asynchronously. Each device is identified by its NewNodeInfo. Separate firmware targets
+   * are provided for compute trays, switch trays, and power shelves — the appropriate target
+   * is applied to each device based on its node type.
+   * Returns a parent job ID for tracking overall batch status, along with individual node
+   * job IDs. Use GetFirmwareJobStatus to track progress.
+   */
+  rpc UpdateFirmwareByDeviceList(UpdateFirmwareByDeviceListRequest) returns (UpdateFirmwareByDeviceListResponse) {}
+
   /*
    * GetRackFirmwareInventory retrieves firmware information for all nodes in a rack.
    * Provides a comprehensive view of firmware versions across the rack.
@@ -680,6 +695,11 @@ message FirmwareTarget {
   string filename = 2;  // Firmware filename (relative to firmware directory or absolute path)
 }
 
+// FirmwareTargetList wraps a list of firmware targets for use as a map value.
+message FirmwareTargetList {
+  repeated FirmwareTarget targets = 1;
+}
+
 // UpdateFirmwareRequest initiates a firmware update on a node.
 // Supports single target (filename + target fields) or multiple targets (firmware_targets list).
 // If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
@@ -741,6 +761,28 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
   string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
   int32 total_nodes = 5;                            // Total number of nodes targeted
   repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per node
+}
+
+// UpdateFirmwareByDeviceListRequest initiates firmware updates on a specified list of devices.
+// Firmware targets are provided per node type via a map keyed by NodeType enum value
+// (e.g., NODE_TYPE_COMPUTE=1, NODE_TYPE_POWERSHELF=2, NODE_TYPE_SWITCH=3).
+// The appropriate firmware targets are applied to each device based on its node type.
+message UpdateFirmwareByDeviceListRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;                                          // Devices to update
+  map<int32, FirmwareTargetList> firmware_targets = 3;        // Firmware targets keyed by NodeType
+  bool activate = 4;                                          // Whether to activate firmware after installation
+}
+
+// UpdateFirmwareByDeviceListResponse reports firmware update results.
+message UpdateFirmwareByDeviceListResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                            // SUCCESS if all updates succeeded, FAILURE if any failed
+  string message = 3;                               // Human-readable summary message
+  int32 total_nodes = 4;                            // Total number of devices targeted
+  int32 successful_updates = 5;                     // Number of devices successfully updated
+  int32 failed_updates = 6;                         // Number of devices that failed to update
+  repeated NodeUpdateResult node_results = 7;       // Individual results for each device
 }
 
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
