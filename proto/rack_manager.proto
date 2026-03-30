@@ -117,6 +117,12 @@ message Metadata {
   int32 msg_id    = 3;  // Unique message identifier for request/response correlation
 }
 
+// Credentials for authenticating with a node's BMC or switch API.
+message Credentials {
+  string username = 1;
+  string password = 2;
+}
+
 /*******************************************************************************
  * SHARED DATA TYPES
  ******************************************************************************/
@@ -127,13 +133,11 @@ message NewNodeInfo {
   string mac_address = 2;         // MAC address of the node's BMC interface
   string ip_address = 3;          // IP address of the node's BMC interface
   int32 port = 4;                 // Port number for BMC communication
-  optional string username = 5;   // BMC username for testing only
-  optional string password = 6;   // BMC password for testing only
-  optional NodeType type = 7;     // Type/category of the node
-  string rack_id = 8;             // Identifier of the rack containing this node
-  string vault_path = 9;          // Vault path to the creds of the Node
-  repeated string host_mac_addresses = 10;   // Vector of MAC addresses of the node's Host interfaces
-  repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
+  Credentials credentials = 5;    // Credentials for authenticating with the node's BMC/API
+  optional NodeType type = 6;     // Type/category of the node
+  string rack_id = 7;             // Identifier of the rack containing this node
+  repeated string host_mac_addresses = 8;   // Vector of MAC addresses of the node's Host interfaces
+  repeated string host_ip_addresses = 9;    // Vector of IP addresses of the node's Host interfaces
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.
@@ -146,28 +150,25 @@ message NodeSet {
  * Only specified fields will be updated; unset fields remain unchanged.
  */
 message NodeUpdateInfo {
-  optional string ip_address = 1;  // New IP address for the node's BMC
-  optional int32 port = 2;         // New port number for BMC communication
-  optional string username = 3;    // New BMC username for testing only
-  optional string password = 4;    // New BMC password for testing only
-  optional string vault_path = 5;  // New Vault path for credential lookup (e.g., "switch_nvos/{mac_address}/admin")
-  repeated string host_ip_addresses = 6;   // Vector of IP addresses of the node's Host interfaces
+  optional string ip_address = 1;       // New IP address for the node's BMC
+  optional int32 port = 2;              // New port number for BMC communication
+  optional Credentials credentials = 3; // New credentials for the node's BMC/API
+  repeated string host_ip_addresses = 4; // Vector of IP addresses of the node's Host interfaces
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
 message NodeInventoryInfo {
   string node_id = 1;                       // Unique identifier for the node
   string product = 2;                       // Product name/model of the node
-  string health = 3;                        // Health status 
+  string health = 3;                        // Health status
   string ip_address = 4;                    // IP address of the node's BMC
   int32 port = 5;                           // Port number for BMC communication
   NodeType type = 6;                        // Type/category of the node
   repeated DeviceInventoryInfo devices = 7; // List of devices/components within the node
   string mac_address = 8;                   // MAC address of the node's BMC interface
   string rack_id = 9;                       // Identifier of the rack containing this node
-  string vault_path = 10;                   // Vault path to the creds of the Node
-  repeated string host_mac_addresses = 11;   // Vector of MAC addresses of the node's Host interfaces
-  repeated string host_ip_addresses = 12;   // Vector of IP addresses of the node's Host interfaces
+  repeated string host_mac_addresses = 10;  // Vector of MAC addresses of the node's Host interfaces
+  repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
 }
 
 // NodeDeviceInfo represents normalized device metadata for a node.
@@ -396,13 +397,13 @@ service RackManager {
    * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
    * This includes enabling the scale fabric services services,configuring gRPC access,and sets
    * multi-node scaleup topology based on the hardware platform.
-   * Requires Vault for switch credential management.
+   * Credentials are resolved from the node's stored inventory data.
    */
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
-   * All switch operations require Vault for credential management.
+   * Credentials are resolved from the node's stored inventory data.
    *-------------------------------------------------------------------------*/
   
   /*
@@ -499,7 +500,6 @@ message SetPowerStateRequest {
   string node_id = 2;           // Target node identifier
   PowerOperation operation = 3; // Power operation to perform
   string rack_id = 4;           // Rack containing the target node
-  string vault_path = 5;        // Required for switch nodes: Vault path 
 }
 
 // SetPowerStateResponse confirms the power operation result.
@@ -529,7 +529,6 @@ message SequenceRackPowerRequest {
   Metadata metadata = 1;
   RackPowerOperation operation = 2; // Rack-wide power operation to perform
   string rack_id = 3;               // Target rack identifier
-  string vault_path = 4;            // Vault path for switch credentials  
 }
 
 // RackPowerResponse confirms the rack power operation result.
@@ -643,7 +642,6 @@ message GetNodeDeviceInfoRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target node
   string node_id = 3;     // Target node identifier
-  string vault_path = 4;  // Optional Vault path override for switch live fetch
 }
 
 // GetNodeDeviceInfoResponse returns normalized device metadata for a specific node.
@@ -659,7 +657,6 @@ message GetDeviceInfoByNodeTypeRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Target rack identifier
   NodeType node_type = 3; // Type of nodes to query
-  string vault_path = 4;  // Optional Vault path override for switch live fetch
 }
 
 // GetDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
@@ -710,8 +707,7 @@ message UpdateNodeFirmwareRequest {
   string target = 4;      // Single Redfish target URI (used when firmware_targets is empty)
   bool activate = 5;      // Whether to immediately activate the firmware after installation
   string rack_id = 6;     // Rack containing the target node
-  string vault_path = 7;  // Required for switch nodes: Vault path
-  repeated FirmwareTarget firmware_targets = 8;  // Multiple (target, filename) pairs for batch component updates
+  repeated FirmwareTarget firmware_targets = 7;  // Multiple (target, filename) pairs for batch component updates
 }
 
 // UpdateFirmwareResponse reports the firmware update result.
@@ -812,10 +808,9 @@ message ConfigureScaleUpFabricManagerRequest {
   Metadata metadata = 1;
   string rack_id = 2;           // Rack containing the target switch (required)
   string node_id = 3;           // Target switch node identifier (required)
-  string vault_path = 4;        // Vault path for switch credentials 
-  string hardware_platform = 5; // Hardware platform identifier 
-  int32 switch_port = 6;        // API port number (default: 443)
-  bool verify_ssl = 7;          // Whether to verify SSL certificates for HTTPS connections
+  string hardware_platform = 4; // Hardware platform identifier
+  int32 switch_port = 5;        // API port number (default: 443)
+  bool verify_ssl = 6;          // Whether to verify SSL certificates for HTTPS connections
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
@@ -833,7 +828,7 @@ message ConfigureScaleUpFabricManagerResponse {
  * SWITCH CONTROL MESSAGES
  *
  * These messages are used for managing NVIDIA network switches via API.
- * All switch operations require Vault for credential management.
+ * Credentials are resolved from the node's stored inventory data.
  ******************************************************************************/
 
 // FetchSwitchSystemImageRequest downloads an OS image to a switch.
@@ -841,10 +836,9 @@ message FetchSwitchSystemImageRequest {
   Metadata metadata = 1;
   string rack_id = 2;      // Rack containing the target switch (required)
   string node_id = 3;      // Target switch node identifier (required)
-  string vault_path = 4;   // Vault path for switch credentials (required)
-  int32 port = 5;          // API port number (default: 443)
-  bool verify_ssl = 6;     // Whether to verify SSL certificates
-  string remote_url = 7;   // URL to download the system image from
+  int32 port = 4;          // API port number (default: 443)
+  bool verify_ssl = 5;     // Whether to verify SSL certificates
+  string remote_url = 6;   // URL to download the system image from
 }
 
 // FetchSwitchSystemImageResponse reports the download initiation result.
@@ -860,10 +854,9 @@ message InstallSwitchSystemImageRequest {
   Metadata metadata = 1;
   string rack_id = 2;         // Rack containing the target switch (required)
   string node_id = 3;         // Target switch node identifier (required)
-  string vault_path = 4;      // Vault path for switch credentials (required)
-  int32 port = 5;             // API port number (default: 443)
-  bool verify_ssl = 6;        // Whether to verify SSL certificates
-  string image_filename = 7;  // Filename of the image to install (must be fetched first)
+  int32 port = 4;             // API port number (default: 443)
+  bool verify_ssl = 5;        // Whether to verify SSL certificates
+  string image_filename = 6;  // Filename of the image to install (must be fetched first)
 }
 
 // InstallSwitchSystemImageResponse reports the installation initiation result.
@@ -879,9 +872,8 @@ message ListSwitchSystemImagesRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
 }
 
 // ListSwitchSystemImagesResponse returns available OS images.
@@ -897,10 +889,9 @@ message UpdateScaleUpFabricConfigRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
-  bool enabled = 7;       // true to enable ScaleUpFabricMgr, false to disable
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  bool enabled = 6;       // true to enable ScaleUpFabricMgr, false to disable
 }
 
 // UpdateScaleUpFabricConfigResponse reports the configuration result.
@@ -916,9 +907,8 @@ message GetScaleUpFabricStateRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
 }
 
 // GetScaleUpFabricStateResponse returns the ScaleUpFabric  state.
@@ -934,10 +924,9 @@ message GetScaleUpFabricServicesStatusRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
-  string app_name = 7;    // Application name to query, e.g., "ScaleUpFabricManager"
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  string app_name = 6;    // Application name to query, e.g., "ScaleUpFabricManager"
 }
 
 // GetScaleUpFabricServicesStatusResponse returns application status.
@@ -953,11 +942,10 @@ message EnableScaleUpFabricManagerRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
-  string app_name = 7;    // Application name, e.g., "ScaleUpFabricManager"
-  bool enabled = 8;       // true to enable gRPC, false to disable
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  string app_name = 6;    // Application name, e.g., "ScaleUpFabricManager"
+  bool enabled = 7;       // true to enable gRPC, false to disable
 }
 
 // EnableScaleUpFabricManagerResponse reports the ScaleUpFabricManager result.
@@ -973,10 +961,9 @@ message RestartScaleUpFabricServicesRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
-  string app_name = 7;    // Application name to restart, e.g., "ScaleUpFabricManager"
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  string app_name = 6;    // Application name to restart, e.g., "ScaleUpFabricManager"
 }
 
 // RestartScaleUpFabricServicesResponse reports the restart result.
@@ -992,11 +979,10 @@ message CheckScaleUpFabricServicesConnectivityRequest {
   Metadata metadata = 1;
   string rack_id = 2;            // Rack containing the target switch (required)
   string node_id = 3;            // Target switch node identifier (required)
-  string vault_path = 4;         // Vault path for switch credentials (required)
-  int32 port = 5;                // API port number (default: 443)
-  bool verify_ssl = 6;           // Whether to verify SSL certificates
-  string app_name = 7;           // Application name, e.g., "ScaleUpFabricManager"
-  string target_switch_name = 8; // Target switch hostname/IP for connectivity test
+  int32 port = 4;                // API port number (default: 443)
+  bool verify_ssl = 5;           // Whether to verify SSL certificates
+  string app_name = 6;           // Application name, e.g., "ScaleUpFabricManager"
+  string target_switch_name = 7; // Target switch hostname/IP for connectivity test
 }
 
 // CheckScaleUpFabricServicesConnectivityResponse returns response on enabling ScaleUpFabricService.
@@ -1012,10 +998,9 @@ message EnableScaleUpFabricTelemetryInterfaceRequest {
   Metadata metadata = 1;
   string rack_id = 2;     // Rack containing the target switch (required)
   string node_id = 3;     // Target switch node identifier (required)
-  string vault_path = 4;  // Vault path for switch credentials (required)
-  int32 port = 5;         // API port number (default: 443)
-  bool verify_ssl = 6;    // Whether to verify SSL certificates
-  bool enabled = 7;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
+  int32 port = 4;         // API port number (default: 443)
+  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  bool enabled = 6;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
 }
 
 // EnableScaleUpFabricTelemetryInterfaceResponse reports the FabricTelemetryInterface status.
@@ -1028,12 +1013,11 @@ message EnableScaleUpFabricTelemetryInterfaceResponse {
 
 message ListFirmwareOnSwitchCommand {
   Metadata metadata = 1;
-  string rack_id = 2;           			    // Required: Rack ID for inventory lookup
-  string node_id = 3;           			    // Required: Node ID for inventory lookup
-  string vault_path = 4;        			    // Required: Full Vault path.
-  SwitchFirmwareComponentType component_type = 5;  	    // Required: Firmware component type enum
-  int32 port = 6;              				    // Optional: API port (default: 443)
-  bool verify_ssl = 7;         				    // Optional: Whether to verify SSL certificates
+  string rack_id = 2;                              // Required: Rack ID for inventory lookup
+  string node_id = 3;                              // Required: Node ID for inventory lookup
+  SwitchFirmwareComponentType component_type = 4;  // Required: Firmware component type enum
+  int32 port = 5;                                  // Optional: API port (default: 443)
+  bool verify_ssl = 6;                             // Optional: Whether to verify SSL certificates
 }
 
 message ListFirmwareOnSwitchResponse {
@@ -1046,12 +1030,11 @@ message ListFirmwareOnSwitchResponse {
 // PushFirmwareToSwitch command/response
 message PushFirmwareToSwitchCommand {
   Metadata metadata = 1;
-  string rack_id = 2;           		   // Required: Rack ID for inventory lookup
-  string node_id = 3;           		   // Required: Node ID for inventory lookup
-  string vault_path = 4;        		   // Required: Full Vault path 
-  SwitchFirmwareComponentType component_type = 5;  // Required: Firmware component type enum
-  string filename = 6;          		   // Required: Desired filename on the switch (used as-is, no suffix modification)
-  string local_file_path = 7;   		   // Required: Local file path on rackmanager host (file must be at least 1KB)
+  string rack_id = 2;                              // Required: Rack ID for inventory lookup
+  string node_id = 3;                              // Required: Node ID for inventory lookup
+  SwitchFirmwareComponentType component_type = 4;  // Required: Firmware component type enum
+  string filename = 5;                             // Required: Desired filename on the switch (used as-is, no suffix modification)
+  string local_file_path = 6;                      // Required: Local file path on rackmanager host (file must be at least 1KB)
 }
 
 message PushFirmwareToSwitchResponse {
@@ -1066,12 +1049,11 @@ message PushFirmwareToSwitchResponse {
 message UpgradeFirmwareOnSwitchCommand {
   Metadata metadata = 1;
   string rack_id = 2;                                    // Required: Rack ID for inventory lookup
-  optional string node_id = 3;                           // Optional: Node ID for inventory lookup. If empty, upgrades all switches in rack
-  string vault_path = 4;                                 // Required: Full Vault path (or empty if node_id is empty, will be extracted from each node)
-  SwitchFirmwareComponentType component = 5;             // Required: Firmware component type enum
-  string filename = 6;                                   // Required: Local filesystem path to firmware file (filename contains package-name-version)
-  int32 port = 7;                                        // Optional: API port (default: 443)
-  bool verify_ssl = 8;                                   // Optional: Whether to verify SSL certificates
+  optional string node_id = 3;                           // Optional: Node ID. If empty, upgrades all switches in rack
+  SwitchFirmwareComponentType component = 4;             // Required: Firmware component type enum
+  string filename = 5;                                   // Required: Local filesystem path to firmware file
+  int32 port = 6;                                        // Optional: API port (default: 443)
+  bool verify_ssl = 7;                                   // Optional: Whether to verify SSL certificates
 }
 
 message UpgradeFirmwareOnSwitchResponse {
@@ -1086,14 +1068,13 @@ message UpgradeFirmwareOnSwitchResponse {
 
 message PollJobStatusCommand {
   Metadata metadata = 1;
-  string rack_id = 2;               // Required: Rack ID for inventory lookup       
-  string node_id = 3;               // Required: Node ID for inventory lookup       
-  string vault_path = 4;  	    // Required: Full Vault path 
-  string job_id = 5;                // Job id for previously submitted job         
-  int32 port = 6;                   // Optional:  API port (default: 443)
-  bool verify_ssl = 7;              // Optional: Whether to verify SSL certificates    
-  int32 timeout_seconds = 8;        // Optional: Timeout for the polling job
-  int32 poll_interval_seconds = 9;  // Optional: Poll interval in seconds (default: 5)
+  string rack_id = 2;               // Required: Rack ID for inventory lookup
+  string node_id = 3;               // Required: Node ID for inventory lookup
+  string job_id = 4;                // Job id for previously submitted job
+  int32 port = 5;                   // Optional: API port (default: 443)
+  bool verify_ssl = 6;              // Optional: Whether to verify SSL certificates
+  int32 timeout_seconds = 7;        // Optional: Timeout for the polling job
+  int32 poll_interval_seconds = 8;  // Optional: Poll interval in seconds (default: 5)
 }
 
 message PollJobStatusResponse {
