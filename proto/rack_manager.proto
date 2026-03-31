@@ -117,10 +117,28 @@ message Metadata {
   int32 msg_id    = 3;  // Unique message identifier for request/response correlation
 }
 
-// Credentials for authenticating with a node's BMC or switch API.
-message Credentials {
+// Username and password pair.
+message UsernamePassword {
   string username = 1;
   string password = 2;
+}
+
+// Base credential structure supporting either username/password or session token.
+message Credentials {
+  oneof auth {
+    UsernamePassword user_pass = 1;
+    string session_token = 2;
+  }
+}
+
+// BMC credentials — for authenticating with the node's BMC (Redfish API).
+message BmcCredentials {
+  Credentials credentials = 1;
+}
+
+// Host credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
+message HostCredentials {
+  Credentials credentials = 1;
 }
 
 /*******************************************************************************
@@ -133,11 +151,12 @@ message NewNodeInfo {
   string mac_address = 2;         // MAC address of the node's BMC interface
   string ip_address = 3;          // IP address of the node's BMC interface
   int32 port = 4;                 // Port number for BMC communication
-  Credentials credentials = 5;    // Credentials for authenticating with the node's BMC/API
+  optional BmcCredentials bmc_credentials = 5;    // Credentials for authenticating with the node's BMC (Redfish)
   optional NodeType type = 6;     // Type/category of the node
   string rack_id = 7;             // Identifier of the rack containing this node
   repeated string host_mac_addresses = 8;   // Vector of MAC addresses of the node's Host interfaces
   repeated string host_ip_addresses = 9;    // Vector of IP addresses of the node's Host interfaces
+  optional HostCredentials host_credentials = 10;  // Credentials for authenticating with the node's host/switch OS
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.
@@ -152,8 +171,9 @@ message NodeSet {
 message NodeUpdateInfo {
   optional string ip_address = 1;       // New IP address for the node's BMC
   optional int32 port = 2;              // New port number for BMC communication
-  optional Credentials credentials = 3; // New credentials for the node's BMC/API
-  repeated string host_ip_addresses = 4; // Vector of IP addresses of the node's Host interfaces
+  optional BmcCredentials bmc_credentials = 3;    // New credentials for the node's BMC (Redfish)
+  repeated string host_ip_addresses = 4;          // Vector of IP addresses of the node's Host interfaces
+  optional HostCredentials host_credentials = 5;   // New credentials for the node's host/switch OS
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
