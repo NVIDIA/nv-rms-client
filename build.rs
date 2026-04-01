@@ -398,11 +398,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.SwitchSystemImageUpdateJobInfo",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateSwitchSystemImageRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateSwitchSystemImageResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.GetFirmwareJobStatusRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
             "rack_manager.GetFirmwareJobStatusResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetSwitchSystemImageJobStatusRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetSwitchSystemImageJobStatusResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .include_file("prost_common.rs")

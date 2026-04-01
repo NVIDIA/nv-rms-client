@@ -385,6 +385,14 @@ service RackManager {
   rpc UpdateFirmwareByDeviceList(UpdateFirmwareByDeviceListRequest) returns (UpdateFirmwareByDeviceListResponse) {}
 
   /*
+   * UpdateSwitchSystemImage initiates asynchronous NVOS system image updates on a caller-
+   * supplied list of switch devices. Each device is identified by its NewNodeInfo.
+   * Returns a parent job ID for tracking overall batch status, along with individual
+   * node job IDs. Use GetSwitchSystemImageJobStatus to track progress.
+   */
+  rpc UpdateSwitchSystemImage(UpdateSwitchSystemImageRequest) returns (UpdateSwitchSystemImageResponse) {}
+
+  /*
    * GetRackFirmwareInventory retrieves firmware information for all nodes in a rack.
    * Provides a comprehensive view of firmware versions across the rack.
    */
@@ -445,6 +453,12 @@ service RackManager {
    * Returns information about installed and staged images.
    */
   rpc ListSwitchSystemImages(ListSwitchSystemImagesRequest) returns (ListSwitchSystemImagesResponse) {}
+
+  /*
+   * GetSwitchSystemImageJobStatus retrieves the current status of an asynchronous switch
+   * system image update job.
+   */
+  rpc GetSwitchSystemImageJobStatus(GetSwitchSystemImageJobStatusRequest) returns (GetSwitchSystemImageJobStatusResponse) {}
   
   /*
    * UpdateScaleUpFabricConfig enables or disables the FabricState of a switch.
@@ -805,6 +819,33 @@ message UpdateFirmwareByDeviceListResponse {
   repeated NodeFirmwareJobInfo node_jobs = 9;       // Individual job ID per node
 }
 
+// SwitchSystemImageUpdateJobInfo pairs a switch node ID with its async system image job ID.
+message SwitchSystemImageUpdateJobInfo {
+  string node_id = 1;  // Switch node identifier
+  string job_id = 2;   // Switch system image job ID
+}
+
+// UpdateSwitchSystemImageRequest initiates NVOS system image updates on a specified list of switches.
+message UpdateSwitchSystemImageRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;            // Switch devices to update
+  string image_filename = 3;    // Binary filename as it should exist on the switch
+  string local_file_path = 4;   // Local file path on the target switch
+}
+
+// UpdateSwitchSystemImageResponse reports switch system image update job creation results.
+message UpdateSwitchSystemImageResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                                 // SUCCESS if jobs were created, FAILURE otherwise
+  string message = 3;                                    // Human-readable summary message
+  int32 total_nodes = 4;                                 // Total number of switch devices targeted
+  int32 successful_updates = 5;                          // Number of switch jobs successfully created
+  int32 failed_updates = 6;                              // Number of switch devices rejected before job creation
+  repeated NodeUpdateResult node_results = 7;            // Individual validation or setup failures per switch
+  string job_id = 8;                                     // Parent job ID for the overall batch
+  repeated SwitchSystemImageUpdateJobInfo node_jobs = 9; // Individual job ID per switch
+}
+
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
 message GetRackFirmwareInventoryRequest {
   Metadata metadata = 1;
@@ -1131,4 +1172,25 @@ message GetFirmwareJobStatusResponse {
   string result_json = 10;              // JSON with detailed result data (populated on completion)
   int64 created_at = 11;                // Unix timestamp (ms) when job was created
   int64 updated_at = 12;                // Unix timestamp (ms) when job was last updated
+}
+
+// GetSwitchSystemImageJobStatusRequest queries the status of an asynchronous switch system image job.
+message GetSwitchSystemImageJobStatusRequest {
+  Metadata metadata = 1;
+  string job_id = 2;       // Parent or child job ID returned from UpdateSwitchSystemImage
+}
+
+// GetSwitchSystemImageJobStatusResponse returns the current state of a switch system image job.
+message GetSwitchSystemImageJobStatusResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;   // SUCCESS if job found, FAILURE if job_id not found
+  string job_id = 3;       // Echoed job ID
+  string state = 4;        // queued, running, completed, or failed
+  string message = 5;      // Human-readable progress description
+  string rack_id = 6;      // Rack ID associated with this job
+  string node_id = 7;      // Node ID associated with this job; empty for parent jobs
+  string error_message = 8; // Error details if job failed
+  string result_json = 9;  // JSON with detailed result data (populated on completion)
+  int64 created_at = 10;   // Unix timestamp (ms) when job was created
+  int64 updated_at = 11;   // Unix timestamp (ms) when job was last updated
 }
