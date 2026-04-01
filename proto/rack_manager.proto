@@ -131,22 +131,21 @@ message Credentials {
   }
 }
 
-// BMC connection info and credentials — for authenticating with the node's BMC (Redfish API).
-message BmcCredentials {
-  string ip_address = 1;     // IP address of the BMC interface
-  int32 port = 2;            // Port number for BMC communication (default: 443)
-  string mac_address = 3;    // MAC address of the BMC interface
-  Credentials credentials = 4;
-}
-
 // A network interface with paired IP and MAC address.
 message NetworkInterface {
   string ip_address = 1;
   string mac_address = 2;
 }
 
+// BMC connection info and credentials — for authenticating with the node's BMC (Redfish API).
+message BmcEndpoint {
+  NetworkInterface interface = 1;  // BMC network interface (single NIC)
+  int32 port = 2;                  // Port number for BMC communication (default: 443)
+  Credentials credentials = 3;
+}
+
 // Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
-message HostCredentials {
+message HostEndpoint {
   repeated NetworkInterface interfaces = 1;  // Host NICs (multiple supported)
   int32 port = 2;                            // Port number for host communication
   Credentials credentials = 3;
@@ -161,8 +160,8 @@ message NewNodeInfo {
   string node_id = 1;             // Unique identifier for the node within the rack
   string rack_id = 2;             // Identifier of the rack containing this node
   optional NodeType type = 3;     // Type/category of the node
-  optional BmcCredentials bmc_credentials = 4;     // BMC connection info and credentials
-  optional HostCredentials host_credentials = 5;   // Host connection info and credentials
+  optional BmcEndpoint bmc_endpoint = 4;     // BMC connection info and credentials
+  optional HostEndpoint host_endpoint = 5;   // Host connection info and credentials
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.
@@ -175,8 +174,8 @@ message NodeSet {
  * Only specified fields will be updated; unset fields remain unchanged.
  */
 message NodeUpdateInfo {
-  optional BmcCredentials bmc_credentials = 1;    // New BMC connection info and credentials
-  optional HostCredentials host_credentials = 2;   // New host connection info and credentials
+  optional BmcEndpoint bmc_endpoint = 1;    // New BMC connection info and credentials
+  optional HostEndpoint host_endpoint = 2;   // New host connection info and credentials
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.

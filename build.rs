@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.BmcCredentials",
+            "rack_manager.BmcEndpoint",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
@@ -98,7 +98,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.HostCredentials",
+            "rack_manager.HostEndpoint",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
