@@ -385,7 +385,7 @@ service RackManager {
   rpc UpdateFirmwareByDeviceList(UpdateFirmwareByDeviceListRequest) returns (UpdateFirmwareByDeviceListResponse) {}
 
   /*
-   * UpdateSwitchSystemImage initiates asynchronous NVOS system image updates on a caller-
+   * UpdateSwitchSystemImage initiates asynchronous switch system image updates on a caller-
    * supplied list of switch devices. Each device is identified by its NewNodeInfo.
    * Returns a parent job ID for tracking overall batch status, along with individual
    * node job IDs. Use GetSwitchSystemImageJobStatus to track progress.
@@ -825,7 +825,7 @@ message SwitchSystemImageUpdateJobInfo {
   string job_id = 2;   // Switch system image job ID
 }
 
-// UpdateSwitchSystemImageRequest initiates NVOS system image updates on a specified list of switches.
+// UpdateSwitchSystemImageRequest initiates switch system image updates on a specified list of switches.
 message UpdateSwitchSystemImageRequest {
   Metadata metadata = 1;
   NodeSet nodes = 2;            // Switch devices to update
