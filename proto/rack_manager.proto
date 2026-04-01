@@ -133,15 +133,22 @@ message Credentials {
 
 // BMC connection info and credentials — for authenticating with the node's BMC (Redfish API).
 message BmcCredentials {
-  string ip_address = 1;    // IP address of the BMC interface
-  int32 port = 2;           // Port number for BMC communication (default: 443)
-  Credentials credentials = 3;
+  string ip_address = 1;     // IP address of the BMC interface
+  int32 port = 2;            // Port number for BMC communication (default: 443)
+  string mac_address = 3;    // MAC address of the BMC interface
+  Credentials credentials = 4;
+}
+
+// A network interface with paired IP and MAC address.
+message NetworkInterface {
+  string ip_address = 1;
+  string mac_address = 2;
 }
 
 // Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
 message HostCredentials {
-  string ip_address = 1;    // IP address of the host interface
-  int32 port = 2;           // Port number for host communication
+  repeated NetworkInterface interfaces = 1;  // Host NICs (multiple supported)
+  int32 port = 2;                            // Port number for host communication
   Credentials credentials = 3;
 }
 
@@ -152,12 +159,10 @@ message HostCredentials {
 // NewNodeInfo contains all information needed to register a new node in the inventory.
 message NewNodeInfo {
   string node_id = 1;             // Unique identifier for the node within the rack
-  string mac_address = 2;         // MAC address of the node's BMC interface
-  optional BmcCredentials bmc_credentials = 3;     // BMC connection info and credentials
-  optional NodeType type = 4;     // Type/category of the node
-  string rack_id = 5;             // Identifier of the rack containing this node
-  repeated string host_mac_addresses = 6;   // Vector of MAC addresses of the node's Host interfaces
-  optional HostCredentials host_credentials = 7;   // Host connection info and credentials
+  string rack_id = 2;             // Identifier of the rack containing this node
+  optional NodeType type = 3;     // Type/category of the node
+  optional BmcCredentials bmc_credentials = 4;     // BMC connection info and credentials
+  optional HostCredentials host_credentials = 5;   // Host connection info and credentials
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.

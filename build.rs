@@ -94,6 +94,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.NetworkInterface",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.HostCredentials",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
