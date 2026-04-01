@@ -131,14 +131,18 @@ message Credentials {
   }
 }
 
-// BMC credentials — for authenticating with the node's BMC (Redfish API).
+// BMC connection info and credentials — for authenticating with the node's BMC (Redfish API).
 message BmcCredentials {
-  Credentials credentials = 1;
+  string ip_address = 1;    // IP address of the BMC interface
+  int32 port = 2;           // Port number for BMC communication (default: 443)
+  Credentials credentials = 3;
 }
 
-// Host credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
+// Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
 message HostCredentials {
-  Credentials credentials = 1;
+  string ip_address = 1;    // IP address of the host interface
+  int32 port = 2;           // Port number for host communication
+  Credentials credentials = 3;
 }
 
 /*******************************************************************************
@@ -149,14 +153,11 @@ message HostCredentials {
 message NewNodeInfo {
   string node_id = 1;             // Unique identifier for the node within the rack
   string mac_address = 2;         // MAC address of the node's BMC interface
-  string ip_address = 3;          // IP address of the node's BMC interface
-  int32 port = 4;                 // Port number for BMC communication
-  optional BmcCredentials bmc_credentials = 5;    // Credentials for authenticating with the node's BMC (Redfish)
-  optional NodeType type = 6;     // Type/category of the node
-  string rack_id = 7;             // Identifier of the rack containing this node
-  repeated string host_mac_addresses = 8;   // Vector of MAC addresses of the node's Host interfaces
-  repeated string host_ip_addresses = 9;    // Vector of IP addresses of the node's Host interfaces
-  optional HostCredentials host_credentials = 10;  // Credentials for authenticating with the node's host/switch OS
+  optional BmcCredentials bmc_credentials = 3;     // BMC connection info and credentials
+  optional NodeType type = 4;     // Type/category of the node
+  string rack_id = 5;             // Identifier of the rack containing this node
+  repeated string host_mac_addresses = 6;   // Vector of MAC addresses of the node's Host interfaces
+  optional HostCredentials host_credentials = 7;   // Host connection info and credentials
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.
@@ -169,11 +170,8 @@ message NodeSet {
  * Only specified fields will be updated; unset fields remain unchanged.
  */
 message NodeUpdateInfo {
-  optional string ip_address = 1;       // New IP address for the node's BMC
-  optional int32 port = 2;              // New port number for BMC communication
-  optional BmcCredentials bmc_credentials = 3;    // New credentials for the node's BMC (Redfish)
-  repeated string host_ip_addresses = 4;          // Vector of IP addresses of the node's Host interfaces
-  optional HostCredentials host_credentials = 5;   // New credentials for the node's host/switch OS
+  optional BmcCredentials bmc_credentials = 1;    // New BMC connection info and credentials
+  optional HostCredentials host_credentials = 2;   // New host connection info and credentials
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
