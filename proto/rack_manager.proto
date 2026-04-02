@@ -744,6 +744,7 @@ message UpdateNodeFirmwareRequest {
   bool activate = 5;      // Whether to immediately activate the firmware after installation
   string rack_id = 6;     // Rack containing the target node
   repeated FirmwareTarget firmware_targets = 7;  // Multiple (target, filename) pairs for batch component updates
+  bool force_update = 8;  // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // UpdateFirmwareResponse reports the firmware update result.
@@ -766,6 +767,7 @@ message UpdateFirmwareByNodeTypeRequest {
   string rack_id = 5;     // Target rack identifier
   repeated FirmwareTarget firmware_targets = 6;  // Multiple (target, filename) pairs for batch component updates
   bool activate = 7;      // Whether to activate firmware after all targets are flashed
+  bool force_update = 8;  // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // UpdateFirmwareByNodeTypeResponse reports bulk update results.
@@ -804,6 +806,7 @@ message UpdateFirmwareByDeviceListRequest {
   NodeSet nodes = 2;                                          // Devices to update
   map<int32, FirmwareTargetList> firmware_targets = 3;        // Firmware targets keyed by NodeType
   bool activate = 4;                                          // Whether to activate firmware after installation
+  bool force_update = 5;                                      // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // UpdateFirmwareByDeviceListResponse reports firmware update results.
