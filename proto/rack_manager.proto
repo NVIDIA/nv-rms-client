@@ -346,26 +346,11 @@ service RackManager {
   rpc GetNodeFirmwareInventory(GetNodeFirmwareInventoryRequest) returns (GetNodeFirmwareInventoryResponse) {}
   
   /*
-   * UpdateNodeFirmware initiates a firmware update on a specific node.
-   * Optionally activates the new firmware immediately after installation.
-   * This is a synchronous (blocking) call that returns when the update completes.
-   */
-  rpc UpdateNodeFirmware(UpdateNodeFirmwareRequest) returns (UpdateNodeFirmwareResponse) {}
-
-  /*
    * UpdateNodeFirmwareAsync initiates a firmware update on a specific node asynchronously.
    * Returns a job ID immediately. Use GetFirmwareJobStatus to track progress.
    * Works for all node types (compute, powershelf, switch).
    */
   rpc UpdateNodeFirmwareAsync(UpdateNodeFirmwareRequest) returns (UpdateNodeFirmwareResponse) {}
-  
-  /*
-   * UpdateFirmwareByNodeType updates firmware on all nodes of a specific type in a rack.
-   * Useful for bulk updates across all compute nodes, switches, etc.
-   * Returns individual results for each node in the update batch.
-   * This is a synchronous (blocking) call that returns when all updates complete.
-   */
-  rpc UpdateFirmwareByNodeType(UpdateFirmwareByNodeTypeRequest) returns (UpdateFirmwareByNodeTypeResponse) {}
 
   /*
    * UpdateFirmwareByNodeTypeAsync initiates firmware updates on all nodes of a specific
@@ -768,17 +753,6 @@ message UpdateFirmwareByNodeTypeRequest {
   repeated FirmwareTarget firmware_targets = 6;  // Multiple (target, filename) pairs for batch component updates
   bool activate = 7;      // Whether to activate firmware after all targets are flashed
   bool force_update = 8;  // Force the BMC to accept the firmware even if it's a downgrade
-}
-
-// UpdateFirmwareByNodeTypeResponse reports bulk update results.
-message UpdateFirmwareByNodeTypeResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;                      // SUCCESS if all updates succeeded, FAILURE if any failed
-  string message = 3;                         // Human-readable summary message
-  int32 total_nodes = 4;                      // Total number of nodes targeted for update
-  int32 successful_updates = 5;               // Number of nodes successfully updated
-  int32 failed_updates = 6;                   // Number of nodes that failed to update
-  repeated NodeUpdateResult node_results = 7; // Individual results for each node
 }
 
 // NodeFirmwareJobInfo pairs a node ID with its async firmware job ID.
