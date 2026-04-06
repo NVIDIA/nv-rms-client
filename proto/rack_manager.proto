@@ -416,6 +416,12 @@ service RackManager {
    */
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
+  /*
+   * EnableScaleUpFabricTelemetryInterface enables or disables the FabricTelemetryInterface service.
+   * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
+   */
+  rpc EnableScaleUpFabricTelemetryInterface(EnableScaleUpFabricTelemetryInterfaceRequest) returns (EnableScaleUpFabricTelemetryInterfaceResponse) {}
+
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
    * Credentials are resolved from the node's stored inventory data.
@@ -445,48 +451,6 @@ service RackManager {
    */
   rpc GetSwitchSystemImageJobStatus(GetSwitchSystemImageJobStatusRequest) returns (GetSwitchSystemImageJobStatusResponse) {}
   
-  /*
-   * UpdateScaleUpFabricConfig enables or disables the FabricState of a switch.
-   * FabricState must be enabled before using ScaleUpFabricManager Feature
-   */
-  rpc UpdateScaleUpFabricConfig(UpdateScaleUpFabricConfigRequest) returns (UpdateScaleUpFabricConfigResponse) {}
-  
-  /*
-   * GetScaleUpFabricState retrieves the current FabricState.
-   * Returns whether the FabricState is enabled, disabled, or in transition.
-   */
-  rpc GetScaleUpFabricState(GetScaleUpFabricStateRequest) returns (GetScaleUpFabricStateResponse) {}
-  
-  /*
-   * GetScaleUpFabricServicesStatus retrieves the status of a FabricManager application.
-   * Used to check if applications like ScaleUpFabricManager or ScaleUpFabricTelemetry are running properly.
-   */
-  rpc GetScaleUpFabricServicesStatus(GetScaleUpFabricServicesStatusRequest) returns (GetScaleUpFabricServicesStatusResponse) {}
-  
-  /*
-   * EnableScaleUpFabricManager enables or disables external access to ScaleUpFabricManager.
-   * Required for external clients to communicate with the ScaleUpFabricManager.
-   */
-  rpc EnableScaleUpFabricManager(EnableScaleUpFabricManagerRequest) returns (EnableScaleUpFabricManagerResponse) {}
-  
-  /*
-   * RestartScaleUpFabricServices restarts a ScaleUpFabricServices on the switch.
-   * Useful for recovering from application errors or applying configuration changes.
-   */
-  rpc RestartScaleUpFabricServices(RestartScaleUpFabricServicesRequest) returns (RestartScaleUpFabricServicesResponse) {}
-  
-  /*
-   * CheckScaleUpFabricServicesConnectivity verifies gRPC connectivity to the ScaleUpFabricServices.
-   * Confirms that external clients can communicate with the ScaleUpFabricServices.
-   */
-  rpc CheckScaleUpFabricServicesConnectivity(CheckScaleUpFabricServicesConnectivityRequest) returns (CheckScaleUpFabricServicesConnectivityResponse) {}
-  
-  /*
-   * EnableScaleUpFabricTelemetryInterface enables or disables the FabricTelemetryInterface service.
-   * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
-   */
-  rpc EnableScaleUpFabricTelemetryInterface(EnableScaleUpFabricTelemetryInterfaceRequest) returns (EnableScaleUpFabricTelemetryInterfaceResponse) {}
-
   /*---------------------------------------------------------------------------
    * Utility RPCs
    *-------------------------------------------------------------------------*/
@@ -846,11 +810,10 @@ message GetRackFirmwareInventoryResponse {
  */
 message ConfigureScaleUpFabricManagerRequest {
   Metadata metadata = 1;
-  string rack_id = 2;           // Rack containing the target switch (required)
-  string node_id = 3;           // Target switch node identifier (required)
+  NewNodeInfo device = 2;       // Target switch identity and direct connection information
+  string product_family = 3;    // Product family used to derive MNNVL_TOPOLOGY
   string hardware_platform = 4; // Hardware platform identifier
-  int32 switch_port = 5;        // API port number (default: 443)
-  bool verify_ssl = 6;          // Whether to verify SSL certificates for HTTPS connections
+  bool verify_ssl = 5;          // Whether to verify SSL certificates for HTTPS connections
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
@@ -924,123 +887,12 @@ message ListSwitchSystemImagesResponse {
   string error_message = 4; // Error details if query failed
 }
 
-// UpdateScaleUpFabricConfigRequest enables or disables the ScaleUpFabricMgr feature.
-message UpdateScaleUpFabricConfigRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-  bool enabled = 6;       // true to enable ScaleUpFabricMgr, false to disable
-}
-
-// UpdateScaleUpFabricConfigResponse reports the configuration result.
-message UpdateScaleUpFabricConfigResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  bool success = 3;         // Whether the configuration change was applied
-  string error_message = 4; // Error details if configuration failed
-}
-
-// GetScaleUpFabricStateRequest retrieves the ScaleUpFabric state.
-message GetScaleUpFabricStateRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-}
-
-// GetScaleUpFabricStateResponse returns the ScaleUpFabric  state.
-message GetScaleUpFabricStateResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
-  string state_json = 3;    // JSON object containing ScaleUpFabricState information
-  string error_message = 4; // Error details if query failed
-}
-
-// GetScaleUpFabricServicesStatusRequest retrieves status of a FabricService .
-message GetScaleUpFabricServicesStatusRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-  string app_name = 6;    // Application name to query, e.g., "ScaleUpFabricManager"
-}
-
-// GetScaleUpFabricServicesStatusResponse returns application status.
-message GetScaleUpFabricServicesStatusResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
-  string status_json = 3;   // JSON object containing application status
-  string error_message = 4; // Error details if query failed
-}
-
-// EnableScaleUpFabricManagerRequest enables or disables ScaleUpFabricManager.
-message EnableScaleUpFabricManagerRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-  string app_name = 6;    // Application name, e.g., "ScaleUpFabricManager"
-  bool enabled = 7;       // true to enable gRPC, false to disable
-}
-
-// EnableScaleUpFabricManagerResponse reports the ScaleUpFabricManager result.
-message EnableScaleUpFabricManagerResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  string result_json = 3;   // JSON object containing configuration result
-  string error_message = 4; // Error details if configuration failed
-}
-
-// RestartScaleUpFabricServicesRequest restarts FabricServices.
-message RestartScaleUpFabricServicesRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-  string app_name = 6;    // Application name to restart, e.g., "ScaleUpFabricManager"
-}
-
-// RestartScaleUpFabricServicesResponse reports the restart result.
-message RestartScaleUpFabricServicesResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if restarted, FAILURE otherwise
-  bool success = 3;         // Whether the restart was successful
-  string error_message = 4; // Error details if restart failed
-}
-
-// CheckScaleUpFabricServicesConnectivityRequest verifies external connectivity to ScaleUpFabricService.
-message CheckScaleUpFabricServicesConnectivityRequest {
-  Metadata metadata = 1;
-  string rack_id = 2;            // Rack containing the target switch (required)
-  string node_id = 3;            // Target switch node identifier (required)
-  int32 port = 4;                // API port number (default: 443)
-  bool verify_ssl = 5;           // Whether to verify SSL certificates
-  string app_name = 6;           // Application name, e.g., "ScaleUpFabricManager"
-  string target_switch_name = 7; // Target switch hostname/IP for connectivity test
-}
-
-// CheckScaleUpFabricServicesConnectivityResponse returns response on enabling ScaleUpFabricService.
-message CheckScaleUpFabricServicesConnectivityResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if check completed, FAILURE otherwise
-  string status_json = 3;   // JSON object containing connectivity status and details
-  string error_message = 4; // Error details if check failed
-}
-
 // EnableScaleUpFabricTelemetryInterfaceRequest enables or disables the FabricTelemetryInterface.
 message EnableScaleUpFabricTelemetryInterfaceRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
-  bool enabled = 6;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
+  NewNodeInfo device = 2; // Target switch identity and direct connection information
+  bool enabled = 3;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
+  bool verify_ssl = 4;    // Whether to verify SSL certificates
 }
 
 // EnableScaleUpFabricTelemetryInterfaceResponse reports the FabricTelemetryInterface status.
