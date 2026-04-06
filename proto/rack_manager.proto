@@ -417,6 +417,12 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
+   * GetScaleUpFabricServicesStatus retrieves cluster health and nmx-controller status
+   * for a caller-supplied list of switches using NVUE APIs.
+   */
+  rpc GetScaleUpFabricServicesStatus(GetScaleUpFabricServicesStatusRequest) returns (GetScaleUpFabricServicesStatusResponse) {}
+
+  /*
    * EnableScaleUpFabricTelemetryInterface enables or disables the FabricTelemetryInterface service.
    * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
    */
@@ -824,6 +830,26 @@ message ConfigureScaleUpFabricManagerResponse {
   string topology_used = 4;   // multi-node scaleup topology that was applied
   bool ScaleUpFabricState_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
   bool grpc_enabled = 6;      // Whether gRPC access is now enabled
+}
+
+// ScaleUpFabricServiceStatusEntry stores per-switch status keyed by node_id.
+message ScaleUpFabricServiceStatusEntry {
+  string status_json = 1;   // JSON object containing application status
+  string error_message = 2; // Error details if query failed
+}
+
+// GetScaleUpFabricServicesStatusRequest checks cluster health and nmx-controller status on caller-supplied switches.
+message GetScaleUpFabricServicesStatusRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;      // Switch devices to query
+  bool verify_ssl = 3;    // Whether to verify SSL certificates for HTTPS connections
+}
+
+// GetScaleUpFabricServicesStatusResponse reports per-switch results keyed by node_id.
+message GetScaleUpFabricServicesStatusResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  map<string, ScaleUpFabricServiceStatusEntry> device_info_result = 3; // key = node_id
 }
 
 
