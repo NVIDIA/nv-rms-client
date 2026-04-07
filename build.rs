@@ -89,6 +89,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.Credentials",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
+        .enum_attribute(
+            "rack_manager.Credentials.auth",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .type_attribute(
             "rack_manager.BmcEndpoint",
             "#[derive(serde::Deserialize, serde::Serialize)]",

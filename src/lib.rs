@@ -187,14 +187,6 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetNodeFirmwareInventoryRequest,
     ) -> Result<rms::GetNodeFirmwareInventoryResponse, RackManagerError>;
-    async fn update_node_firmware(
-        &self,
-        cmd: rms::UpdateNodeFirmwareRequest,
-    ) -> Result<rms::UpdateNodeFirmwareResponse, RackManagerError>;
-    async fn update_firmware_by_node_type(
-        &self,
-        cmd: rms::UpdateFirmwareByNodeTypeRequest,
-    ) -> Result<rms::UpdateFirmwareByNodeTypeResponse, RackManagerError>;
     async fn get_rack_firmware_inventory(
         &self,
         cmd: rms::GetRackFirmwareInventoryRequest,
@@ -394,24 +386,6 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::GetNodeFirmwareInventoryResponse, RackManagerError> {
         self.client
             .get_node_firmware_inventory(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn update_node_firmware(
-        &self,
-        cmd: rms::UpdateNodeFirmwareRequest,
-    ) -> Result<rms::UpdateNodeFirmwareResponse, RackManagerError> {
-        self.client
-            .update_node_firmware(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn update_firmware_by_node_type(
-        &self,
-        cmd: rms::UpdateFirmwareByNodeTypeRequest,
-    ) -> Result<rms::UpdateFirmwareByNodeTypeResponse, RackManagerError> {
-        self.client
-            .update_firmware_by_node_type(cmd)
             .await
             .map_err(RackManagerError::from)
     }
