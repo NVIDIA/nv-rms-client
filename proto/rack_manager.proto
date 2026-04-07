@@ -423,6 +423,12 @@ service RackManager {
   rpc GetScaleUpFabricServicesStatus(GetScaleUpFabricServicesStatusRequest) returns (GetScaleUpFabricServicesStatusResponse) {}
 
   /*
+   * GetScaleUpFabricState retrieves the cluster state for a caller-supplied switch
+   * using NVUE APIs.
+   */
+  rpc GetScaleUpFabricState(GetScaleUpFabricStateRequest) returns (GetScaleUpFabricStateResponse) {}
+
+  /*
    * EnableScaleUpFabricTelemetryInterface enables or disables the FabricTelemetryInterface service.
    * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
    */
@@ -816,10 +822,9 @@ message GetRackFirmwareInventoryResponse {
  */
 message ConfigureScaleUpFabricManagerRequest {
   Metadata metadata = 1;
-  NewNodeInfo device = 2;       // Target switch identity and direct connection information
-  string product_family = 3;    // Product family used to derive MNNVL_TOPOLOGY
-  string hardware_platform = 4; // Hardware platform identifier
-  bool verify_ssl = 5;          // Whether to verify SSL certificates for HTTPS connections
+  NewNodeInfo device = 2;      // Target switch identity and direct connection information
+  string topology_type = 3;    // Topology to be set for ScaleUpFabric
+  bool verify_ssl = 4;         // Whether to verify SSL certificates for HTTPS connections
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
@@ -850,6 +855,21 @@ message GetScaleUpFabricServicesStatusResponse {
   Metadata metadata = 1;
   ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
   map<string, ScaleUpFabricServiceStatusEntry> device_info_result = 3; // key = node_id
+}
+
+// GetScaleUpFabricStateRequest retrieves the ScaleUpFabric state for a single switch.
+message GetScaleUpFabricStateRequest {
+  Metadata metadata = 1;
+  NewNodeInfo device = 2;   // Target switch identity and direct connection information
+  bool verify_ssl = 3;      // Whether to verify SSL certificates
+}
+
+// GetScaleUpFabricStateResponse returns the ScaleUpFabric state.
+message GetScaleUpFabricStateResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  string state_json = 3;    // JSON object containing ScaleUpFabric state information
+  string error_message = 4; // Error details if query failed
 }
 
 
