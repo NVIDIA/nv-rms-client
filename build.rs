@@ -258,6 +258,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.ScaleUpFabricServiceStatusEntry",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetScaleUpFabricServicesStatusRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetScaleUpFabricServicesStatusResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetScaleUpFabricStateRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetScaleUpFabricStateResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.FetchSwitchSystemImageRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
@@ -279,54 +299,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .type_attribute(
             "rack_manager.ListSwitchSystemImagesResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.UpdateScaleUpFabricConfigRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.UpdateScaleUpFabricConfigResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.GetScaleUpFabricStateRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.GetScaleUpFabricStateResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.GetScaleUpFabricServicesStatusRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.GetScaleUpFabricServicesStatusResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.EnableScaleUpFabricManagerRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.EnableScaleUpFabricManagerResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.RestartScaleUpFabricServicesRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.RestartScaleUpFabricServicesResponse",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.CheckScaleUpFabricServicesConnectivityRequest",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
-            "rack_manager.CheckScaleUpFabricServicesConnectivityResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(

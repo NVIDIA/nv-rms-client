@@ -219,30 +219,6 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
     ) -> Result<rms::ListSwitchSystemImagesResponse, RackManagerError>;
-    async fn update_scale_up_fabric_config(
-        &self,
-        cmd: rms::UpdateScaleUpFabricConfigRequest,
-    ) -> Result<rms::UpdateScaleUpFabricConfigResponse, RackManagerError>;
-    async fn get_scale_up_fabric_state(
-        &self,
-        cmd: rms::GetScaleUpFabricStateRequest,
-    ) -> Result<rms::GetScaleUpFabricStateResponse, RackManagerError>;
-    async fn get_scale_up_fabric_services_status(
-        &self,
-        cmd: rms::GetScaleUpFabricServicesStatusRequest,
-    ) -> Result<rms::GetScaleUpFabricServicesStatusResponse, RackManagerError>;
-    async fn enable_scale_up_fabric_manager(
-        &self,
-        cmd: rms::EnableScaleUpFabricManagerRequest,
-    ) -> Result<rms::EnableScaleUpFabricManagerResponse, RackManagerError>;
-    async fn restart_scale_up_fabric_services(
-        &self,
-        cmd: rms::RestartScaleUpFabricServicesRequest,
-    ) -> Result<rms::RestartScaleUpFabricServicesResponse, RackManagerError>;
-    async fn check_scale_up_fabric_services_connectivity(
-        &self,
-        cmd: rms::CheckScaleUpFabricServicesConnectivityRequest,
-    ) -> Result<rms::CheckScaleUpFabricServicesConnectivityResponse, RackManagerError>;
     async fn enable_scale_up_fabric_telemetry_interface(
         &self,
         cmd: rms::EnableScaleUpFabricTelemetryInterfaceRequest,
@@ -458,60 +434,6 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::ListSwitchSystemImagesResponse, RackManagerError> {
         self.client
             .list_switch_system_images(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn update_scale_up_fabric_config(
-        &self,
-        cmd: rms::UpdateScaleUpFabricConfigRequest,
-    ) -> Result<rms::UpdateScaleUpFabricConfigResponse, RackManagerError> {
-        self.client
-            .update_scale_up_fabric_config(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn get_scale_up_fabric_state(
-        &self,
-        cmd: rms::GetScaleUpFabricStateRequest,
-    ) -> Result<rms::GetScaleUpFabricStateResponse, RackManagerError> {
-        self.client
-            .get_scale_up_fabric_state(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn get_scale_up_fabric_services_status(
-        &self,
-        cmd: rms::GetScaleUpFabricServicesStatusRequest,
-    ) -> Result<rms::GetScaleUpFabricServicesStatusResponse, RackManagerError> {
-        self.client
-            .get_scale_up_fabric_services_status(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn enable_scale_up_fabric_manager(
-        &self,
-        cmd: rms::EnableScaleUpFabricManagerRequest,
-    ) -> Result<rms::EnableScaleUpFabricManagerResponse, RackManagerError> {
-        self.client
-            .enable_scale_up_fabric_manager(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn restart_scale_up_fabric_services(
-        &self,
-        cmd: rms::RestartScaleUpFabricServicesRequest,
-    ) -> Result<rms::RestartScaleUpFabricServicesResponse, RackManagerError> {
-        self.client
-            .restart_scale_up_fabric_services(cmd)
-            .await
-            .map_err(RackManagerError::from)
-    }
-    async fn check_scale_up_fabric_services_connectivity(
-        &self,
-        cmd: rms::CheckScaleUpFabricServicesConnectivityRequest,
-    ) -> Result<rms::CheckScaleUpFabricServicesConnectivityResponse, RackManagerError> {
-        self.client
-            .check_scale_up_fabric_services_connectivity(cmd)
             .await
             .map_err(RackManagerError::from)
     }
