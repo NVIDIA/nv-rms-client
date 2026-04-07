@@ -144,7 +144,7 @@ message BmcEndpoint {
   Credentials credentials = 3;
 }
 
-// Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, NVUE).
+// Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, SWITCH API).
 message HostEndpoint {
   repeated NetworkInterface interfaces = 1;  // Host NICs (multiple supported)
   int32 port = 2;                            // Port number for host communication
@@ -417,14 +417,14 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
-   * GetScaleUpFabricServicesStatus retrieves cluster health and nmx-controller status
-   * for a caller-supplied list of switches using NVUE APIs.
+   * GetScaleUpFabricServicesStatus retrieves cluster health and fabric-manager status
+   * for a caller-supplied list of switches using switch Rest APIs.
    */
   rpc GetScaleUpFabricServicesStatus(GetScaleUpFabricServicesStatusRequest) returns (GetScaleUpFabricServicesStatusResponse) {}
 
   /*
    * GetScaleUpFabricState retrieves the cluster state for a caller-supplied switch
-   * using NVUE APIs.
+   * using switch APIs.
    */
   rpc GetScaleUpFabricState(GetScaleUpFabricStateRequest) returns (GetScaleUpFabricStateResponse) {}
 
@@ -937,7 +937,7 @@ message ListSwitchSystemImagesResponse {
 message EnableScaleUpFabricTelemetryInterfaceRequest {
   Metadata metadata = 1;
   NewNodeInfo device = 2; // Target switch identity and direct connection information
-  bool enabled = 3;       // true to enable ScaleUpFabricTelemetryInterface, false to disable
+  bool enable = 3;        // true to enable ScaleUpFabricTelemetryInterface, false to disable
   bool verify_ssl = 4;    // Whether to verify SSL certificates
 }
 
