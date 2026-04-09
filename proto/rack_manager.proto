@@ -335,6 +335,12 @@ service RackManager {
    */
   rpc GetDeviceInfoByNodeType(GetDeviceInfoByNodeTypeRequest) returns (GetDeviceInfoByNodeTypeResponse) {}
 
+  /*
+   * GetDeviceInfoByDeviceList retrieves normalized device metadata for a caller-
+   * supplied list of devices. Each device is identified by its NewNodeInfo.
+   */
+  rpc GetDeviceInfoByDeviceList(GetDeviceInfoByDeviceListRequest) returns (GetDeviceInfoByDeviceListResponse) {}
+
   /*---------------------------------------------------------------------------
    * Firmware Control RPCs
    *-------------------------------------------------------------------------*/
@@ -662,6 +668,20 @@ message GetDeviceInfoByNodeTypeResponse {
   ReturnCode status = 2;                   // SUCCESS if retrieved, FAILURE otherwise
   string message = 3;                      // Human-readable status or error message
   repeated NodeDeviceInfo node_device_info = 4; // Device metadata grouped by node
+}
+
+// GetDeviceInfoByDeviceListRequest retrieves device metadata for a specified list of devices.
+message GetDeviceInfoByDeviceListRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;  // Devices to query
+}
+
+// GetDeviceInfoByDeviceListResponse returns device metadata for the requested devices.
+message GetDeviceInfoByDeviceListResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                      // SUCCESS if all requested nodes succeeded, FAILURE otherwise
+  string message = 3;                         // Batch summary; includes per-node failure details when any node fails
+  repeated NodeDeviceInfo node_device_info = 4; // Successful device info results
 }
 
 
