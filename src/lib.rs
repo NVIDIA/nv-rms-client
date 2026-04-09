@@ -183,6 +183,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetDeviceInfoByNodeTypeRequest,
     ) -> Result<rms::GetDeviceInfoByNodeTypeResponse, RackManagerError>;
+    async fn get_device_info_by_device_list(
+        &self,
+        cmd: rms::GetDeviceInfoByDeviceListRequest,
+    ) -> Result<rms::GetDeviceInfoByDeviceListResponse, RackManagerError>;
     async fn get_node_firmware_inventory(
         &self,
         cmd: rms::GetNodeFirmwareInventoryRequest,
@@ -353,6 +357,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::GetDeviceInfoByNodeTypeResponse, RackManagerError> {
         self.client
             .get_device_info_by_node_type(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn get_device_info_by_device_list(
+        &self,
+        cmd: rms::GetDeviceInfoByDeviceListRequest,
+    ) -> Result<rms::GetDeviceInfoByDeviceListResponse, RackManagerError> {
+        self.client
+            .get_device_info_by_device_list(cmd)
             .await
             .map_err(RackManagerError::from)
     }

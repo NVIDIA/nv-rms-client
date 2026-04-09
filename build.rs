@@ -222,6 +222,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.GetDeviceInfoByDeviceListRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetDeviceInfoByDeviceListResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.GetNodeFirmwareInventoryRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
