@@ -16,12 +16,18 @@
 
 #[allow(clippy::all)]
 #[rustfmt::skip]
-pub mod rack_manager;
+pub mod rack_manager {
+    include!(concat!(env!("OUT_DIR"), "/rack_manager.rs"));
+}
 
 #[allow(clippy::all)]
 #[rustfmt::skip]
-pub mod rack_manager_client;
+pub mod rack_manager_client {
+    include!(concat!(env!("OUT_DIR"), "/rack_manager_client.rs"));
+}
 
 #[allow(clippy::all)]
 #[rustfmt::skip]
-pub mod rack_manager_converters;
+pub mod rack_manager_converters {
+    include!(concat!(env!("OUT_DIR"), "/rack_manager_converters.rs"));
+}
