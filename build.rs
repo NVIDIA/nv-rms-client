@@ -405,6 +405,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.GetSwitchSystemImageJobStatusResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
+        .type_attribute(
+            "rack_manager.NodePasswordUpdateResult",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateSwitchSystemPasswordRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.UpdateSwitchSystemPasswordResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .include_file("prost_common.rs")
         .build_server(false)
         .build_client(true)

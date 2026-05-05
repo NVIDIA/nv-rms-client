@@ -248,6 +248,13 @@ message NodeUpdateResult {
   string error_message = 3;            // Human-readable error message
 }
 
+// NodePasswordUpdateResult reports the outcome of a password update on a specific switch node.
+message NodePasswordUpdateResult {
+  string node_id = 1;        // Switch node that was targeted
+  ReturnCode status = 2;     // SUCCESS or FAILURE for this node
+  string error_message = 3;  // Human-readable error detail if failed
+}
+
 /*******************************************************************************
  * SERVICE DEFINITION
  *
@@ -468,7 +475,14 @@ service RackManager {
    * system image update job.
    */
   rpc GetSwitchSystemImageJobStatus(GetSwitchSystemImageJobStatusRequest) returns (GetSwitchSystemImageJobStatusResponse) {}
-  
+
+  /*
+   * UpdateSwitchSystemPassword updates the OS-level password for a specific user
+   * on a caller-supplied list of switch devices. Credentials are resolved from
+   * the node's stored inventory data.
+   */
+  rpc UpdateSwitchSystemPassword(UpdateSwitchSystemPasswordRequest) returns (UpdateSwitchSystemPasswordResponse) {}
+
   /*---------------------------------------------------------------------------
    * Utility RPCs
    *-------------------------------------------------------------------------*/
@@ -1041,6 +1055,29 @@ message PollJobStatusResponse {
   string state = 3;        // State of the job (active,pending,running)   
   string result_json = 4; // JSON object containing configuration result
   string error_message = 5; // Error details if configuration failed
+}
+
+/*******************************************************************************
+ * SWITCH PASSWORD CONTROL MESSAGES
+ ******************************************************************************/
+
+// UpdateSwitchSystemPasswordRequest updates the OS-level password for a user on a set of switch devices.
+message UpdateSwitchSystemPasswordRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;       // Switch devices to update
+  string username = 3;     // Target OS username whose password will be changed (mandatory)
+  string password = 4;     // New password to set for the user (mandatory)
+}
+
+// UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
+message UpdateSwitchSystemPasswordResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                                    // SUCCESS if all nodes succeeded, FAILURE if any failed
+  string message = 3;                                       // Human-readable summary message
+  int32 total_nodes = 4;                                    // Total number of switch devices targeted
+  int32 successful_updates = 5;                             // Number of switch devices successfully updated
+  int32 failed_updates = 6;                                 // Number of switch devices that failed to update
+  repeated NodePasswordUpdateResult node_results = 7;       // Individual result per switch node
 }
 
 /*******************************************************************************

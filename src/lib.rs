@@ -248,6 +248,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetFirmwareJobStatusRequest,
     ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError>;
+    async fn update_switch_system_password(
+        &self,
+        cmd: rms::UpdateSwitchSystemPasswordRequest,
+    ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError>;
 }
 
 #[async_trait::async_trait]
@@ -504,6 +508,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError> {
         self.client
             .get_firmware_job_status(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn update_switch_system_password(
+        &self,
+        cmd: rms::UpdateSwitchSystemPasswordRequest,
+    ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError> {
+        self.client
+            .update_switch_system_password(cmd)
             .await
             .map_err(RackManagerError::from)
     }
