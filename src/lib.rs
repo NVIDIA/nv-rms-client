@@ -22,7 +22,9 @@ use tonic::Status;
 use crate::client::{RackManagerClientT, RetryConfig, RmsApiConfig, RmsTlsClient};
 use crate::client_config::RmsClientConfig;
 use crate::protos::rack_manager as rms;
-use crate::protos::rack_manager::{UpgradeFirmwareOnSwitchCommand, UpgradeFirmwareOnSwitchResponse};
+use crate::protos::rack_manager::{
+    UpgradeFirmwareOnSwitchCommand, UpgradeFirmwareOnSwitchResponse,
+};
 use crate::protos::rack_manager_client::RackManagerApiClient;
 pub mod client;
 pub mod client_config;
@@ -139,6 +141,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::SetPowerStateRequest,
     ) -> Result<rms::SetPowerStateResponse, RackManagerError>;
+    async fn set_power_state_by_device_list(
+        &self,
+        cmd: rms::SetPowerStateByDeviceListRequest,
+    ) -> Result<rms::SetPowerStateByDeviceListResponse, RackManagerError>;
     async fn get_power_state(
         &self,
         cmd: rms::GetPowerStateRequest,
@@ -258,6 +264,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::SetPowerStateResponse, RackManagerError> {
         self.client
             .set_power_state(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn set_power_state_by_device_list(
+        &self,
+        cmd: rms::SetPowerStateByDeviceListRequest,
+    ) -> Result<rms::SetPowerStateByDeviceListResponse, RackManagerError> {
+        self.client
+            .set_power_state_by_device_list(cmd)
             .await
             .map_err(RackManagerError::from)
     }

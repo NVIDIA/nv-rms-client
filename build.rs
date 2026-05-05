@@ -126,11 +126,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
+            "rack_manager.NodePowerResult",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
             "rack_manager.SetPowerStateRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
             "rack_manager.SetPowerStateResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.SetPowerStateByDeviceListRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.SetPowerStateByDeviceListResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
