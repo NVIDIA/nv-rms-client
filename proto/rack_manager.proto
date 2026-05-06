@@ -1072,11 +1072,6 @@ message UpdateSwitchSystemPasswordRequest {
 // UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
 message UpdateSwitchSystemPasswordResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                                    // SUCCESS if all nodes succeeded, FAILURE if any failed
-  string message = 3;                                       // Human-readable summary message
-  int32 total_nodes = 4;                                    // Total number of switch devices targeted
-  int32 successful_updates = 5;                             // Number of switch devices successfully updated
-  int32 failed_updates = 6;                                 // Number of switch devices that failed to update
   repeated NodePasswordUpdateResult node_results = 7;       // Individual result per switch node
 }
 
