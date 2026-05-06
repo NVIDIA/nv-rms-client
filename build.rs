@@ -122,11 +122,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.NodeUpdateResult",
+            "rack_manager.OperationResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.NodePowerResult",
+            "rack_manager.NodeResult",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.NodeBatchResponse",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
