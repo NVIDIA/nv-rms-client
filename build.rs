@@ -406,10 +406,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
         .type_attribute(
-            "rack_manager.NodePasswordUpdateResult",
-            "#[derive(serde::Deserialize, serde::Serialize)]",
-        )
-        .type_attribute(
             "rack_manager.UpdateSwitchSystemPasswordRequest",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )

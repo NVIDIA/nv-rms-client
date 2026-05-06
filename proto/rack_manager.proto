@@ -248,13 +248,6 @@ message NodeUpdateResult {
   string error_message = 3;            // Human-readable error message
 }
 
-// NodePasswordUpdateResult reports the outcome of a password update on a specific switch node.
-message NodePasswordUpdateResult {
-  string node_id = 1;        // Switch node that was targeted
-  ReturnCode status = 2;     // SUCCESS or FAILURE for this node
-  string error_message = 3;  // Human-readable error detail if failed
-}
-
 /*******************************************************************************
  * SERVICE DEFINITION
  *
@@ -1072,7 +1065,7 @@ message UpdateSwitchSystemPasswordRequest {
 // UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
 message UpdateSwitchSystemPasswordResponse {
   Metadata metadata = 1;
-  repeated NodePasswordUpdateResult node_results = 7;       // Individual result per switch node
+  repeated NodeUpdateResult node_results = 7;       // Individual result per switch node
 }
 
 /*******************************************************************************
