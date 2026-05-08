@@ -476,6 +476,12 @@ service RackManager {
    */
   rpc UpdateSwitchSystemPassword(UpdateSwitchSystemPasswordRequest) returns (UpdateSwitchSystemPasswordResponse) {}
 
+  /*
+   * GetSwitchAttestation generates and copies TPM on a caller-supplied list of
+   * switch devices. Credentials to access the switches are passed from the client.
+   */
+  rpc GetSwitchAttestation(GetSwitchAttestationRequest) returns (GetSwitchAttestationResponse) {}
+
   /*---------------------------------------------------------------------------
    * Utility RPCs
    *-------------------------------------------------------------------------*/
@@ -1066,6 +1072,31 @@ message UpdateSwitchSystemPasswordRequest {
 message UpdateSwitchSystemPasswordResponse {
   Metadata metadata = 1;
   repeated NodeUpdateResult node_results = 7;       // Individual result per switch node
+}
+
+//Result per Switch Tray.
+message Result {
+  string node_id = 1;
+  ReturnCode status = 2;
+  string error_message = 3;
+}
+
+//SwitchAttestationResult per switch Tray.
+message SwitchAttestationResult {
+  Result result = 1;
+  string artifact_path = 2; // Shared path to accesss attestation measurements.
+}
+
+//GetSwitchAttestationRequest generates and gets the Switch TPM quotes.json on a set of switch devices.
+message GetSwitchAttestationRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2; // Switch devices to get attestation measurements
+}
+
+//GetSwitchAttestationResponse reports the per-node results of a synchronous Switch Attestation measurements.
+message GetSwitchAttestationResponse {
+  Metadata metadata = 1;
+  repeated SwitchAttestationResult results = 2; // Generated attestation measurements results
 }
 
 /*******************************************************************************

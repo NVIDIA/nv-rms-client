@@ -22,7 +22,9 @@ use tonic::Status;
 use crate::client::{RackManagerClientT, RetryConfig, RmsApiConfig, RmsTlsClient};
 use crate::client_config::RmsClientConfig;
 use crate::protos::rack_manager as rms;
-use crate::protos::rack_manager::{UpgradeFirmwareOnSwitchCommand, UpgradeFirmwareOnSwitchResponse};
+use crate::protos::rack_manager::{
+    UpgradeFirmwareOnSwitchCommand, UpgradeFirmwareOnSwitchResponse,
+};
 use crate::protos::rack_manager_client::RackManagerApiClient;
 pub mod client;
 pub mod client_config;
@@ -252,6 +254,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::UpdateSwitchSystemPasswordRequest,
     ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError>;
+    async fn get_switch_attestation(
+        &self,
+        cmd: rms::GetSwitchAttestationRequest,
+    ) -> Result<rms::GetSwitchAttestationResponse, RackManagerError>;
 }
 
 #[async_trait::async_trait]
@@ -517,6 +523,15 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError> {
         self.client
             .update_switch_system_password(cmd)
+            .await
+            .map_err(RackManagerError::from)
+    }
+    async fn get_switch_attestation(
+        &self,
+        cmd: rms::GetSwitchAttestationRequest,
+    ) -> Result<rms::GetSwitchAttestationResponse, RackManagerError> {
+        self.client
+            .get_switch_attestation(cmd)
             .await
             .map_err(RackManagerError::from)
     }
