@@ -1084,8 +1084,7 @@ message UpdateSwitchSystemPasswordRequest {
 
 // UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
 message UpdateSwitchSystemPasswordResponse {
-  Metadata metadata = 1;
-  repeated NodeUpdateResult node_results = 7;       // Individual result per switch node
+  NodeBatchResponse response = 1;
 }
 
 /*******************************************************************************
