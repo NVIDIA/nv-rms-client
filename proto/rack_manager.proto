@@ -821,6 +821,11 @@ message FirmwareTargetList {
   repeated FirmwareTarget targets = 1;
 }
 
+// RackFirmwareComponentFilter wraps component names for one NodeType key.
+message RackFirmwareComponentFilter {
+  repeated string components = 1; // Optional component filter for one node type
+}
+
 // UpdateFirmwareRequest initiates a firmware update on a node.
 // Supports single target (filename + target fields) or multiple targets (firmware_targets list).
 // If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
@@ -976,9 +981,12 @@ message ApplyRackFirmwareRequest {
   string firmware_id = 3;          // Empty means use default for rack_hardware_type
   string firmware_type = 4;        // "dev" or "prod"
   string rack_hardware_type = 5;
-  repeated string components = 6;  // Optional component filter
+  repeated string components = 6;  // Deprecated: global component filter for all node types
   NodeSet nodes = 7;               // Caller-supplied devices
   bool force_update = 8;
+  // Component filters keyed by NodeType. If non-empty, only listed node types are updated.
+  // A listed node type with an empty components list means all components for that node type.
+  map<int32, RackFirmwareComponentFilter> component_filters = 9;
 }
 
 message ApplyRackFirmwareResponse {
