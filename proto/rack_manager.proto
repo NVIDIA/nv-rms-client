@@ -272,6 +272,32 @@ message NodeBatchResponse {
   string job_id = 8;                    // Parent job ID for async batch operations
 }
 
+// OperationResponse reports the common result shape for simple RPCs.
+message OperationResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;  // SUCCESS if operation completed, FAILURE otherwise
+  string message = 3;     // Human-readable status or error message
+}
+
+// NodeResult reports the outcome of an operation on a specific node.
+message NodeResult {
+  string node_id = 1;        // Node that was targeted
+  ReturnCode status = 2;     // SUCCESS if this node completed, FAILURE otherwise
+  string error_message = 3;  // Human-readable error message for failures
+}
+
+// NodeBatchResponse reports the common result shape for multi-node RPCs.
+message NodeBatchResponse {
+  Metadata metadata = 1;
+  ReturnCode status = 2;                // SUCCESS only if all targeted nodes completed
+  string message = 3;                   // Human-readable summary message
+  int32 total_nodes = 4;                // Total number of nodes targeted
+  int32 successful_nodes = 5;           // Number of nodes successfully processed
+  int32 failed_nodes = 6;               // Number of nodes that failed
+  repeated NodeResult node_results = 7; // Individual results for each node
+  string job_id = 8;                    // Parent job ID for async batch operations
+}
+
 /*******************************************************************************
  * SERVICE DEFINITION
  *
@@ -418,6 +444,46 @@ service RackManager {
    * Provides a comprehensive view of firmware versions across the rack.
    */
   rpc GetRackFirmwareInventory(GetRackFirmwareInventoryRequest) returns (GetRackFirmwareInventoryResponse) {}
+
+  /*
+   * CreateRackFirmware stores a rack firmware catalog entry and starts artifact download.
+   */
+  rpc CreateRackFirmware(CreateRackFirmwareRequest) returns (RackFirmware) {}
+
+  /*
+   * GetRackFirmware retrieves one rack firmware catalog entry.
+   */
+  rpc GetRackFirmware(GetRackFirmwareRequest) returns (RackFirmware) {}
+
+  /*
+   * ListRackFirmware lists rack firmware catalog entries.
+   */
+  rpc ListRackFirmware(ListRackFirmwareRequest) returns (ListRackFirmwareResponse) {}
+
+  /*
+   * DeleteRackFirmware removes one rack firmware catalog entry and its local cache.
+   */
+  rpc DeleteRackFirmware(DeleteRackFirmwareRequest) returns (OperationResponse) {}
+
+  /*
+   * SetDefaultRackFirmware marks one rack firmware entry as default for its hardware type.
+   */
+  rpc SetDefaultRackFirmware(SetDefaultRackFirmwareRequest) returns (RackFirmware) {}
+
+  /*
+   * ApplyRackFirmware resolves rack firmware targets and starts firmware updates for supplied devices.
+   */
+  rpc ApplyRackFirmware(ApplyRackFirmwareRequest) returns (ApplyRackFirmwareResponse) {}
+
+  /*
+   * ApplyRackFirmwareNVOSSystemImage resolves and starts NVOS system image updates for supplied switches.
+   */
+  rpc ApplyRackFirmwareNVOSSystemImage(ApplyRackFirmwareNVOSSystemImageRequest) returns (ApplyRackFirmwareNVOSSystemImageResponse) {}
+
+  /*
+   * GetRackFirmwareHistory lists rack firmware apply history.
+   */
+  rpc GetRackFirmwareHistory(GetRackFirmwareHistoryRequest) returns (GetRackFirmwareHistoryResponse) {}
 
 
   /*
@@ -857,6 +923,103 @@ message GetRackFirmwareInventoryResponse {
   Metadata metadata = 1;
   ReturnCode status = 2;                    // SUCCESS if retrieved, FAILURE otherwise
   repeated NodeFirmwareInventory nodes = 3; // Firmware inventory grouped by node
+}
+
+// RackFirmware is a managed rack firmware catalog entry.
+message RackFirmware {
+  string id = 1;
+  string config_json = 2;
+  bool available = 3;
+  string created = 4;
+  string updated = 5;
+  string parsed_components = 6;
+  string rack_hardware_type = 7;
+  bool is_default = 8;
+}
+
+// CreateRackFirmwareRequest stores firmware config and starts artifact download.
+message CreateRackFirmwareRequest {
+  Metadata metadata = 1;
+  string config_json = 2;
+  string artifactory_token = 3;
+  string rack_hardware_type = 4;
+}
+
+message GetRackFirmwareRequest {
+  Metadata metadata = 1;
+  string id = 2;
+}
+
+message ListRackFirmwareRequest {
+  Metadata metadata = 1;
+  bool only_available = 2;
+  string rack_hardware_type = 3;
+}
+
+message ListRackFirmwareResponse {
+  repeated RackFirmware configs = 1;
+}
+
+message DeleteRackFirmwareRequest {
+  Metadata metadata = 1;
+  string id = 2;
+}
+
+message SetDefaultRackFirmwareRequest {
+  Metadata metadata = 1;
+  string firmware_id = 2;
+}
+
+message ApplyRackFirmwareRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;
+  string firmware_id = 3;          // Empty means use default for rack_hardware_type
+  string firmware_type = 4;        // "dev" or "prod"
+  string rack_hardware_type = 5;
+  repeated string components = 6;  // Optional component filter
+  NodeSet nodes = 7;               // Caller-supplied devices
+  bool force_update = 8;
+}
+
+message ApplyRackFirmwareResponse {
+  NodeBatchResponse response = 1;          // response.job_id is parent job id
+  string firmware_id = 2;
+  repeated NodeFirmwareJobInfo node_jobs = 3;
+}
+
+message ApplyRackFirmwareNVOSSystemImageRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;
+  string firmware_id = 3;    // Empty means use default for rack_hardware_type
+  string firmware_type = 4;  // "dev" or "prod"
+  string rack_hardware_type = 5;
+  NodeSet nodes = 6;         // Caller-supplied switch devices
+}
+
+message ApplyRackFirmwareNVOSSystemImageResponse {
+  NodeBatchResponse response = 1;                       // response.job_id is parent job id
+  string firmware_id = 2;
+  string image_filename = 3;
+  repeated SwitchSystemImageUpdateJobInfo node_jobs = 4;
+}
+
+message GetRackFirmwareHistoryRequest {
+  Metadata metadata = 1;
+  string firmware_id = 2;       // Empty means no firmware filter
+  repeated string rack_ids = 3; // Empty means all racks
+}
+
+message GetRackFirmwareHistoryResponse {
+  repeated RackFirmwareHistoryRecord records = 1;
+}
+
+message RackFirmwareHistoryRecord {
+  string firmware_id = 1;
+  string rack_id = 2;
+  string firmware_type = 3;
+  string applied_at = 4;
+  bool firmware_available = 5;
+  string rack_hardware_type = 6;
 }
 
 /*******************************************************************************
