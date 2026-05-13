@@ -201,9 +201,9 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetRackFirmwareInventoryRequest,
     ) -> Result<rms::GetRackFirmwareInventoryResponse, RackManagerError>;
-    async fn ingest_firmware_object(
+    async fn add_firmware_object(
         &self,
-        cmd: rms::IngestFirmwareObjectRequest,
+        cmd: rms::AddFirmwareObjectRequest,
     ) -> Result<rms::FirmwareObject, RackManagerError>;
     async fn get_firmware_object(
         &self,
@@ -225,10 +225,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ApplyFirmwareObjectRequest,
     ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError>;
-    async fn apply_firmware_object_nvos_system_image(
+    async fn apply_nvos_update(
         &self,
-        cmd: rms::ApplyFirmwareObjectNvosSystemImageRequest,
-    ) -> Result<rms::ApplyFirmwareObjectNvosSystemImageResponse, RackManagerError>;
+        cmd: rms::ApplyNvosUpdateRequest,
+    ) -> Result<rms::ApplyNvosUpdateResponse, RackManagerError>;
     async fn get_firmware_object_history(
         &self,
         cmd: rms::GetFirmwareObjectHistoryRequest,
@@ -393,12 +393,12 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::GetRackFirmwareInventoryResponse, RackManagerError> {
         Ok(self.client.get_rack_firmware_inventory(cmd).await?)
     }
-    async fn ingest_firmware_object(
+    async fn add_firmware_object(
         &self,
-        cmd: rms::IngestFirmwareObjectRequest,
+        cmd: rms::AddFirmwareObjectRequest,
     ) -> Result<rms::FirmwareObject, RackManagerError> {
         self.client
-            .ingest_firmware_object(cmd)
+            .add_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
@@ -447,12 +447,12 @@ impl RmsApi for RackManagerApi {
             .await
             .map_err(RackManagerError::from)
     }
-    async fn apply_firmware_object_nvos_system_image(
+    async fn apply_nvos_update(
         &self,
-        cmd: rms::ApplyFirmwareObjectNvosSystemImageRequest,
-    ) -> Result<rms::ApplyFirmwareObjectNvosSystemImageResponse, RackManagerError> {
+        cmd: rms::ApplyNvosUpdateRequest,
+    ) -> Result<rms::ApplyNvosUpdateResponse, RackManagerError> {
         self.client
-            .apply_firmware_object_nvos_system_image(cmd)
+            .apply_nvos_update(cmd)
             .await
             .map_err(RackManagerError::from)
     }

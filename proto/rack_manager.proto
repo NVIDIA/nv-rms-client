@@ -420,9 +420,13 @@ service RackManager {
   rpc GetRackFirmwareInventory(GetRackFirmwareInventoryRequest) returns (GetRackFirmwareInventoryResponse) {}
 
   /*
-   * IngestFirmwareObject ingests a firmware object catalog entry and starts artifact download.
+   * AddFirmwareObject adds a firmware object catalog entry.
+   *
+   * RMS may download the referenced artifacts asynchronously after accepting
+   * the object. Use GetFirmwareObject or ListFirmwareObjects and check
+   * FirmwareObject.available before applying it.
    */
-  rpc IngestFirmwareObject(IngestFirmwareObjectRequest) returns (FirmwareObject) {}
+  rpc AddFirmwareObject(AddFirmwareObjectRequest) returns (FirmwareObject) {}
 
   /*
    * GetFirmwareObject retrieves one firmware object catalog entry.
@@ -450,9 +454,9 @@ service RackManager {
   rpc ApplyFirmwareObject(ApplyFirmwareObjectRequest) returns (ApplyFirmwareObjectResponse) {}
 
   /*
-   * ApplyFirmwareObjectNVOSSystemImage resolves and starts NVOS system image updates for supplied switches.
+   * ApplyNvosUpdate resolves a firmware object NVOS image and starts updates for supplied switches.
    */
-  rpc ApplyFirmwareObjectNVOSSystemImage(ApplyFirmwareObjectNVOSSystemImageRequest) returns (ApplyFirmwareObjectNVOSSystemImageResponse) {}
+  rpc ApplyNvosUpdate(ApplyNvosUpdateRequest) returns (ApplyNvosUpdateResponse) {}
 
   /*
    * GetFirmwareObjectHistory lists firmware object apply history.
@@ -908,21 +912,26 @@ message GetRackFirmwareInventoryResponse {
 message FirmwareObject {
   string id = 1;
   string config_json = 2;
+  // True when RMS has downloaded all required artifacts and the object is ready to apply.
   bool available = 3;
   string created = 4;
   string updated = 5;
+  // JSON metadata extracted from config_json, including components and system images RMS can apply.
   string parsed_components = 6;
-  string rack_hardware_type = 7;
+  // Hardware class this object applies to. Defaults are scoped by this value.
+  string hardware_type = 7;
   bool is_default = 8;
 }
 
-// IngestFirmwareObjectRequest ingests firmware object config and starts artifact download.
-message IngestFirmwareObjectRequest {
+// AddFirmwareObjectRequest adds firmware object config and authorizes RMS artifact download.
+message AddFirmwareObjectRequest {
   Metadata metadata = 1;
   string config_json = 2;
+  // Used only for immediate/background artifact download; RMS does persist this token.
   string artifactory_token = 3;
-  string rack_hardware_type = 4;
-  bool set_default = 5;       // If true, mark this object as default for rack_hardware_type after ingest
+  string hardware_type = 4;
+  // If true, mark this object as default for hardware_type after add.
+  bool set_default = 5;
 }
 
 message GetFirmwareObjectRequest {
@@ -933,7 +942,7 @@ message GetFirmwareObjectRequest {
 message ListFirmwareObjectsRequest {
   Metadata metadata = 1;
   bool only_available = 2;
-  string rack_hardware_type = 3;
+  string hardware_type = 3;
 }
 
 message ListFirmwareObjectsResponse {
@@ -947,15 +956,16 @@ message DeleteFirmwareObjectRequest {
 
 message SetDefaultFirmwareObjectRequest {
   Metadata metadata = 1;
+  // Default scope is determined by the hardware_type stored on this object.
   string firmware_id = 2;
 }
 
 message ApplyFirmwareObjectRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string firmware_id = 3;          // Empty means use default for rack_hardware_type
+  string firmware_id = 3;          // Empty means use default for hardware_type
   string firmware_type = 4;        // "dev" or "prod"
-  string rack_hardware_type = 5;
+  string hardware_type = 5;
   repeated string components = 6;  // Deprecated: global component filter for all node types
   NodeSet nodes = 7;               // Caller-supplied devices
   bool force_update = 8;
@@ -970,16 +980,16 @@ message ApplyFirmwareObjectResponse {
   repeated NodeFirmwareJobInfo node_jobs = 3;
 }
 
-message ApplyFirmwareObjectNVOSSystemImageRequest {
+message ApplyNvosUpdateRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string firmware_id = 3;    // Empty means use default for rack_hardware_type
+  string firmware_id = 3;    // Empty means use default for hardware_type
   string firmware_type = 4;  // "dev" or "prod"
-  string rack_hardware_type = 5;
+  string hardware_type = 5;
   NodeSet nodes = 6;         // Caller-supplied switch devices
 }
 
-message ApplyFirmwareObjectNVOSSystemImageResponse {
+message ApplyNvosUpdateResponse {
   NodeBatchResponse response = 1;                       // response.job_id is parent job id
   string firmware_id = 2;
   string image_filename = 3;
@@ -1002,7 +1012,8 @@ message FirmwareObjectHistoryRecord {
   string firmware_type = 3;
   string applied_at = 4;
   bool firmware_available = 5;
-  string rack_hardware_type = 6;
+  string hardware_type = 6;
+  repeated string node_ids = 7;
 }
 
 /*******************************************************************************
