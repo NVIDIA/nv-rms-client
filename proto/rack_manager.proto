@@ -446,44 +446,44 @@ service RackManager {
   rpc GetRackFirmwareInventory(GetRackFirmwareInventoryRequest) returns (GetRackFirmwareInventoryResponse) {}
 
   /*
-   * CreateRackFirmware stores a rack firmware catalog entry and starts artifact download.
+   * IngestFirmwareObject ingests a firmware object catalog entry and starts artifact download.
    */
-  rpc CreateRackFirmware(CreateRackFirmwareRequest) returns (RackFirmware) {}
+  rpc IngestFirmwareObject(IngestFirmwareObjectRequest) returns (FirmwareObject) {}
 
   /*
-   * GetRackFirmware retrieves one rack firmware catalog entry.
+   * GetFirmwareObject retrieves one firmware object catalog entry.
    */
-  rpc GetRackFirmware(GetRackFirmwareRequest) returns (RackFirmware) {}
+  rpc GetFirmwareObject(GetFirmwareObjectRequest) returns (FirmwareObject) {}
 
   /*
-   * ListRackFirmware lists rack firmware catalog entries.
+   * ListFirmwareObjects lists firmware object catalog entries.
    */
-  rpc ListRackFirmware(ListRackFirmwareRequest) returns (ListRackFirmwareResponse) {}
+  rpc ListFirmwareObjects(ListFirmwareObjectsRequest) returns (ListFirmwareObjectsResponse) {}
 
   /*
-   * DeleteRackFirmware removes one rack firmware catalog entry and its local cache.
+   * DeleteFirmwareObject removes one firmware object catalog entry and its local cache.
    */
-  rpc DeleteRackFirmware(DeleteRackFirmwareRequest) returns (OperationResponse) {}
+  rpc DeleteFirmwareObject(DeleteFirmwareObjectRequest) returns (OperationResponse) {}
 
   /*
-   * SetDefaultRackFirmware marks one rack firmware entry as default for its hardware type.
+   * SetDefaultFirmwareObject marks one firmware object as default for its hardware type.
    */
-  rpc SetDefaultRackFirmware(SetDefaultRackFirmwareRequest) returns (RackFirmware) {}
+  rpc SetDefaultFirmwareObject(SetDefaultFirmwareObjectRequest) returns (FirmwareObject) {}
 
   /*
-   * ApplyRackFirmware resolves rack firmware targets and starts firmware updates for supplied devices.
+   * ApplyFirmwareObject resolves firmware object targets and starts firmware updates for supplied devices.
    */
-  rpc ApplyRackFirmware(ApplyRackFirmwareRequest) returns (ApplyRackFirmwareResponse) {}
+  rpc ApplyFirmwareObject(ApplyFirmwareObjectRequest) returns (ApplyFirmwareObjectResponse) {}
 
   /*
-   * ApplyRackFirmwareNVOSSystemImage resolves and starts NVOS system image updates for supplied switches.
+   * ApplyFirmwareObjectNVOSSystemImage resolves and starts NVOS system image updates for supplied switches.
    */
-  rpc ApplyRackFirmwareNVOSSystemImage(ApplyRackFirmwareNVOSSystemImageRequest) returns (ApplyRackFirmwareNVOSSystemImageResponse) {}
+  rpc ApplyFirmwareObjectNVOSSystemImage(ApplyFirmwareObjectNVOSSystemImageRequest) returns (ApplyFirmwareObjectNVOSSystemImageResponse) {}
 
   /*
-   * GetRackFirmwareHistory lists rack firmware apply history.
+   * GetFirmwareObjectHistory lists firmware object apply history.
    */
-  rpc GetRackFirmwareHistory(GetRackFirmwareHistoryRequest) returns (GetRackFirmwareHistoryResponse) {}
+  rpc GetFirmwareObjectHistory(GetFirmwareObjectHistoryRequest) returns (GetFirmwareObjectHistoryResponse) {}
 
 
   /*
@@ -821,8 +821,8 @@ message FirmwareTargetList {
   repeated FirmwareTarget targets = 1;
 }
 
-// RackFirmwareComponentFilter wraps component names for one NodeType key.
-message RackFirmwareComponentFilter {
+// FirmwareObjectComponentFilter wraps component names for one NodeType key.
+message FirmwareObjectComponentFilter {
   repeated string components = 1; // Optional component filter for one node type
 }
 
@@ -930,8 +930,8 @@ message GetRackFirmwareInventoryResponse {
   repeated NodeFirmwareInventory nodes = 3; // Firmware inventory grouped by node
 }
 
-// RackFirmware is a managed rack firmware catalog entry.
-message RackFirmware {
+// FirmwareObject is a managed firmware object catalog entry.
+message FirmwareObject {
   string id = 1;
   string config_json = 2;
   bool available = 3;
@@ -942,40 +942,41 @@ message RackFirmware {
   bool is_default = 8;
 }
 
-// CreateRackFirmwareRequest stores firmware config and starts artifact download.
-message CreateRackFirmwareRequest {
+// IngestFirmwareObjectRequest ingests firmware object config and starts artifact download.
+message IngestFirmwareObjectRequest {
   Metadata metadata = 1;
   string config_json = 2;
   string artifactory_token = 3;
   string rack_hardware_type = 4;
+  bool set_default = 5;       // If true, mark this object as default for rack_hardware_type after ingest
 }
 
-message GetRackFirmwareRequest {
+message GetFirmwareObjectRequest {
   Metadata metadata = 1;
   string id = 2;
 }
 
-message ListRackFirmwareRequest {
+message ListFirmwareObjectsRequest {
   Metadata metadata = 1;
   bool only_available = 2;
   string rack_hardware_type = 3;
 }
 
-message ListRackFirmwareResponse {
-  repeated RackFirmware configs = 1;
+message ListFirmwareObjectsResponse {
+  repeated FirmwareObject objects = 1;
 }
 
-message DeleteRackFirmwareRequest {
+message DeleteFirmwareObjectRequest {
   Metadata metadata = 1;
   string id = 2;
 }
 
-message SetDefaultRackFirmwareRequest {
+message SetDefaultFirmwareObjectRequest {
   Metadata metadata = 1;
   string firmware_id = 2;
 }
 
-message ApplyRackFirmwareRequest {
+message ApplyFirmwareObjectRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string firmware_id = 3;          // Empty means use default for rack_hardware_type
@@ -986,16 +987,16 @@ message ApplyRackFirmwareRequest {
   bool force_update = 8;
   // Component filters keyed by NodeType. If non-empty, only listed node types are updated.
   // A listed node type with an empty components list means all components for that node type.
-  map<int32, RackFirmwareComponentFilter> component_filters = 9;
+  map<int32, FirmwareObjectComponentFilter> component_filters = 9;
 }
 
-message ApplyRackFirmwareResponse {
+message ApplyFirmwareObjectResponse {
   NodeBatchResponse response = 1;          // response.job_id is parent job id
   string firmware_id = 2;
   repeated NodeFirmwareJobInfo node_jobs = 3;
 }
 
-message ApplyRackFirmwareNVOSSystemImageRequest {
+message ApplyFirmwareObjectNVOSSystemImageRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string firmware_id = 3;    // Empty means use default for rack_hardware_type
@@ -1004,24 +1005,24 @@ message ApplyRackFirmwareNVOSSystemImageRequest {
   NodeSet nodes = 6;         // Caller-supplied switch devices
 }
 
-message ApplyRackFirmwareNVOSSystemImageResponse {
+message ApplyFirmwareObjectNVOSSystemImageResponse {
   NodeBatchResponse response = 1;                       // response.job_id is parent job id
   string firmware_id = 2;
   string image_filename = 3;
   repeated SwitchSystemImageUpdateJobInfo node_jobs = 4;
 }
 
-message GetRackFirmwareHistoryRequest {
+message GetFirmwareObjectHistoryRequest {
   Metadata metadata = 1;
   string firmware_id = 2;       // Empty means no firmware filter
   repeated string rack_ids = 3; // Empty means all racks
 }
 
-message GetRackFirmwareHistoryResponse {
-  repeated RackFirmwareHistoryRecord records = 1;
+message GetFirmwareObjectHistoryResponse {
+  repeated FirmwareObjectHistoryRecord records = 1;
 }
 
-message RackFirmwareHistoryRecord {
+message FirmwareObjectHistoryRecord {
   string firmware_id = 1;
   string rack_id = 2;
   string firmware_type = 3;

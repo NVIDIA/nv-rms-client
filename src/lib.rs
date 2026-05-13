@@ -201,38 +201,38 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetRackFirmwareInventoryRequest,
     ) -> Result<rms::GetRackFirmwareInventoryResponse, RackManagerError>;
-    async fn create_rack_firmware(
+    async fn ingest_firmware_object(
         &self,
-        cmd: rms::CreateRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError>;
-    async fn get_rack_firmware(
+        cmd: rms::IngestFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError>;
+    async fn get_firmware_object(
         &self,
-        cmd: rms::GetRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError>;
-    async fn list_rack_firmware(
+        cmd: rms::GetFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError>;
+    async fn list_firmware_objects(
         &self,
-        cmd: rms::ListRackFirmwareRequest,
-    ) -> Result<rms::ListRackFirmwareResponse, RackManagerError>;
-    async fn delete_rack_firmware(
+        cmd: rms::ListFirmwareObjectsRequest,
+    ) -> Result<rms::ListFirmwareObjectsResponse, RackManagerError>;
+    async fn delete_firmware_object(
         &self,
-        cmd: rms::DeleteRackFirmwareRequest,
+        cmd: rms::DeleteFirmwareObjectRequest,
     ) -> Result<rms::OperationResponse, RackManagerError>;
-    async fn set_default_rack_firmware(
+    async fn set_default_firmware_object(
         &self,
-        cmd: rms::SetDefaultRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError>;
-    async fn apply_rack_firmware(
+        cmd: rms::SetDefaultFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError>;
+    async fn apply_firmware_object(
         &self,
-        cmd: rms::ApplyRackFirmwareRequest,
-    ) -> Result<rms::ApplyRackFirmwareResponse, RackManagerError>;
-    async fn apply_rack_firmware_nvos_system_image(
+        cmd: rms::ApplyFirmwareObjectRequest,
+    ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError>;
+    async fn apply_firmware_object_nvos_system_image(
         &self,
-        cmd: rms::ApplyRackFirmwareNvosSystemImageRequest,
-    ) -> Result<rms::ApplyRackFirmwareNvosSystemImageResponse, RackManagerError>;
-    async fn get_rack_firmware_history(
+        cmd: rms::ApplyFirmwareObjectNvosSystemImageRequest,
+    ) -> Result<rms::ApplyFirmwareObjectNvosSystemImageResponse, RackManagerError>;
+    async fn get_firmware_object_history(
         &self,
-        cmd: rms::GetRackFirmwareHistoryRequest,
-    ) -> Result<rms::GetRackFirmwareHistoryResponse, RackManagerError>;
+        cmd: rms::GetFirmwareObjectHistoryRequest,
+    ) -> Result<rms::GetFirmwareObjectHistoryResponse, RackManagerError>;
     async fn list_firmware_on_switch(
         &self,
         cmd: rms::ListFirmwareOnSwitchCommand,
@@ -393,75 +393,75 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::GetRackFirmwareInventoryResponse, RackManagerError> {
         Ok(self.client.get_rack_firmware_inventory(cmd).await?)
     }
-    async fn create_rack_firmware(
+    async fn ingest_firmware_object(
         &self,
-        cmd: rms::CreateRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError> {
+        cmd: rms::IngestFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError> {
         self.client
-            .create_rack_firmware(cmd)
+            .ingest_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn get_rack_firmware(
+    async fn get_firmware_object(
         &self,
-        cmd: rms::GetRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError> {
+        cmd: rms::GetFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError> {
         self.client
-            .get_rack_firmware(cmd)
+            .get_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn list_rack_firmware(
+    async fn list_firmware_objects(
         &self,
-        cmd: rms::ListRackFirmwareRequest,
-    ) -> Result<rms::ListRackFirmwareResponse, RackManagerError> {
+        cmd: rms::ListFirmwareObjectsRequest,
+    ) -> Result<rms::ListFirmwareObjectsResponse, RackManagerError> {
         self.client
-            .list_rack_firmware(cmd)
+            .list_firmware_objects(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn delete_rack_firmware(
+    async fn delete_firmware_object(
         &self,
-        cmd: rms::DeleteRackFirmwareRequest,
+        cmd: rms::DeleteFirmwareObjectRequest,
     ) -> Result<rms::OperationResponse, RackManagerError> {
         self.client
-            .delete_rack_firmware(cmd)
+            .delete_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn set_default_rack_firmware(
+    async fn set_default_firmware_object(
         &self,
-        cmd: rms::SetDefaultRackFirmwareRequest,
-    ) -> Result<rms::RackFirmware, RackManagerError> {
+        cmd: rms::SetDefaultFirmwareObjectRequest,
+    ) -> Result<rms::FirmwareObject, RackManagerError> {
         self.client
-            .set_default_rack_firmware(cmd)
+            .set_default_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn apply_rack_firmware(
+    async fn apply_firmware_object(
         &self,
-        cmd: rms::ApplyRackFirmwareRequest,
-    ) -> Result<rms::ApplyRackFirmwareResponse, RackManagerError> {
+        cmd: rms::ApplyFirmwareObjectRequest,
+    ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError> {
         self.client
-            .apply_rack_firmware(cmd)
+            .apply_firmware_object(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn apply_rack_firmware_nvos_system_image(
+    async fn apply_firmware_object_nvos_system_image(
         &self,
-        cmd: rms::ApplyRackFirmwareNvosSystemImageRequest,
-    ) -> Result<rms::ApplyRackFirmwareNvosSystemImageResponse, RackManagerError> {
+        cmd: rms::ApplyFirmwareObjectNvosSystemImageRequest,
+    ) -> Result<rms::ApplyFirmwareObjectNvosSystemImageResponse, RackManagerError> {
         self.client
-            .apply_rack_firmware_nvos_system_image(cmd)
+            .apply_firmware_object_nvos_system_image(cmd)
             .await
             .map_err(RackManagerError::from)
     }
-    async fn get_rack_firmware_history(
+    async fn get_firmware_object_history(
         &self,
-        cmd: rms::GetRackFirmwareHistoryRequest,
-    ) -> Result<rms::GetRackFirmwareHistoryResponse, RackManagerError> {
+        cmd: rms::GetFirmwareObjectHistoryRequest,
+    ) -> Result<rms::GetFirmwareObjectHistoryResponse, RackManagerError> {
         self.client
-            .get_rack_firmware_history(cmd)
+            .get_firmware_object_history(cmd)
             .await
             .map_err(RackManagerError::from)
     }
