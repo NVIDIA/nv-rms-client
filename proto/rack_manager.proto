@@ -927,7 +927,7 @@ message FirmwareObject {
 message AddFirmwareObjectRequest {
   Metadata metadata = 1;
   string config_json = 2;
-  // Used only for immediate/background artifact download; RMS does persist this token.
+  // Used only for immediate/background artifact download; RMS does not persist this token.
   string artifactory_token = 3;
   string hardware_type = 4;
   // If true, mark this object as default for hardware_type after add.
