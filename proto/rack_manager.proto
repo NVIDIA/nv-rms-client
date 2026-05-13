@@ -272,32 +272,6 @@ message NodeBatchResponse {
   string job_id = 8;                    // Parent job ID for async batch operations
 }
 
-// OperationResponse reports the common result shape for simple RPCs.
-message OperationResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;  // SUCCESS if operation completed, FAILURE otherwise
-  string message = 3;     // Human-readable status or error message
-}
-
-// NodeResult reports the outcome of an operation on a specific node.
-message NodeResult {
-  string node_id = 1;        // Node that was targeted
-  ReturnCode status = 2;     // SUCCESS if this node completed, FAILURE otherwise
-  string error_message = 3;  // Human-readable error message for failures
-}
-
-// NodeBatchResponse reports the common result shape for multi-node RPCs.
-message NodeBatchResponse {
-  Metadata metadata = 1;
-  ReturnCode status = 2;                // SUCCESS only if all targeted nodes completed
-  string message = 3;                   // Human-readable summary message
-  int32 total_nodes = 4;                // Total number of nodes targeted
-  int32 successful_nodes = 5;           // Number of nodes successfully processed
-  int32 failed_nodes = 6;               // Number of nodes that failed
-  repeated NodeResult node_results = 7; // Individual results for each node
-  string job_id = 8;                    // Parent job ID for async batch operations
-}
-
 /*******************************************************************************
  * SERVICE DEFINITION
  *
