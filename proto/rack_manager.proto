@@ -450,14 +450,14 @@ service RackManager {
   rpc SetDefaultFirmwareObject(SetDefaultFirmwareObjectRequest) returns (FirmwareObject) {}
 
   /*
-   * ApplyFirmwareObject resolves firmware object targets and starts firmware updates for supplied devices.
+   * ApplyFirmwareObject resolves stored firmware targets and starts firmware updates for supplied devices.
    */
   rpc ApplyFirmwareObject(ApplyFirmwareObjectRequest) returns (ApplyFirmwareObjectResponse) {}
 
   /*
-   * ApplyNvosUpdate resolves a firmware object NVOS image and starts updates for supplied switches.
+   * ApplySwitchSystemImage resolves a stored switch system image and starts updates for supplied switches.
    */
-  rpc ApplyNvosUpdate(ApplyNvosUpdateRequest) returns (ApplyNvosUpdateResponse) {}
+  rpc ApplySwitchSystemImage(ApplySwitchSystemImageRequest) returns (ApplySwitchSystemImageResponse) {}
 
   /*
    * GetFirmwareObjectHistory lists firmware object apply history.
@@ -926,7 +926,7 @@ message FirmwareObject {
 // FirmwareObjectMetadata describes the firmware object content RMS can apply.
 message FirmwareObjectMetadata {
   repeated FirmwareObjectDeviceComponents device_components = 1;
-  repeated FirmwareObjectNvosImage nvos_images = 2;
+  repeated FirmwareObjectSwitchSystemImage switch_system_images = 2;
 }
 
 // FirmwareObjectDeviceComponents groups applyable components by hardware node type.
@@ -959,9 +959,9 @@ message FirmwareObjectArtifact {
   string target = 3;        // Firmware target RMS passes to the node update API
 }
 
-// FirmwareObjectNvosImage describes a switch NVOS/system-image artifact.
-message FirmwareObjectNvosImage {
-  string firmware_type = 1; // Artifact channel/profile, e.g. "dev" or "prod"
+// FirmwareObjectSwitchSystemImage describes a switch system-image artifact.
+message FirmwareObjectSwitchSystemImage {
+  string software_type = 1; // Software channel/profile, e.g. "dev" or "prod"
   string version = 2;
   string package_name = 3;
   string image_filename = 4;
@@ -1002,13 +1002,13 @@ message DeleteFirmwareObjectRequest {
 message SetDefaultFirmwareObjectRequest {
   Metadata metadata = 1;
   // Default scope is determined by the hardware_type stored on this object.
-  string firmware_id = 2;
+  string object_id = 2;
 }
 
 message ApplyFirmwareObjectRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string firmware_id = 3;          // Empty means use default for hardware_type
+  string object_id = 3;          // Empty means use default for hardware_type
   string firmware_type = 4;        // "dev" or "prod"
   string hardware_type = 5;
   repeated string components = 6;  // Deprecated: global component filter for all node types
@@ -1021,29 +1021,29 @@ message ApplyFirmwareObjectRequest {
 
 message ApplyFirmwareObjectResponse {
   NodeBatchResponse response = 1;          // response.job_id is parent job id
-  string firmware_id = 2;
+  string object_id = 2;
   repeated NodeFirmwareJobInfo node_jobs = 3;
 }
 
-message ApplyNvosUpdateRequest {
+message ApplySwitchSystemImageRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string firmware_id = 3;    // Empty means use default for hardware_type
-  string firmware_type = 4;  // "dev" or "prod"
+  string object_id = 3;    // Empty means use default for hardware_type
+  string software_type = 4; // "dev" or "prod"
   string hardware_type = 5;
   NodeSet nodes = 6;         // Caller-supplied switch devices
 }
 
-message ApplyNvosUpdateResponse {
+message ApplySwitchSystemImageResponse {
   NodeBatchResponse response = 1;                       // response.job_id is parent job id
-  string firmware_id = 2;
+  string object_id = 2;
   string image_filename = 3;
   repeated SwitchSystemImageUpdateJobInfo node_jobs = 4;
 }
 
 message GetFirmwareObjectHistoryRequest {
   Metadata metadata = 1;
-  string firmware_id = 2;       // Empty means no firmware filter
+  string object_id = 2;       // Empty means no object filter
   repeated string rack_ids = 3; // Empty means all racks
 }
 
@@ -1052,7 +1052,7 @@ message GetFirmwareObjectHistoryResponse {
 }
 
 message FirmwareObjectHistoryRecord {
-  string firmware_id = 1;
+  string object_id = 1;
   string rack_id = 2;
   string firmware_type = 3;
   google.protobuf.Timestamp applied_at = 4;

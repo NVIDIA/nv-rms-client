@@ -265,10 +265,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ApplyFirmwareObjectRequest,
     ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError>;
-    async fn apply_nvos_update(
+    async fn apply_switch_system_image(
         &self,
-        cmd: rms::ApplyNvosUpdateRequest,
-    ) -> Result<rms::ApplyNvosUpdateResponse, RackManagerError>;
+        cmd: rms::ApplySwitchSystemImageRequest,
+    ) -> Result<rms::ApplySwitchSystemImageResponse, RackManagerError>;
     async fn get_firmware_object_history(
         &self,
         cmd: rms::GetFirmwareObjectHistoryRequest,
@@ -344,10 +344,7 @@ impl RmsApi for RackManagerApi {
         &self,
         cmd: rms::SetPowerStateByDeviceListRequest,
     ) -> Result<rms::SetPowerStateByDeviceListResponse, RackManagerError> {
-        self.client
-            .set_power_state_by_device_list(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.set_power_state_by_device_list(cmd).await?)
     }
     async fn get_power_state(
         &self,
@@ -437,73 +434,49 @@ impl RmsApi for RackManagerApi {
         &self,
         cmd: rms::AddFirmwareObjectRequest,
     ) -> Result<rms::FirmwareObject, RackManagerError> {
-        self.client
-            .add_firmware_object(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.add_firmware_object(cmd).await?)
     }
     async fn get_firmware_object(
         &self,
         cmd: rms::GetFirmwareObjectRequest,
     ) -> Result<rms::FirmwareObject, RackManagerError> {
-        self.client
-            .get_firmware_object(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.get_firmware_object(cmd).await?)
     }
     async fn list_firmware_objects(
         &self,
         cmd: rms::ListFirmwareObjectsRequest,
     ) -> Result<rms::ListFirmwareObjectsResponse, RackManagerError> {
-        self.client
-            .list_firmware_objects(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.list_firmware_objects(cmd).await?)
     }
     async fn delete_firmware_object(
         &self,
         cmd: rms::DeleteFirmwareObjectRequest,
     ) -> Result<rms::OperationResponse, RackManagerError> {
-        self.client
-            .delete_firmware_object(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.delete_firmware_object(cmd).await?)
     }
     async fn set_default_firmware_object(
         &self,
         cmd: rms::SetDefaultFirmwareObjectRequest,
     ) -> Result<rms::FirmwareObject, RackManagerError> {
-        self.client
-            .set_default_firmware_object(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.set_default_firmware_object(cmd).await?)
     }
     async fn apply_firmware_object(
         &self,
         cmd: rms::ApplyFirmwareObjectRequest,
     ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError> {
-        self.client
-            .apply_firmware_object(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.apply_firmware_object(cmd).await?)
     }
-    async fn apply_nvos_update(
+    async fn apply_switch_system_image(
         &self,
-        cmd: rms::ApplyNvosUpdateRequest,
-    ) -> Result<rms::ApplyNvosUpdateResponse, RackManagerError> {
-        self.client
-            .apply_nvos_update(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        cmd: rms::ApplySwitchSystemImageRequest,
+    ) -> Result<rms::ApplySwitchSystemImageResponse, RackManagerError> {
+        Ok(self.client.apply_switch_system_image(cmd).await?)
     }
     async fn get_firmware_object_history(
         &self,
         cmd: rms::GetFirmwareObjectHistoryRequest,
     ) -> Result<rms::GetFirmwareObjectHistoryResponse, RackManagerError> {
-        self.client
-            .get_firmware_object_history(cmd)
-            .await
-            .map_err(RackManagerError::from)
+        Ok(self.client.get_firmware_object_history(cmd).await?)
     }
     async fn list_firmware_on_switch(
         &self,
