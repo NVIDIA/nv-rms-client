@@ -31,6 +31,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ".rack_manager",
             "#[derive(serde::Deserialize, serde::Serialize)]",
         )
+        .field_attribute(
+            "rack_manager.FirmwareObject.created",
+            "#[serde(default, with = \"crate::timestamp_serde\")]",
+        )
+        .field_attribute(
+            "rack_manager.FirmwareObject.updated",
+            "#[serde(default, with = \"crate::timestamp_serde\")]",
+        )
+        .field_attribute(
+            "rack_manager.FirmwareObjectHistoryRecord.applied_at",
+            "#[serde(default, with = \"crate::timestamp_serde\")]",
+        )
         .include_file("prost_common.rs")
         .build_server(false)
         .build_client(true)

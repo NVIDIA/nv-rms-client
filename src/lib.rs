@@ -29,6 +29,46 @@ use crate::protos::rack_manager_client::RackManagerApiClient;
 pub mod client;
 pub mod client_config;
 pub mod protos;
+pub mod timestamp_serde {
+    use chrono::{DateTime, Utc};
+    use prost_types::Timestamp;
+    use serde::de::Error as _;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(value: &Option<Timestamp>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match value {
+            Some(timestamp) => {
+                let dt = DateTime::<Utc>::from_timestamp(timestamp.seconds, timestamp.nanos as u32)
+                    .ok_or_else(|| {
+                        serde::ser::Error::custom("invalid google.protobuf.Timestamp")
+                    })?;
+                serializer.serialize_some(&dt.to_rfc3339())
+            }
+            None => serializer.serialize_none(),
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Timestamp>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = Option::<String>::deserialize(deserializer)?;
+        value
+            .map(|value| {
+                let dt = DateTime::parse_from_rfc3339(&value)
+                    .map_err(D::Error::custom)?
+                    .with_timezone(&Utc);
+                Ok(Timestamp {
+                    seconds: dt.timestamp(),
+                    nanos: dt.timestamp_subsec_nanos() as i32,
+                })
+            })
+            .transpose()
+    }
+}
 
 #[derive(thiserror::Error, Debug)]
 pub enum RmsTlsClientError {

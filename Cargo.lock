@@ -588,6 +588,7 @@ dependencies = [
  "hyper-timeout",
  "hyper-util",
  "prost",
+ "prost-types",
  "rustls",
  "rustls-pemfile",
  "serde",
