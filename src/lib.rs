@@ -289,10 +289,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
-    async fn configure_scale_up_fabric_manager_cluster(
+    async fn set_scale_up_fabric_state(
         &self,
-        cmd: rms::ConfigureScaleUpFabricManagerClusterRequest,
-    ) -> Result<rms::ConfigureScaleUpFabricManagerClusterResponse, RackManagerError>;
+        cmd: rms::SetScaleUpFabricStateRequest,
+    ) -> Result<rms::SetScaleUpFabricStateResponse, RackManagerError>;
     async fn fetch_switch_system_image(
         &self,
         cmd: rms::FetchSwitchSystemImageRequest,
@@ -506,14 +506,11 @@ impl RmsApi for RackManagerApi {
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
         Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
     }
-    async fn configure_scale_up_fabric_manager_cluster(
+    async fn set_scale_up_fabric_state(
         &self,
-        cmd: rms::ConfigureScaleUpFabricManagerClusterRequest,
-    ) -> Result<rms::ConfigureScaleUpFabricManagerClusterResponse, RackManagerError> {
-        Ok(self
-            .client
-            .configure_scale_up_fabric_manager_cluster(cmd)
-            .await?)
+        cmd: rms::SetScaleUpFabricStateRequest,
+    ) -> Result<rms::SetScaleUpFabricStateResponse, RackManagerError> {
+        Ok(self.client.set_scale_up_fabric_state(cmd).await?)
     }
     async fn fetch_switch_system_image(
         &self,
@@ -691,7 +688,7 @@ mod tests {
         // Representative request/response pair
         assert_serde::<rms::SetPowerStateRequest>();
         assert_serde::<rms::SetPowerStateResponse>();
-        assert_serde::<rms::ConfigureScaleUpFabricManagerClusterRequest>();
-        assert_serde::<rms::ConfigureScaleUpFabricManagerClusterResponse>();
+        assert_serde::<rms::SetScaleUpFabricStateRequest>();
+        assert_serde::<rms::SetScaleUpFabricStateResponse>();
     }
 }

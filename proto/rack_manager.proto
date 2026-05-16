@@ -498,11 +498,10 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
-   * ConfigureScaleUpFabricManagerCluster synchronously configures a ScaleUpFabricManager cluster.
-   * This disables the cluster and saves config on all supplied switches, then configures
-   * ScaleUpFabricManager only on the selected primary switch.
+   * SetScaleUpFabricState synchronously sets ScaleUpFabric state and saves
+   * config across all supplied switches.
    */
-  rpc ConfigureScaleUpFabricManagerCluster(ConfigureScaleUpFabricManagerClusterRequest) returns (ConfigureScaleUpFabricManagerClusterResponse) {}
+  rpc SetScaleUpFabricState(SetScaleUpFabricStateRequest) returns (SetScaleUpFabricStateResponse) {}
 
   /*
    * GetScaleUpFabricServicesStatus retrieves cluster health and fabric-manager status
@@ -1094,19 +1093,18 @@ message ConfigureScaleUpFabricManagerResponse {
 }
 
 /*
- * ConfigureScaleUpFabricManagerClusterRequest performs synchronous ScaleUpFabricManager
- * cluster setup across a caller-supplied set of switches.
+ * SetScaleUpFabricStateRequest performs synchronous ScaleUpFabric state update
+ * and config save across caller-supplied switches.
  */
-message ConfigureScaleUpFabricManagerClusterRequest {
+message SetScaleUpFabricStateRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;                  // Switch inventory for the cluster operation
-  string primary_switch_node_id = 3;  // node_id from nodes.devices where ScaleUpFabricManager should be configured
-  string topology_type = 4;           // Topology to be set for ScaleUpFabric
-  bool verify_ssl = 5;                // Whether to verify SSL certificates for HTTPS connections
+  NodeSet nodes = 2;       // Switch devices to update
+  optional bool enabled = 3;  // true = enabled, false = disabled
+  bool verify_ssl = 4;     // Whether to verify SSL certificates for HTTPS connections
 }
 
-// ConfigureScaleUpFabricManagerClusterResponse reports the synchronous per-switch result.
-message ConfigureScaleUpFabricManagerClusterResponse {
+// SetScaleUpFabricStateResponse reports the synchronous per-switch result.
+message SetScaleUpFabricStateResponse {
   NodeBatchResponse response = 1;  // response.job_id is unused and left empty for this synchronous RPC
 }
 
