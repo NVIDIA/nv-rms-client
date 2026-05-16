@@ -498,6 +498,13 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
+   * ConfigureScaleUpFabricManagerCluster synchronously configures a ScaleUpFabricManager cluster.
+   * This disables the cluster and saves config on all supplied switches, then configures
+   * ScaleUpFabricManager only on the selected primary switch.
+   */
+  rpc ConfigureScaleUpFabricManagerCluster(ConfigureScaleUpFabricManagerClusterRequest) returns (ConfigureScaleUpFabricManagerClusterResponse) {}
+
+  /*
    * GetScaleUpFabricServicesStatus retrieves cluster health and fabric-manager status
    * for a caller-supplied list of switches using switch Rest APIs.
    */
@@ -1084,6 +1091,23 @@ message ConfigureScaleUpFabricManagerResponse {
   string topology_used = 4;   // multi-node scaleup topology that was applied
   bool ScaleUpFabricState_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
   bool grpc_enabled = 6;      // Whether gRPC access is now enabled
+}
+
+/*
+ * ConfigureScaleUpFabricManagerClusterRequest performs synchronous ScaleUpFabricManager
+ * cluster setup across a caller-supplied set of switches.
+ */
+message ConfigureScaleUpFabricManagerClusterRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;                  // Switch inventory for the cluster operation
+  string primary_switch_node_id = 3;  // node_id from nodes.devices where ScaleUpFabricManager should be configured
+  string topology_type = 4;           // Topology to be set for ScaleUpFabric
+  bool verify_ssl = 5;                // Whether to verify SSL certificates for HTTPS connections
+}
+
+// ConfigureScaleUpFabricManagerClusterResponse reports the synchronous per-switch result.
+message ConfigureScaleUpFabricManagerClusterResponse {
+  NodeBatchResponse response = 1;  // response.job_id is unused and left empty for this synchronous RPC
 }
 
 // ScaleUpFabricServiceStatusEntry stores per-switch status keyed by node_id.
