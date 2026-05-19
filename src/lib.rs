@@ -265,6 +265,14 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::ApplyFirmwareObjectRequest,
     ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError>;
+    async fn apply_firmware_object_from_json(
+        &self,
+        cmd: rms::ApplyFirmwareObjectFromJsonRequest,
+    ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError>;
+    async fn apply_switch_system_image_from_json(
+        &self,
+        cmd: rms::ApplySwitchSystemImageFromJsonRequest,
+    ) -> Result<rms::ApplySwitchSystemImageResponse, RackManagerError>;
     async fn apply_switch_system_image(
         &self,
         cmd: rms::ApplySwitchSystemImageRequest,
@@ -469,6 +477,18 @@ impl RmsApi for RackManagerApi {
         cmd: rms::ApplyFirmwareObjectRequest,
     ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError> {
         Ok(self.client.apply_firmware_object(cmd).await?)
+    }
+    async fn apply_firmware_object_from_json(
+        &self,
+        cmd: rms::ApplyFirmwareObjectFromJsonRequest,
+    ) -> Result<rms::ApplyFirmwareObjectResponse, RackManagerError> {
+        Ok(self.client.apply_firmware_object_from_json(cmd).await?)
+    }
+    async fn apply_switch_system_image_from_json(
+        &self,
+        cmd: rms::ApplySwitchSystemImageFromJsonRequest,
+    ) -> Result<rms::ApplySwitchSystemImageResponse, RackManagerError> {
+        Ok(self.client.apply_switch_system_image_from_json(cmd).await?)
     }
     async fn apply_switch_system_image(
         &self,
