@@ -459,7 +459,7 @@ service RackManager {
    * artifacts, resolves firmware targets, and starts firmware updates for supplied devices.
    *
    * RMS treats the ingested firmware object as ephemeral for this request. It uses
-   * artifactory_token only for artifact download and does not persist the token or object.
+   * access_token only for artifact download and does not persist the token or object.
    */
   rpc ApplyFirmwareObjectFromJSON(ApplyFirmwareObjectFromJsonRequest) returns (ApplyFirmwareObjectResponse) {}
 
@@ -469,7 +469,7 @@ service RackManager {
    * supplied switches.
    *
    * RMS treats the ingested firmware object as ephemeral for this request. It uses
-   * artifactory_token only for artifact download and does not persist the token or object.
+   * access_token only for artifact download and does not persist the token or object.
    */
   rpc ApplySwitchSystemImageFromJSON(ApplySwitchSystemImageFromJsonRequest) returns (ApplySwitchSystemImageResponse) {}
 
@@ -998,7 +998,7 @@ message AddFirmwareObjectRequest {
   Metadata metadata = 1;
   string config_json = 2;
   // Used only for immediate/background artifact download; RMS does not persist this token.
-  string artifactory_token = 3;
+  string access_token = 3;
   string hardware_type = 4;
   // If true, mark this object as default for hardware_type after add.
   bool set_default = 5;
@@ -1054,15 +1054,14 @@ message ApplyFirmwareObjectFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string config_json = 3;         // SOT JSON containing the firmware object ID and artifacts
-  string artifactory_token = 4;   // Used only for artifact download; RMS does not persist it
+  string access_token = 4;        // Used only for artifact download; RMS does not persist it
   string firmware_type = 5;       // "dev" or "prod"
   string hardware_type = 6;
-  repeated string components = 7; // Deprecated: global component filter for all node types
-  NodeSet nodes = 8;              // Caller-supplied devices
-  bool force_update = 9;
+  NodeSet nodes = 7;              // Caller-supplied devices
+  bool force_update = 8;
   // Component filters keyed by NodeType. If non-empty, only listed node types are updated.
   // A listed node type with an empty components list means all components for that node type.
-  map<int32, FirmwareObjectComponentFilter> component_filters = 10;
+  map<int32, FirmwareObjectComponentFilter> component_filters = 9;
 }
 
 message ApplySwitchSystemImageRequest {
@@ -1085,7 +1084,7 @@ message ApplySwitchSystemImageFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string config_json = 3;       // SOT JSON containing the firmware object ID and switch image
-  string artifactory_token = 4; // Used only for artifact download; RMS does not persist it
+  string access_token = 4;      // Used only for artifact download; RMS does not persist it
   string software_type = 5;     // "dev" or "prod"
   string hardware_type = 6;
   NodeSet nodes = 7;            // Caller-supplied switch devices
