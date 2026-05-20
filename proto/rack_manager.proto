@@ -324,12 +324,14 @@ service RackManager {
   /*
    * PowerOnRackByDeviceList powers on a rack using caller-supplied devices
    * without requiring them to be registered in RMS inventory.
+   * Power shelves are not supported by this API at this time.
    */
   rpc PowerOnRackByDeviceList(RackPowerByDeviceListRequest) returns (RackPowerByDeviceListResponse) {}
 
   /*
    * PowerOffRackByDeviceList powers off a rack using caller-supplied devices
    * without requiring them to be registered in RMS inventory.
+   * Power shelves are not supported by this API at this time.
    */
   rpc PowerOffRackByDeviceList(RackPowerByDeviceListRequest) returns (RackPowerByDeviceListResponse) {}
   
@@ -343,6 +345,7 @@ service RackManager {
    * SequenceRackPower controls the power state of all nodes in a rack.
    * Operations follow the configured power-on order for sequenced boot.
    * Requires a valid power-on order to be set before use.
+   * Power shelves are not supported by this API at this time.
    */
   rpc SequenceRackPower(SequenceRackPowerRequest) returns (SequenceRackPowerResponse) {}
 
