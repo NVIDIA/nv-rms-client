@@ -48,6 +48,13 @@ enum RackPowerOperation {
   RACK_POWER_CYCLE = 2;  // Power cycle all nodes in the rack
 }
 
+// PowerState represents the current power state of a node.
+enum PowerState {
+  POWER_STATE_UNKNOWN = 0;  // Power state is unknown or could not be determined
+  POWER_STATE_ON      = 1;  // Node is powered on
+  POWER_STATE_OFF     = 2;  // Node is powered off
+}
+
 // ReturnCode indicates the overall success or failure of an RPC operation.
 enum ReturnCode {
   SUCCESS = 0;  // Operation completed successfully
@@ -261,6 +268,15 @@ message NodeResult {
   string error_message = 3;  // Human-readable error message for failures
 }
 
+// NodePowerStateResult reports the current power state for a specific node.
+message NodePowerStateResult {
+  string node_id = 1;        // Node that was queried
+  string rack_id = 2;        // Rack containing the node
+  ReturnCode status = 3;     // SUCCESS if this node completed, FAILURE otherwise
+  PowerState pstate = 4;     // Current power state
+  string error_message = 5;  // Human-readable error message for failures
+}
+
 // NodeBatchResponse reports the common result shape for multi-node RPCs.
 message NodeBatchResponse {
   Metadata metadata = 1;
@@ -298,6 +314,24 @@ service RackManager {
    * without requiring them to be registered in RMS inventory.
    */
   rpc SetPowerStateByDeviceList(SetPowerStateByDeviceListRequest) returns (SetPowerStateByDeviceListResponse) {}
+
+  /*
+   * GetPowerStateByDeviceList retrieves power state for caller-supplied devices
+   * without requiring them to be registered in RMS inventory.
+   */
+  rpc GetPowerStateByDeviceList(GetPowerStateByDeviceListRequest) returns (GetPowerStateByDeviceListResponse) {}
+
+  /*
+   * PowerOnRackByDeviceList powers on a rack using caller-supplied devices
+   * without requiring them to be registered in RMS inventory.
+   */
+  rpc PowerOnRackByDeviceList(RackPowerByDeviceListRequest) returns (RackPowerByDeviceListResponse) {}
+
+  /*
+   * PowerOffRackByDeviceList powers off a rack using caller-supplied devices
+   * without requiring them to be registered in RMS inventory.
+   */
+  rpc PowerOffRackByDeviceList(RackPowerByDeviceListRequest) returns (RackPowerByDeviceListResponse) {}
   
   /*
    * GetPowerState retrieves the current power state of a node.
@@ -627,6 +661,30 @@ message SetPowerStateByDeviceListRequest {
 
 // SetPowerStateByDeviceListResponse reports per-device power operation results.
 message SetPowerStateByDeviceListResponse {
+  NodeBatchResponse response = 1;
+}
+
+// GetPowerStateByDeviceListRequest queries power state for unregistered devices.
+message GetPowerStateByDeviceListRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;  // Caller-supplied device connection details
+}
+
+// GetPowerStateByDeviceListResponse reports per-device power state results.
+message GetPowerStateByDeviceListResponse {
+  NodeBatchResponse response = 1;
+  repeated NodePowerStateResult node_power_states = 2;
+}
+
+// RackPowerByDeviceListRequest controls rack power for unregistered devices.
+message RackPowerByDeviceListRequest {
+  Metadata metadata = 1;
+  string rack_id = 2;  // Target rack identifier
+  NodeSet nodes = 3;   // Caller-supplied device connection details
+}
+
+// RackPowerByDeviceListResponse reports per-device rack power operation results.
+message RackPowerByDeviceListResponse {
   NodeBatchResponse response = 1;
 }
 

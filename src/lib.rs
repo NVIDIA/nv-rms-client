@@ -185,6 +185,18 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::SetPowerStateByDeviceListRequest,
     ) -> Result<rms::SetPowerStateByDeviceListResponse, RackManagerError>;
+    async fn get_power_state_by_device_list(
+        &self,
+        cmd: rms::GetPowerStateByDeviceListRequest,
+    ) -> Result<rms::GetPowerStateByDeviceListResponse, RackManagerError>;
+    async fn power_on_rack_by_device_list(
+        &self,
+        cmd: rms::RackPowerByDeviceListRequest,
+    ) -> Result<rms::RackPowerByDeviceListResponse, RackManagerError>;
+    async fn power_off_rack_by_device_list(
+        &self,
+        cmd: rms::RackPowerByDeviceListRequest,
+    ) -> Result<rms::RackPowerByDeviceListResponse, RackManagerError>;
     async fn get_power_state(
         &self,
         cmd: rms::GetPowerStateRequest,
@@ -357,6 +369,24 @@ impl RmsApi for RackManagerApi {
         cmd: rms::SetPowerStateByDeviceListRequest,
     ) -> Result<rms::SetPowerStateByDeviceListResponse, RackManagerError> {
         Ok(self.client.set_power_state_by_device_list(cmd).await?)
+    }
+    async fn get_power_state_by_device_list(
+        &self,
+        cmd: rms::GetPowerStateByDeviceListRequest,
+    ) -> Result<rms::GetPowerStateByDeviceListResponse, RackManagerError> {
+        Ok(self.client.get_power_state_by_device_list(cmd).await?)
+    }
+    async fn power_on_rack_by_device_list(
+        &self,
+        cmd: rms::RackPowerByDeviceListRequest,
+    ) -> Result<rms::RackPowerByDeviceListResponse, RackManagerError> {
+        Ok(self.client.power_on_rack_by_device_list(cmd).await?)
+    }
+    async fn power_off_rack_by_device_list(
+        &self,
+        cmd: rms::RackPowerByDeviceListRequest,
+    ) -> Result<rms::RackPowerByDeviceListResponse, RackManagerError> {
+        Ok(self.client.power_off_rack_by_device_list(cmd).await?)
     }
     async fn get_power_state(
         &self,
