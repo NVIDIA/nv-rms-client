@@ -965,7 +965,7 @@ message FirmwareObjectDeviceComponents {
 message FirmwareObjectComponent {
   string name = 1;           // Normalized component name accepted by ApplyFirmwareObject
   string version = 2;
-  string bundle = 3;         // Source bundle/package label from the firmware object
+  string bundle = 3;         
   string source_component = 4; // Raw component label from the firmware object
   repeated FirmwareObjectSubcomponent subcomponents = 5;
   repeated FirmwareObjectArtifact artifacts = 6;
@@ -982,6 +982,7 @@ message FirmwareObjectArtifact {
   string firmware_type = 1; // Artifact channel/profile, e.g. "dev" or "prod"
   string filename = 2;      // Cached artifact filename
   string target = 3;        // Firmware target RMS passes to the node update API
+  string bundle = 4;        // Source bundle/package label for this artifact
 }
 
 // FirmwareObjectSwitchSystemImage describes a switch system-image artifact.
