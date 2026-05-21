@@ -304,6 +304,13 @@ service RackManager {
    * Returns the current state (ON, OFF, or UNKNOWN).
    */
   rpc GetPowerState(GetPowerStateRequest) returns (GetPowerStateResponse) {}
+
+  /*
+   * GetPowerStateByDeviceList retrieves the current power state for caller-
+   * supplied devices without requiring them to be registered in RMS inventory.
+   * Returns per-device power state along with batch status.
+   */
+  rpc GetPowerStateByDeviceList(GetPowerStateByDeviceListRequest) returns (GetPowerStateByDeviceListResponse) {}
   
   /*
    * SequenceRackPower controls the power state of all nodes in a rack.
@@ -644,6 +651,24 @@ message GetPowerStateResponse {
   string node_id = 3;      // Node identifier (echoed from request)
   string pstate = 4;       // Current power state: "ON", "OFF", or "UNKNOWN"
   string rack_id = 5;      // Rack identifier (echoed from request)
+}
+
+// NodePowerState pairs a node identifier with its current power state.
+message NodePowerState {
+  string node_id = 1;  // Node identifier (echoed from request)
+  string pstate = 2;   // Current power state: "ON", "OFF", or "UNKNOWN"
+}
+
+// GetPowerStateByDeviceListRequest queries power state for unregistered devices.
+message GetPowerStateByDeviceListRequest {
+  Metadata metadata = 1;
+  NodeSet nodes = 2;  // Caller-supplied device connection details
+}
+
+// GetPowerStateByDeviceListResponse reports per-device power state results.
+message GetPowerStateByDeviceListResponse {
+  NodeBatchResponse response = 1;
+  repeated NodePowerState node_power_states = 2;  // Power state for each successfully queried device
 }
 
 // RackPowerRequest controls power for all nodes in a rack.

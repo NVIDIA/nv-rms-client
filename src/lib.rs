@@ -189,6 +189,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetPowerStateRequest,
     ) -> Result<rms::GetPowerStateResponse, RackManagerError>;
+    async fn get_power_state_by_device_list(
+        &self,
+        cmd: rms::GetPowerStateByDeviceListRequest,
+    ) -> Result<rms::GetPowerStateByDeviceListResponse, RackManagerError>;
     async fn sequence_rack_power(
         &self,
         cmd: rms::SequenceRackPowerRequest,
@@ -363,6 +367,12 @@ impl RmsApi for RackManagerApi {
         cmd: rms::GetPowerStateRequest,
     ) -> Result<rms::GetPowerStateResponse, RackManagerError> {
         Ok(self.client.get_power_state(cmd).await?)
+    }
+    async fn get_power_state_by_device_list(
+        &self,
+        cmd: rms::GetPowerStateByDeviceListRequest,
+    ) -> Result<rms::GetPowerStateByDeviceListResponse, RackManagerError> {
+        Ok(self.client.get_power_state_by_device_list(cmd).await?)
     }
     async fn sequence_rack_power(
         &self,
