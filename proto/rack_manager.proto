@@ -28,85 +28,85 @@ import "google/protobuf/timestamp.proto";
 
 // PowerOperation defines the power control actions for individual nodes.
 enum PowerOperation {
-  POWER_OFF               = 0;  // Power off the node using its default off semantics
-  POWER_ON                = 1;  // Power on the node
-  POWER_RESET             = 2;  // Power cycle the node
-  POWER_FORCE_OFF         = 3;  // Redfish ResetType ForceOff
-  POWER_FORCE_ON          = 4;  // Redfish ResetType ForceOn
-  POWER_GRACEFUL_SHUTDOWN = 5;  // Redfish ResetType GracefulShutdown
-  POWER_GRACEFUL_RESTART  = 6;  // Redfish ResetType GracefulRestart
-  POWER_FORCE_RESTART     = 7;  // Redfish ResetType ForceRestart
+  POWER_OFF = 0; // Power off the node using its default off semantics
+  POWER_ON = 1; // Power on the node
+  POWER_RESET = 2; // Power cycle the node
+  POWER_FORCE_OFF = 3; // Redfish ResetType ForceOff
+  POWER_FORCE_ON = 4; // Redfish ResetType ForceOn
+  POWER_GRACEFUL_SHUTDOWN = 5; // Redfish ResetType GracefulShutdown
+  POWER_GRACEFUL_RESTART = 6; // Redfish ResetType GracefulRestart
+  POWER_FORCE_RESTART = 7; // Redfish ResetType ForceRestart
 }
 
-/* 
+/*
  * RackPowerOperation defines power control actions for an entire rack.
  * These operations respect the power-on order configuration for sequenced boot.
  */
 enum RackPowerOperation {
-  RACK_POWER_ON    = 0;  // Power on all nodes in the rack following power-on order
-  RACK_POWER_OFF   = 1;  // Power off all nodes in the rack
-  RACK_POWER_CYCLE = 2;  // Power cycle all nodes in the rack
+  RACK_POWER_ON = 0; // Power on all nodes in the rack following power-on order
+  RACK_POWER_OFF = 1; // Power off all nodes in the rack
+  RACK_POWER_CYCLE = 2; // Power cycle all nodes in the rack
 }
 
 // ReturnCode indicates the overall success or failure of an RPC operation.
 enum ReturnCode {
-  SUCCESS = 0;  // Operation completed successfully
-  FAILURE = 1;  // Operation failed (see message field for details)
+  SUCCESS = 0; // Operation completed successfully
+  FAILURE = 1; // Operation failed (see message field for details)
 }
 
 // FirmwareUpdateError provides detailed error codes for firmware update operations.
 enum FirmwareUpdateError {
-  FW_UPDATE_SUCCESS            = 0;   // Firmware update completed successfully
-  FW_UPDATE_FILE_NOT_FOUND     = 1;   // Specified firmware file does not exist
-  FW_UPDATE_CLIENT_FAILURE     = 2;   // HTTP/Redfish client communication failure
-  FW_UPDATE_TARGET_NOT_FOUND   = 3;   // Target component for update not found on node
-  FW_UPDATE_SERVER_ERROR       = 4;   // Server returned an error response
-  FW_UPDATE_TASK_FAILED        = 5;   // Firmware update task reported failure
-  FW_UPDATE_NO_TASK_INFO       = 6;   // Unable to retrieve task status information
-  FW_UPDATE_EXCEPTION          = 7;   // Exception occurred during update process
-  FW_UPDATE_INVALID_RESPONSE   = 8;   // Received invalid or malformed response
-  FW_UPDATE_MONITORING_TIMEOUT = 9;   // Timed out waiting for update to complete
-  FW_UPDATE_TASK_EXCEPTION     = 10;  // Exception in task monitoring
-  FW_UPDATE_UNKNOWN            = 11;  // Unknown or unclassified error
+  FW_UPDATE_SUCCESS = 0; // Firmware update completed successfully
+  FW_UPDATE_FILE_NOT_FOUND = 1; // Specified firmware file does not exist
+  FW_UPDATE_CLIENT_FAILURE = 2; // HTTP/Redfish client communication failure
+  FW_UPDATE_TARGET_NOT_FOUND = 3; // Target component for update not found on node
+  FW_UPDATE_SERVER_ERROR = 4; // Server returned an error response
+  FW_UPDATE_TASK_FAILED = 5; // Firmware update task reported failure
+  FW_UPDATE_NO_TASK_INFO = 6; // Unable to retrieve task status information
+  FW_UPDATE_EXCEPTION = 7; // Exception occurred during update process
+  FW_UPDATE_INVALID_RESPONSE = 8; // Received invalid or malformed response
+  FW_UPDATE_MONITORING_TIMEOUT = 9; // Timed out waiting for update to complete
+  FW_UPDATE_TASK_EXCEPTION = 10; // Exception in task monitoring
+  FW_UPDATE_UNKNOWN = 11; // Unknown or unclassified error
 }
 
 // NodeType identifies the category of a node in the rack.
 enum NodeType {
-  NODE_TYPE_UNKNOWN    = 0;  // Unknown or unclassified node type
-  NODE_TYPE_COMPUTE    = 1;  // Compute node (GPU server, CPU server)
-  NODE_TYPE_POWERSHELF = 2;  // Power shelf (power distribution unit)
-  NODE_TYPE_SWITCH     = 3;  // Network switch
+  NODE_TYPE_UNKNOWN = 0; // Unknown or unclassified node type
+  NODE_TYPE_COMPUTE = 1; // Compute node (GPU server, CPU server)
+  NODE_TYPE_POWERSHELF = 2; // Power shelf (power distribution unit)
+  NODE_TYPE_SWITCH = 3; // Network switch
 }
 
 // SwitchFirmwareComponentType identifies the firmware component type on a switch.
 enum SwitchFirmwareComponentType {
-  SWITCH_FW_COMPONENT_UNKNOWN     = 0;  // Unknown component type
-  SWITCH_FW_COMPONENT_BMC         = 1;  // Baseboard Management Controller
-  SWITCH_FW_COMPONENT_FPGA        = 2;  // Field Programmable Gate Array
-  SWITCH_FW_COMPONENT_EROT        = 3;  // Embedded Root of Trust
-  SWITCH_FW_COMPONENT_CPLD        = 4;  // Complex Programmable Logic Device
-  SWITCH_FW_COMPONENT_BIOS        = 5;  // Basic Input/Output System
-  SWITCH_FW_COMPONENT_TRANSCEIVER = 6;  // Optical transceiver
+  SWITCH_FW_COMPONENT_UNKNOWN = 0; // Unknown component type
+  SWITCH_FW_COMPONENT_BMC = 1; // Baseboard Management Controller
+  SWITCH_FW_COMPONENT_FPGA = 2; // Field Programmable Gate Array
+  SWITCH_FW_COMPONENT_EROT = 3; // Embedded Root of Trust
+  SWITCH_FW_COMPONENT_CPLD = 4; // Complex Programmable Logic Device
+  SWITCH_FW_COMPONENT_BIOS = 5; // Basic Input/Output System
+  SWITCH_FW_COMPONENT_TRANSCEIVER = 6; // Optical transceiver
 }
 
 // FirmwareJobState represents the lifecycle state of an asynchronous firmware job.
 enum FirmwareJobState {
-  FW_JOB_QUEUED     = 0;  // Job has been created and is waiting to start
-  FW_JOB_RUNNING    = 1;  // Job is actively executing
-  FW_JOB_COMPLETED  = 2;  // Job finished successfully
-  FW_JOB_FAILED     = 3;  // Job finished with an error
+  FW_JOB_QUEUED = 0; // Job has been created and is waiting to start
+  FW_JOB_RUNNING = 1; // Job is actively executing
+  FW_JOB_COMPLETED = 2; // Job finished successfully
+  FW_JOB_FAILED = 3; // Job finished with an error
 }
 
 // UpgradeStage identifies the stage of firmware upgrade process on a switch.
 enum UpgradeStage {
-  UPGRADE_STAGE_UNKNOWN = 0;                    // Unknown stage
-  UPGRADE_STAGE_CHECK_CURRENT_VERSION = 1;      // Checking current firmware version
-  UPGRADE_STAGE_PUSH_FIRMWARE = 2;              // Pushing firmware file to switch
-  UPGRADE_STAGE_INSTALL_FIRMWARE = 3;           // Installing firmware on switch
-  UPGRADE_STAGE_POWER_CYCLE = 4;                // Power cycling the switch
-  UPGRADE_STAGE_WAIT_FOR_HEALTH = 5;            // Waiting for switch to become healthy
-  UPGRADE_STAGE_VERIFY_VERSION = 6;              // Verifying upgraded firmware version
-  UPGRADE_STAGE_COMPLETE = 7;                    // Upgrade completed successfully
+  UPGRADE_STAGE_UNKNOWN = 0; // Unknown stage
+  UPGRADE_STAGE_CHECK_CURRENT_VERSION = 1; // Checking current firmware version
+  UPGRADE_STAGE_PUSH_FIRMWARE = 2; // Pushing firmware file to switch
+  UPGRADE_STAGE_INSTALL_FIRMWARE = 3; // Installing firmware on switch
+  UPGRADE_STAGE_POWER_CYCLE = 4; // Power cycling the switch
+  UPGRADE_STAGE_WAIT_FOR_HEALTH = 5; // Waiting for switch to become healthy
+  UPGRADE_STAGE_VERIFY_VERSION = 6; // Verifying upgraded firmware version
+  UPGRADE_STAGE_COMPLETE = 7; // Upgrade completed successfully
 }
 
 /*******************************************************************************
@@ -118,9 +118,9 @@ enum UpgradeStage {
  * It enables correlation of requests with responses and tracking of message flow.
  */
 message Metadata {
-  int32 sender_id = 1;  // Identifier of the sending entity (client or server)
-  int64 timestamp = 2;  // Unix timestamp in milliseconds when message was created
-  int32 msg_id    = 3;  // Unique message identifier for request/response correlation
+  int32 sender_id = 1; // Identifier of the sending entity (client or server)
+  int64 timestamp = 2; // Unix timestamp in milliseconds when message was created
+  int32 msg_id = 3; // Unique message identifier for request/response correlation
 }
 
 // Username and password pair.
@@ -145,15 +145,15 @@ message NetworkInterface {
 
 // BMC connection info and credentials — for authenticating with the node's BMC (Redfish API).
 message BmcEndpoint {
-  NetworkInterface interface = 1;  // BMC network interface (single NIC)
-  int32 port = 2;                  // Port number for BMC communication (default: 443)
+  NetworkInterface interface = 1; // BMC network interface (single NIC)
+  int32 port = 2; // Port number for BMC communication (default: 443)
   Credentials credentials = 3;
 }
 
 // Host connection info and credentials — for authenticating with the node's host/switch OS (e.g., SSH, SWITCH API).
 message HostEndpoint {
-  repeated NetworkInterface interfaces = 1;  // Host NICs (multiple supported)
-  int32 port = 2;                            // Port number for host communication
+  repeated NetworkInterface interfaces = 1; // Host NICs (multiple supported)
+  int32 port = 2; // Port number for host communication
   Credentials credentials = 3;
 }
 
@@ -163,16 +163,16 @@ message HostEndpoint {
 
 // NewNodeInfo contains all information needed to register a new node in the inventory.
 message NewNodeInfo {
-  string node_id = 1;             // Unique identifier for the node within the rack
-  string rack_id = 2;             // Identifier of the rack containing this node
-  optional NodeType type = 3;     // Type/category of the node
-  optional BmcEndpoint bmc_endpoint = 4;     // BMC connection info and credentials
-  optional HostEndpoint host_endpoint = 5;   // Host connection info and credentials
+  string node_id = 1; // Unique identifier for the node within the rack
+  string rack_id = 2; // Identifier of the rack containing this node
+  optional NodeType type = 3; // Type/category of the node
+  optional BmcEndpoint bmc_endpoint = 4; // BMC connection info and credentials
+  optional HostEndpoint host_endpoint = 5; // Host connection info and credentials
 }
 
 // NodeSet represents a collection of devices, reusable wherever a device list is needed.
 message NodeSet {
-  repeated NewNodeInfo devices = 1;  // List of devices in the topology
+  repeated NewNodeInfo devices = 1; // List of devices in the topology
 }
 
 /*
@@ -180,113 +180,112 @@ message NodeSet {
  * Only specified fields will be updated; unset fields remain unchanged.
  */
 message NodeUpdateInfo {
-  optional BmcEndpoint bmc_endpoint = 1;    // New BMC connection info and credentials
-  optional HostEndpoint host_endpoint = 2;   // New host connection info and credentials
+  optional BmcEndpoint bmc_endpoint = 1; // New BMC connection info and credentials
+  optional HostEndpoint host_endpoint = 2; // New host connection info and credentials
 }
 
 // NodeInventoryInfo represents complete inventory information for a node.
 message NodeInventoryInfo {
-  string node_id = 1;                       // Unique identifier for the node
-  string product = 2;                       // Product name/model of the node
-  string health = 3;                        // Health status
-  string ip_address = 4;                    // IP address of the node's BMC
-  int32 port = 5;                           // Port number for BMC communication
-  NodeType type = 6;                        // Type/category of the node
+  string node_id = 1; // Unique identifier for the node
+  string product = 2; // Product name/model of the node
+  string health = 3; // Health status
+  string ip_address = 4; // IP address of the node's BMC
+  int32 port = 5; // Port number for BMC communication
+  NodeType type = 6; // Type/category of the node
   repeated DeviceInventoryInfo devices = 7; // List of devices/components within the node
-  string mac_address = 8;                   // MAC address of the node's BMC interface
-  string rack_id = 9;                       // Identifier of the rack containing this node
-  repeated string host_mac_addresses = 10;  // Vector of MAC addresses of the node's Host interfaces
-  repeated string host_ip_addresses = 11;   // Vector of IP addresses of the node's Host interfaces
+  string mac_address = 8; // MAC address of the node's BMC interface
+  string rack_id = 9; // Identifier of the rack containing this node
+  repeated string host_mac_addresses = 10; // Vector of MAC addresses of the node's Host interfaces
+  repeated string host_ip_addresses = 11; // Vector of IP addresses of the node's Host interfaces
 }
 
 // NodeDeviceInfo represents normalized device metadata for a node.
 message NodeDeviceInfo {
-  string node_id = 1;             // Unique identifier for the node
-  optional int64 chassis_sn = 2;  // Optional chassis serial number when available
+  string node_id = 1; // Unique identifier for the node
+  optional int64 chassis_sn = 2; // Optional chassis serial number when available
   optional int32 slot_number = 3; // Optional physical slot number in the rack topology
-  optional int32 tray_index = 4;  // Optional tray index when available
+  optional int32 tray_index = 4; // Optional tray index when available
 }
 
 // DeviceInventoryInfo represents inventory information for a device/component within a node.
 message DeviceInventoryInfo {
-  string device_id = 1;       // Unique identifier for the device within the node
-  string health = 2;          // Health status
-  string state = 3;           // Operational state (e.g., "Enabled", "Disabled")
-  string model = 4;           // Model name/number of the device
-  string serial_number = 5;   // Serial number of the device
-  string description = 6;     // Human-readable description of the device
-  string hardware_type = 7;   // Type of hardware (e.g., "GPU", "NIC", "Storage")
-  int32 type = 8;             // Numeric device type identifier
+  string device_id = 1; // Unique identifier for the device within the node
+  string health = 2; // Health status
+  string state = 3; // Operational state (e.g., "Enabled", "Disabled")
+  string model = 4; // Model name/number of the device
+  string serial_number = 5; // Serial number of the device
+  string description = 6; // Human-readable description of the device
+  string hardware_type = 7; // Type of hardware (e.g., "GPU", "NIC", "Storage")
+  int32 type = 8; // Numeric device type identifier
 }
 
 // FirmwareInventoryInfo represents firmware information for a component.
 message FirmwareInventoryInfo {
-  string name = 1;          // Name of the firmware component
-  string version = 2;       // Current firmware version string
-  string updateable = 3;    // Whether firmware can be updated
-  string target = 4;        // Target URI for firmware updates
-  string health = 5;        // Health status of the firmware component
-  int32  firmware_type = 6; // Type of firmware
+  string name = 1; // Name of the firmware component
+  string version = 2; // Current firmware version string
+  string updateable = 3; // Whether firmware can be updated
+  string target = 4; // Target URI for firmware updates
+  string health = 5; // Health status of the firmware component
+  int32 firmware_type = 6; // Type of firmware
 }
 
 // PowerOnOrderItem defines a single entry in the rack power-on sequence.
 message PowerOnOrderItem {
-  string node_id = 1;                    // Node to power on at this position in sequence
-  CompletionCheck completion_check = 2;  // Configuration for boot completion verification
+  string node_id = 1; // Node to power on at this position in sequence
+  CompletionCheck completion_check = 2; // Configuration for boot completion verification
 }
 
 // CompletionCheck configures how to verify a node has completed booting.
 message CompletionCheck {
-  bool enabled = 1;           // Whether to wait for boot completion before proceeding
-  int32 timeout_seconds = 2;  // Maximum time to wait for boot completion
+  bool enabled = 1; // Whether to wait for boot completion before proceeding
+  int32 timeout_seconds = 2; // Maximum time to wait for boot completion
 }
 
 // NodeFirmwareInventory groups firmware information for a specific node.
 message NodeFirmwareInventory {
-  string node_id = 1;                                // Node identifier
-  repeated FirmwareInventoryInfo firmware_list = 2;  // List of firmware components on the node
+  string node_id = 1; // Node identifier
+  repeated FirmwareInventoryInfo firmware_list = 2; // List of firmware components on the node
 }
 
 // OperationResponse reports the common result shape for simple RPCs.
 message OperationResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;  // SUCCESS if operation completed, FAILURE otherwise
-  string message = 3;     // Human-readable status or error message
+  ReturnCode status = 2; // SUCCESS if operation completed, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
 }
 
 // NodeResult reports the outcome of an operation on a specific node.
 message NodeResult {
-  string node_id = 1;        // Node that was targeted
-  ReturnCode status = 2;     // SUCCESS if this node completed, FAILURE otherwise
-  string error_message = 3;  // Human-readable error message for failures
+  string node_id = 1; // Node that was targeted
+  ReturnCode status = 2; // SUCCESS if this node completed, FAILURE otherwise
+  string error_message = 3; // Human-readable error message for failures
 }
 
 // NodeBatchResponse reports the common result shape for multi-node RPCs.
 message NodeBatchResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                // SUCCESS only if all targeted nodes completed
-  string message = 3;                   // Human-readable summary message
-  int32 total_nodes = 4;                // Total number of nodes targeted
-  int32 successful_nodes = 5;           // Number of nodes successfully processed
-  int32 failed_nodes = 6;               // Number of nodes that failed
+  ReturnCode status = 2; // SUCCESS only if all targeted nodes completed
+  string message = 3; // Human-readable summary message
+  int32 total_nodes = 4; // Total number of nodes targeted
+  int32 successful_nodes = 5; // Number of nodes successfully processed
+  int32 failed_nodes = 6; // Number of nodes that failed
   repeated NodeResult node_results = 7; // Individual results for each node
-  string job_id = 8;                    // Parent job ID for async batch operations
+  string job_id = 8; // Parent job ID for async batch operations
 }
 
 /*******************************************************************************
  * SERVICE DEFINITION
  *
  * RackManager provides gRPC APIs for managing compute racks, including power
- * control, inventory management, firmware updates, and network switch 
+ * control, inventory management, firmware updates, and network switch
  * configuration.
  ******************************************************************************/
 
 service RackManager {
-  
   /*---------------------------------------------------------------------------
    * Power Control RPCs
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * SetPowerState controls the power state of a single node.
    * Supports power on, power off, and power reset operations.
@@ -298,7 +297,7 @@ service RackManager {
    * without requiring them to be registered in RMS inventory.
    */
   rpc SetPowerStateByDeviceList(SetPowerStateByDeviceListRequest) returns (SetPowerStateByDeviceListResponse) {}
-  
+
   /*
    * GetPowerState retrieves the current power state of a node.
    * Returns the current state (ON, OFF, or UNKNOWN).
@@ -311,7 +310,7 @@ service RackManager {
    * Returns per-device power state along with batch status.
    */
   rpc GetPowerStateByDeviceList(GetPowerStateByDeviceListRequest) returns (GetPowerStateByDeviceListResponse) {}
-  
+
   /*
    * SequenceRackPower controls the power state of all nodes in a rack.
    * Operations follow the configured power-on order for sequenced boot.
@@ -322,44 +321,44 @@ service RackManager {
   /*---------------------------------------------------------------------------
    * Inventory Control RPCs
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * GetAllInventory retrieves the complete inventory of all nodes across all racks.
    */
   rpc GetAllInventory(GetAllInventoryRequest) returns (GetAllInventoryResponse) {}
-  
+
   /*
    * AddNode registers one or more new nodes in the inventory.
    * Supports batch addition of multiple nodes in a single request.
    */
   rpc AddNode(AddNodeRequest) returns (AddNodeResponse) {}
-  
+
   /*
    * UpdateNode modifies the configuration of an existing node.
    * Only specified fields in the update_info will be changed.
    */
   rpc UpdateNode(UpdateNodeRequest) returns (UpdateNodeResponse) {}
-  
+
   /*
    * RemoveNode removes a node from the inventory. The node must exist in the specified rack.
-  */
+   */
   rpc RemoveNode(RemoveNodeRequest) returns (RemoveNodeResponse) {}
-  
+
   /*
    * GetRackPowerOnSequence retrieves the configured boot sequence for a rack.
    */
   rpc GetRackPowerOnSequence(GetRackPowerOnSequenceRequest) returns (GetRackPowerOnSequenceResponse) {}
-  
+
   /*
    * SetRackPowerOnSequence configures the boot sequence for a rack.
    * Must be set before using RackPower operations.
    * Nodes boot in the specified order with optional completion verification.
    */
   rpc SetRackPowerOnSequence(SetRackPowerOnSequenceRequest) returns (SetRackPowerOnSequenceResponse) {}
-  
+
   /*
    * ListRacks returns a list of all rack IDs in the system.
-  */
+   */
   rpc ListRacks(ListRacksRequest) returns (ListRacksResponse) {}
 
   /*
@@ -382,13 +381,13 @@ service RackManager {
   /*---------------------------------------------------------------------------
    * Firmware Control RPCs
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * GetNodeFirmwareInventory retrieves all firmware component information for a node.
    * Returns version, update status, and health for each firmware component.
    */
   rpc GetNodeFirmwareInventory(GetNodeFirmwareInventoryRequest) returns (GetNodeFirmwareInventoryResponse) {}
-  
+
   /*
    * UpdateNodeFirmwareAsync initiates a firmware update on a specific node asynchronously.
    * Returns a job ID immediately. Use GetFirmwareJobStatus to track progress.
@@ -490,31 +489,30 @@ service RackManager {
    */
   rpc GetFirmwareObjectHistory(GetFirmwareObjectHistoryRequest) returns (GetFirmwareObjectHistoryResponse) {}
 
-
   /*
    * ListFirmwareOnSwitch lists the firmware for switch.
-   * Returns version, update status, and health for switch firmware component. 
+   * Returns version, update status, and health for switch firmware component.
    */
-   rpc ListFirmwareOnSwitch(ListFirmwareOnSwitchCommand) returns (ListFirmwareOnSwitchResponse) {}
+  rpc ListFirmwareOnSwitch(ListFirmwareOnSwitchCommand) returns (ListFirmwareOnSwitchResponse) {}
 
-   /*
+  /*
    * PushFirmwareToSwitch Push a firmware binary to target Switch
-   * Returns success or error_message 
+   * Returns success or error_message
    */
-   rpc PushFirmwareToSwitch(PushFirmwareToSwitchCommand) returns (PushFirmwareToSwitchResponse) {}
+  rpc PushFirmwareToSwitch(PushFirmwareToSwitchCommand) returns (PushFirmwareToSwitchResponse) {}
 
-   /*
-    * UpgradeFirmwareOnSwitch performs a complete firmware upgrade workflow for a switch component.
-    * This includes: checking current version, pushing firmware file, installing firmware,
-    * power cycling the switch, waiting for health, and verifying the new version.
-    * Returns the stage where upgrade failed (if any) along with error details.
-    */
-   rpc UpgradeFirmwareOnSwitch(UpgradeFirmwareOnSwitchCommand) returns (UpgradeFirmwareOnSwitchResponse) {}
+  /*
+   * UpgradeFirmwareOnSwitch performs a complete firmware upgrade workflow for a switch component.
+   * This includes: checking current version, pushing firmware file, installing firmware,
+   * power cycling the switch, waiting for health, and verifying the new version.
+   * Returns the stage where upgrade failed (if any) along with error details.
+   */
+  rpc UpgradeFirmwareOnSwitch(UpgradeFirmwareOnSwitchCommand) returns (UpgradeFirmwareOnSwitchResponse) {}
 
   /*---------------------------------------------------------------------------
    * Scale Up switch control RPCs
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
    * This includes enabling the scale fabric services services,configuring gRPC access,and sets
@@ -551,19 +549,19 @@ service RackManager {
    * Switch Control RPCs
    * Credentials are resolved from the node's stored inventory data.
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * FetchSwitchSystemImage downloads a switch OS image from a remote URL to the switch.
    * Returns a job ID for tracking the download progress.
    */
   rpc FetchSwitchSystemImage(FetchSwitchSystemImageRequest) returns (FetchSwitchSystemImageResponse) {}
-  
+
   /*
    * InstallSwitchSystemImage installs a previously fetched OS image on the switch.
    * Returns a job ID for tracking the installation progress.
    */
   rpc InstallSwitchSystemImage(InstallSwitchSystemImageRequest) returns (InstallSwitchSystemImageResponse) {}
-  
+
   /*
    * ListSwitchSystemImages retrieves the list of OS images available on the switch.
    * Returns information about installed and staged images.
@@ -586,7 +584,7 @@ service RackManager {
   /*---------------------------------------------------------------------------
    * Utility RPCs
    *-------------------------------------------------------------------------*/
-  
+
   /*
    * Version returns server version information.
    * Currently returns empty response; version info may be added in future releases.
@@ -596,7 +594,7 @@ service RackManager {
   /*
    * PollJobStatus poll given job id in an interval.
    */
-   rpc PollJobStatus(PollJobStatusCommand) returns (PollJobStatusResponse) {}
+  rpc PollJobStatus(PollJobStatusCommand) returns (PollJobStatusResponse) {}
 
   /*
    * GetFirmwareJobStatus retrieves the current status of an asynchronous firmware job.
@@ -606,7 +604,6 @@ service RackManager {
   rpc GetFirmwareJobStatus(GetFirmwareJobStatusRequest) returns (GetFirmwareJobStatusResponse) {}
 }
 
-
 /*******************************************************************************
  * POWER CONTROL MESSAGES
  ******************************************************************************/
@@ -614,22 +611,22 @@ service RackManager {
 // SetPowerStateRequest controls the power state of a single node.
 message SetPowerStateRequest {
   Metadata metadata = 1;
-  string node_id = 2;           // Target node identifier
+  string node_id = 2; // Target node identifier
   PowerOperation operation = 3; // Power operation to perform
-  string rack_id = 4;           // Rack containing the target node
+  string rack_id = 4; // Rack containing the target node
 }
 
 // SetPowerStateResponse confirms the power operation result.
 message SetPowerStateResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;   // SUCCESS if power operation completed, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if power operation completed, FAILURE otherwise
 }
 
 // SetPowerStateByDeviceListRequest controls power for unregistered devices.
 message SetPowerStateByDeviceListRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;             // Caller-supplied device connection details
-  PowerOperation operation = 3;  // Power operation to perform
+  NodeSet nodes = 2; // Caller-supplied device connection details
+  PowerOperation operation = 3; // Power operation to perform
 }
 
 // SetPowerStateByDeviceListResponse reports per-device power operation results.
@@ -640,51 +637,50 @@ message SetPowerStateByDeviceListResponse {
 // GetPowerStateRequest queries the current power state of a node.
 message GetPowerStateRequest {
   Metadata metadata = 1;
-  string node_id = 2;     // Target node identifier
-  string rack_id = 3;     // Rack containing the target node
+  string node_id = 2; // Target node identifier
+  string rack_id = 3; // Rack containing the target node
 }
 
 // GetPowerStateResponse returns the current power state of a node.
 message GetPowerStateResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;   // SUCCESS if query completed, FAILURE otherwise
-  string node_id = 3;      // Node identifier (echoed from request)
-  string pstate = 4;       // Current power state: "ON", "OFF", or "UNKNOWN"
-  string rack_id = 5;      // Rack identifier (echoed from request)
+  ReturnCode status = 2; // SUCCESS if query completed, FAILURE otherwise
+  string node_id = 3; // Node identifier (echoed from request)
+  string pstate = 4; // Current power state: "ON", "OFF", or "UNKNOWN"
+  string rack_id = 5; // Rack identifier (echoed from request)
 }
 
 // NodePowerState pairs a node identifier with its current power state.
 message NodePowerState {
-  string node_id = 1;  // Node identifier (echoed from request)
-  string pstate = 2;   // Current power state: "ON", "OFF", or "UNKNOWN"
+  string node_id = 1; // Node identifier (echoed from request)
+  string pstate = 2; // Current power state: "ON", "OFF", or "UNKNOWN"
 }
 
 // GetPowerStateByDeviceListRequest queries power state for unregistered devices.
 message GetPowerStateByDeviceListRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;  // Caller-supplied device connection details
+  NodeSet nodes = 2; // Caller-supplied device connection details
 }
 
 // GetPowerStateByDeviceListResponse reports per-device power state results.
 message GetPowerStateByDeviceListResponse {
   NodeBatchResponse response = 1;
-  repeated NodePowerState node_power_states = 2;  // Power state for each successfully queried device
+  repeated NodePowerState node_power_states = 2; // Power state for each successfully queried device
 }
 
 // RackPowerRequest controls power for all nodes in a rack.
 message SequenceRackPowerRequest {
   Metadata metadata = 1;
   RackPowerOperation operation = 2; // Rack-wide power operation to perform
-  string rack_id = 3;               // Target rack identifier
+  string rack_id = 3; // Target rack identifier
 }
 
 // RackPowerResponse confirms the rack power operation result.
 message SequenceRackPowerResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;   // SUCCESS if operation completed, FAILURE otherwise
-  string message = 3;      // Human-readable status or error message
+  ReturnCode status = 2; // SUCCESS if operation completed, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
 }
-
 
 /*******************************************************************************
  * INVENTORY CONTROL MESSAGES
@@ -698,7 +694,7 @@ message GetAllInventoryRequest {
 // GetInventoryResponse returns all nodes and their components.
 message GetAllInventoryResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                // SUCCESS if inventory retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if inventory retrieved, FAILURE otherwise
   repeated NodeInventoryInfo nodes = 3; // Complete list of nodes across all racks
 }
 
@@ -716,9 +712,9 @@ message AddNodeResponse {
 // UpdateNodeRequest modifies an existing node's configuration.
 message UpdateNodeRequest {
   Metadata metadata = 1;
-  string node_id = 2;             // Target node identifier
+  string node_id = 2; // Target node identifier
   NodeUpdateInfo update_info = 3; // Fields to update (only set fields are changed)
-  string rack_id = 4;             // Rack containing the target node
+  string rack_id = 4; // Rack containing the target node
 }
 
 // UpdateNodeResponse confirms the update result.
@@ -729,8 +725,8 @@ message UpdateNodeResponse {
 // RemoveNodeRequest deletes a node from the inventory.
 message RemoveNodeRequest {
   Metadata metadata = 1;
-  string node_id = 2;     // Target node identifier to remove
-  string rack_id = 3;     // Rack containing the target node
+  string node_id = 2; // Target node identifier to remove
+  string rack_id = 3; // Rack containing the target node
 }
 
 // RemoveNodeResponse confirms the removal result.
@@ -741,22 +737,22 @@ message RemoveNodeResponse {
 // GetPowerOnOrderRequest retrieves the boot sequence for a rack.
 message GetRackPowerOnSequenceRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Target rack identifier
+  string rack_id = 2; // Target rack identifier
 }
 
 // GetPowerOnOrderResponse returns the configured boot sequence.
 message GetRackPowerOnSequenceResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                        // SUCCESS if retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
   repeated PowerOnOrderItem power_on_order = 3; // Ordered list of nodes for boot sequence
-  bool is_valid = 4;                            // Whether the power-on order is valid for use
+  bool is_valid = 4; // Whether the power-on order is valid for use
 }
 
 // SetPowerOnOrderRequest configures the boot sequence for a rack.
 message SetRackPowerOnSequenceRequest {
   Metadata metadata = 1;
   repeated PowerOnOrderItem power_on_order = 2; // Ordered list of nodes for boot sequence
-  string rack_id = 3;                           // Target rack identifier
+  string rack_id = 3; // Target rack identifier
 }
 
 // SetPowerOnOrderResponse confirms the configuration result.
@@ -772,54 +768,53 @@ message ListRacksRequest {
 // ListRacksResponse returns all rack identifiers in the system.
 message ListRacksResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;        // SUCCESS if retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
   repeated string rack_ids = 3; // List of all rack identifiers
 }
 
 // GetNodeDeviceInfoRequest retrieves normalized device metadata for a specific node.
 message GetNodeDeviceInfoRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target node
-  string node_id = 3;     // Target node identifier
+  string rack_id = 2; // Rack containing the target node
+  string node_id = 3; // Target node identifier
 }
 
 // GetNodeDeviceInfoResponse returns normalized device metadata for a specific node.
 message GetNodeDeviceInfoResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;      // SUCCESS if retrieved, FAILURE otherwise
-  string message = 3;         // Human-readable status or error message
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
   NodeDeviceInfo device_info = 4; // Normalized device metadata for the node
 }
 
 // GetDeviceInfoByNodeTypeRequest retrieves device metadata for all nodes of a type in a rack.
 message GetDeviceInfoByNodeTypeRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Target rack identifier
+  string rack_id = 2; // Target rack identifier
   NodeType node_type = 3; // Type of nodes to query
 }
 
 // GetDeviceInfoByNodeTypeResponse returns device metadata for all matching nodes in a rack.
 message GetDeviceInfoByNodeTypeResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                   // SUCCESS if retrieved, FAILURE otherwise
-  string message = 3;                      // Human-readable status or error message
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
   repeated NodeDeviceInfo node_device_info = 4; // Device metadata grouped by node
 }
 
 // GetDeviceInfoByDeviceListRequest retrieves device metadata for a specified list of devices.
 message GetDeviceInfoByDeviceListRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;  // Devices to query
+  NodeSet nodes = 2; // Devices to query
 }
 
 // GetDeviceInfoByDeviceListResponse returns device metadata for the requested devices.
 message GetDeviceInfoByDeviceListResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                      // SUCCESS if all requested nodes succeeded, FAILURE otherwise
-  string message = 3;                         // Batch summary; includes per-node failure details when any node fails
+  ReturnCode status = 2; // SUCCESS if all requested nodes succeeded, FAILURE otherwise
+  string message = 3; // Batch summary; includes per-node failure details when any node fails
   repeated NodeDeviceInfo node_device_info = 4; // Successful device info results
 }
-
 
 /*******************************************************************************
  * FIRMWARE CONTROL MESSAGES
@@ -828,21 +823,21 @@ message GetDeviceInfoByDeviceListResponse {
 // GetNodeFirmwareInventoryRequest retrieves firmware info for a specific node.
 message GetNodeFirmwareInventoryRequest {
   Metadata metadata = 1;
-  string node_id = 2;     // Target node identifier
-  string rack_id = 3;     // Rack containing the target node
+  string node_id = 2; // Target node identifier
+  string rack_id = 3; // Rack containing the target node
 }
 
 // GetNodeFirmwareInventoryResponse returns firmware component information.
 message GetNodeFirmwareInventoryResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                            // SUCCESS if retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
   repeated FirmwareInventoryInfo firmware_list = 3; // List of firmware components on the node
 }
 
 // FirmwareTarget pairs a firmware component target with its firmware package file.
 message FirmwareTarget {
-  string target = 1;    // Redfish UpdateService target URI or switch component name (e.g., "bmc", "fpga")
-  string filename = 2;  // Firmware filename (relative to firmware directory or absolute path)
+  string target = 1; // Redfish UpdateService target URI or switch component name (e.g., "bmc", "fpga")
+  string filename = 2; // Firmware filename (relative to firmware directory or absolute path)
 }
 
 // FirmwareTargetList wraps a list of firmware targets for use as a map value.
@@ -860,20 +855,20 @@ message FirmwareObjectComponentFilter {
 // If firmware_targets is non-empty, it takes precedence over the single filename/target fields.
 message UpdateNodeFirmwareRequest {
   Metadata metadata = 1;
-  string node_id = 2;     // Target node identifier
-  string filename = 3;    // Single firmware filename (used when firmware_targets is empty)
-  string target = 4;      // Single Redfish target URI (used when firmware_targets is empty)
-  bool activate = 5;      // Whether to immediately activate the firmware after installation
-  string rack_id = 6;     // Rack containing the target node
-  repeated FirmwareTarget firmware_targets = 7;  // Multiple (target, filename) pairs for batch component updates
-  bool force_update = 8;  // Force the BMC to accept the firmware even if it's a downgrade
+  string node_id = 2; // Target node identifier
+  string filename = 3; // Single firmware filename (used when firmware_targets is empty)
+  string target = 4; // Single Redfish target URI (used when firmware_targets is empty)
+  bool activate = 5; // Whether to immediately activate the firmware after installation
+  string rack_id = 6; // Rack containing the target node
+  repeated FirmwareTarget firmware_targets = 7; // Multiple (target, filename) pairs for batch component updates
+  bool force_update = 8; // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // UpdateFirmwareResponse reports the firmware update result.
 message UpdateNodeFirmwareResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;              // SUCCESS if update completed, FAILURE otherwise
-  string message = 3;                 // Human-readable status or error message
+  ReturnCode status = 2; // SUCCESS if update completed, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
   FirmwareUpdateError error_code = 4; // Detailed error code for troubleshooting
   string job_id = 5; // Job ID for async operations (use with GetFirmwareJobStatus to track progress)
 }
@@ -884,28 +879,28 @@ message UpdateNodeFirmwareResponse {
 message UpdateFirmwareByNodeTypeRequest {
   Metadata metadata = 1;
   NodeType node_type = 2; // Type of nodes to update
-  string filename = 3;    // Single firmware filename (used when firmware_targets is empty)
-  string target = 4;      // Single Redfish target URI (used when firmware_targets is empty)
-  string rack_id = 5;     // Target rack identifier
-  repeated FirmwareTarget firmware_targets = 6;  // Multiple (target, filename) pairs for batch component updates
-  bool activate = 7;      // Whether to activate firmware after all targets are flashed
-  bool force_update = 8;  // Force the BMC to accept the firmware even if it's a downgrade
+  string filename = 3; // Single firmware filename (used when firmware_targets is empty)
+  string target = 4; // Single Redfish target URI (used when firmware_targets is empty)
+  string rack_id = 5; // Target rack identifier
+  repeated FirmwareTarget firmware_targets = 6; // Multiple (target, filename) pairs for batch component updates
+  bool activate = 7; // Whether to activate firmware after all targets are flashed
+  bool force_update = 8; // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // NodeFirmwareJobInfo pairs a node ID with its async firmware job ID.
 message NodeFirmwareJobInfo {
-  string node_id = 1;  // Node identifier
-  string job_id = 2;   // Firmware job ID (use with GetFirmwareJobStatus to track progress)
+  string node_id = 1; // Node identifier
+  string job_id = 2; // Firmware job ID (use with GetFirmwareJobStatus to track progress)
 }
 
 // UpdateFirmwareByNodeTypeAsyncResponse reports the created async jobs.
 message UpdateFirmwareByNodeTypeAsyncResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                            // SUCCESS if jobs created, FAILURE otherwise
-  string message = 3;                               // Human-readable summary message
-  string job_id = 4;                                // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
-  int32 total_nodes = 5;                            // Total number of nodes targeted
-  repeated NodeFirmwareJobInfo node_jobs = 6;       // Individual job ID per node
+  ReturnCode status = 2; // SUCCESS if jobs created, FAILURE otherwise
+  string message = 3; // Human-readable summary message
+  string job_id = 4; // Parent job ID for the overall batch (use with GetFirmwareJobStatus)
+  int32 total_nodes = 5; // Total number of nodes targeted
+  repeated NodeFirmwareJobInfo node_jobs = 6; // Individual job ID per node
 }
 
 // UpdateFirmwareByDeviceListRequest initiates firmware updates on a specified list of devices.
@@ -914,30 +909,30 @@ message UpdateFirmwareByNodeTypeAsyncResponse {
 // The appropriate firmware targets are applied to each device based on its node type.
 message UpdateFirmwareByDeviceListRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;                                          // Devices to update
-  map<int32, FirmwareTargetList> firmware_targets = 3;        // Firmware targets keyed by NodeType
-  bool activate = 4;                                          // Whether to activate firmware after installation
-  bool force_update = 5;                                      // Force the BMC to accept the firmware even if it's a downgrade
+  NodeSet nodes = 2; // Devices to update
+  map<int32, FirmwareTargetList> firmware_targets = 3; // Firmware targets keyed by NodeType
+  bool activate = 4; // Whether to activate firmware after installation
+  bool force_update = 5; // Force the BMC to accept the firmware even if it's a downgrade
 }
 
 // UpdateFirmwareByDeviceListResponse reports firmware update results.
 message UpdateFirmwareByDeviceListResponse {
   NodeBatchResponse response = 1;
-  repeated NodeFirmwareJobInfo node_jobs = 2;       // Individual job ID per node
+  repeated NodeFirmwareJobInfo node_jobs = 2; // Individual job ID per node
 }
 
 // SwitchSystemImageUpdateJobInfo pairs a switch node ID with its async system image job ID.
 message SwitchSystemImageUpdateJobInfo {
-  string node_id = 1;  // Switch node identifier
-  string job_id = 2;   // Switch system image job ID
+  string node_id = 1; // Switch node identifier
+  string job_id = 2; // Switch system image job ID
 }
 
 // UpdateSwitchSystemImageRequest initiates switch system image updates on a specified list of switches.
 message UpdateSwitchSystemImageRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;            // Switch devices to update
-  string image_filename = 3;    // Binary filename as it should exist on the switch
-  string local_file_path = 4;   // Local file path on the target switch
+  NodeSet nodes = 2; // Switch devices to update
+  string image_filename = 3; // Binary filename as it should exist on the switch
+  string local_file_path = 4; // Local file path on the target switch
 }
 
 // UpdateSwitchSystemImageResponse reports switch system image update job creation results.
@@ -949,13 +944,13 @@ message UpdateSwitchSystemImageResponse {
 // GetRackFirmwareInventoryRequest retrieves firmware for all nodes in a rack.
 message GetRackFirmwareInventoryRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Target rack identifier
+  string rack_id = 2; // Target rack identifier
 }
 
 // GetRackFirmwareInventoryResponse returns firmware info for all nodes.
 message GetRackFirmwareInventoryResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                    // SUCCESS if retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
   repeated NodeFirmwareInventory nodes = 3; // Firmware inventory grouped by node
 }
 
@@ -988,9 +983,9 @@ message FirmwareObjectDeviceComponents {
 
 // FirmwareObjectComponent describes one normalized component clients can request.
 message FirmwareObjectComponent {
-  string name = 1;           // Normalized component name accepted by ApplyFirmwareObject
+  string name = 1; // Normalized component name accepted by ApplyFirmwareObject
   string version = 2;
-  string bundle = 3;         
+  string bundle = 3;
   string source_component = 4; // Raw component label from the firmware object
   repeated FirmwareObjectSubcomponent subcomponents = 5;
   repeated FirmwareObjectArtifact artifacts = 6;
@@ -1005,9 +1000,9 @@ message FirmwareObjectSubcomponent {
 // FirmwareObjectArtifact describes the local artifact RMS resolved for a component.
 message FirmwareObjectArtifact {
   string firmware_type = 1; // Artifact channel/profile, e.g. "dev" or "prod"
-  string filename = 2;      // Cached artifact filename
-  string target = 3;        // Firmware target RMS passes to the node update API
-  string bundle = 4;        // Source bundle/package label for this artifact
+  string filename = 2; // Cached artifact filename
+  string target = 3; // Firmware target RMS passes to the node update API
+  string bundle = 4; // Source bundle/package label for this artifact
 }
 
 // FirmwareObjectSwitchSystemImage describes a switch system-image artifact.
@@ -1059,11 +1054,11 @@ message SetDefaultFirmwareObjectRequest {
 message ApplyFirmwareObjectRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string object_id = 3;          // Empty means use default for hardware_type
-  string firmware_type = 4;        // "dev" or "prod"
+  string object_id = 3; // Empty means use default for hardware_type
+  string firmware_type = 4; // "dev" or "prod"
   string hardware_type = 5;
-  repeated string components = 6;  // Deprecated: global component filter for all node types
-  NodeSet nodes = 7;               // Caller-supplied devices
+  repeated string components = 6; // Deprecated: global component filter for all node types
+  NodeSet nodes = 7; // Caller-supplied devices
   bool force_update = 8;
   // Component filters keyed by NodeType. If non-empty, only listed node types are updated.
   // A listed node type with an empty components list means all components for that node type.
@@ -1071,7 +1066,7 @@ message ApplyFirmwareObjectRequest {
 }
 
 message ApplyFirmwareObjectResponse {
-  NodeBatchResponse response = 1;          // response.job_id is parent job id
+  NodeBatchResponse response = 1; // response.job_id is parent job id
   string object_id = 2;
   repeated NodeFirmwareJobInfo node_jobs = 3;
 }
@@ -1079,11 +1074,11 @@ message ApplyFirmwareObjectResponse {
 message ApplyFirmwareObjectFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string config_json = 3;         // SOT JSON containing the firmware object ID and artifacts
-  string access_token = 4;        // Used only for artifact download; RMS does not persist it
-  string firmware_type = 5;       // "dev" or "prod"
+  string config_json = 3; // SOT JSON containing the firmware object ID and artifacts
+  string access_token = 4; // Used only for artifact download; RMS does not persist it
+  string firmware_type = 5; // "dev" or "prod"
   string hardware_type = 6;
-  NodeSet nodes = 7;              // Caller-supplied devices
+  NodeSet nodes = 7; // Caller-supplied devices
   bool force_update = 8;
   // Component filters keyed by NodeType. If non-empty, only listed node types are updated.
   // A listed node type with an empty components list means all components for that node type.
@@ -1093,14 +1088,14 @@ message ApplyFirmwareObjectFromJsonRequest {
 message ApplySwitchSystemImageRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string object_id = 3;    // Empty means use default for hardware_type
+  string object_id = 3; // Empty means use default for hardware_type
   string software_type = 4; // "dev" or "prod"
   string hardware_type = 5;
-  NodeSet nodes = 6;         // Caller-supplied switch devices
+  NodeSet nodes = 6; // Caller-supplied switch devices
 }
 
 message ApplySwitchSystemImageResponse {
-  NodeBatchResponse response = 1;                       // response.job_id is parent job id
+  NodeBatchResponse response = 1; // response.job_id is parent job id
   string object_id = 2;
   string image_filename = 3;
   repeated SwitchSystemImageUpdateJobInfo node_jobs = 4;
@@ -1109,16 +1104,16 @@ message ApplySwitchSystemImageResponse {
 message ApplySwitchSystemImageFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
-  string config_json = 3;       // SOT JSON containing the firmware object ID and switch image
-  string access_token = 4;      // Used only for artifact download; RMS does not persist it
-  string software_type = 5;     // "dev" or "prod"
+  string config_json = 3; // SOT JSON containing the firmware object ID and switch image
+  string access_token = 4; // Used only for artifact download; RMS does not persist it
+  string software_type = 5; // "dev" or "prod"
   string hardware_type = 6;
-  NodeSet nodes = 7;            // Caller-supplied switch devices
+  NodeSet nodes = 7; // Caller-supplied switch devices
 }
 
 message GetFirmwareObjectHistoryRequest {
   Metadata metadata = 1;
-  string object_id = 2;       // Empty means no object filter
+  string object_id = 2; // Empty means no object filter
   repeated string rack_ids = 3; // Empty means all racks
 }
 
@@ -1146,19 +1141,19 @@ message FirmwareObjectHistoryRecord {
  */
 message ConfigureScaleUpFabricManagerRequest {
   Metadata metadata = 1;
-  NewNodeInfo device = 2;      // Target switch identity and direct connection information
-  string topology_type = 3;    // Topology to be set for ScaleUpFabric
-  bool verify_ssl = 4;         // Whether to verify SSL certificates for HTTPS connections
+  NewNodeInfo device = 2; // Target switch identity and direct connection information
+  string topology_type = 3; // Topology to be set for ScaleUpFabric
+  bool verify_ssl = 4; // Whether to verify SSL certificates for HTTPS connections
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
 message ConfigureScaleUpFabricManagerResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;      // SUCCESS if configuration completed, FAILURE otherwise
-  string message = 3;         // Human-readable status or error message
-  string topology_used = 4;   // multi-node scaleup topology that was applied
-  bool ScaleUpFabricState_enabled = 5;   // Whether the ScaleUpFabricState State is now enabled
-  bool grpc_enabled = 6;      // Whether gRPC access is now enabled
+  ReturnCode status = 2; // SUCCESS if configuration completed, FAILURE otherwise
+  string message = 3; // Human-readable status or error message
+  string topology_used = 4; // multi-node scaleup topology that was applied
+  bool ScaleUpFabricState_enabled = 5; // Whether the ScaleUpFabricState State is now enabled
+  bool grpc_enabled = 6; // Whether gRPC access is now enabled
 }
 
 /*
@@ -1167,51 +1162,50 @@ message ConfigureScaleUpFabricManagerResponse {
  */
 message SetScaleUpFabricStateRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;       // Switch devices to update
-  optional bool enabled = 3;  // true = enabled, false = disabled
-  bool verify_ssl = 4;     // Whether to verify SSL certificates for HTTPS connections
+  NodeSet nodes = 2; // Switch devices to update
+  optional bool enabled = 3; // true = enabled, false = disabled
+  bool verify_ssl = 4; // Whether to verify SSL certificates for HTTPS connections
 }
 
 // SetScaleUpFabricStateResponse reports the synchronous per-switch result.
 message SetScaleUpFabricStateResponse {
-  NodeBatchResponse response = 1;  // response.job_id is unused and left empty for this synchronous RPC
+  NodeBatchResponse response = 1; // response.job_id is unused and left empty for this synchronous RPC
 }
 
 // ScaleUpFabricServiceStatusEntry stores per-switch status keyed by node_id.
 message ScaleUpFabricServiceStatusEntry {
-  string status_json = 1;   // JSON object containing application status
+  string status_json = 1; // JSON object containing application status
   string error_message = 2; // Error details if query failed
 }
 
 // GetScaleUpFabricServicesStatusRequest checks cluster health and nmx-controller status on caller-supplied switches.
 message GetScaleUpFabricServicesStatusRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;      // Switch devices to query
-  bool verify_ssl = 3;    // Whether to verify SSL certificates for HTTPS connections
+  NodeSet nodes = 2; // Switch devices to query
+  bool verify_ssl = 3; // Whether to verify SSL certificates for HTTPS connections
 }
 
 // GetScaleUpFabricServicesStatusResponse reports per-switch results keyed by node_id.
 message GetScaleUpFabricServicesStatusResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
   map<string, ScaleUpFabricServiceStatusEntry> device_info_result = 3; // key = node_id
 }
 
 // GetScaleUpFabricStateRequest retrieves the ScaleUpFabric state for a single switch.
 message GetScaleUpFabricStateRequest {
   Metadata metadata = 1;
-  NewNodeInfo device = 2;   // Target switch identity and direct connection information
-  bool verify_ssl = 3;      // Whether to verify SSL certificates
+  NewNodeInfo device = 2; // Target switch identity and direct connection information
+  bool verify_ssl = 3; // Whether to verify SSL certificates
 }
 
 // GetScaleUpFabricStateResponse returns the ScaleUpFabric state.
 message GetScaleUpFabricStateResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
-  string state_json = 3;    // JSON object containing ScaleUpFabric state information
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
+  string state_json = 3; // JSON object containing ScaleUpFabric state information
   string error_message = 4; // Error details if query failed
 }
-
 
 /*******************************************************************************
  * SWITCH CONTROL MESSAGES
@@ -1223,53 +1217,53 @@ message GetScaleUpFabricStateResponse {
 // FetchSwitchSystemImageRequest downloads an OS image to a switch.
 message FetchSwitchSystemImageRequest {
   Metadata metadata = 1;
-  string rack_id = 2;      // Rack containing the target switch (required)
-  string node_id = 3;      // Target switch node identifier (required)
-  int32 port = 4;          // API port number (default: 443)
-  bool verify_ssl = 5;     // Whether to verify SSL certificates
-  string remote_url = 6;   // URL to download the system image from
+  string rack_id = 2; // Rack containing the target switch (required)
+  string node_id = 3; // Target switch node identifier (required)
+  int32 port = 4; // API port number (default: 443)
+  bool verify_ssl = 5; // Whether to verify SSL certificates
+  string remote_url = 6; // URL to download the system image from
 }
 
 // FetchSwitchSystemImageResponse reports the download initiation result.
 message FetchSwitchSystemImageResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if download started, FAILURE otherwise
-  string job_id = 3;        // Job identifier for tracking download progress
+  ReturnCode status = 2; // SUCCESS if download started, FAILURE otherwise
+  string job_id = 3; // Job identifier for tracking download progress
   string error_message = 4; // Error details if download failed to start
 }
 
 // InstallSwitchSystemImageRequest installs an OS image on a switch.
 message InstallSwitchSystemImageRequest {
   Metadata metadata = 1;
-  string rack_id = 2;         // Rack containing the target switch (required)
-  string node_id = 3;         // Target switch node identifier (required)
-  int32 port = 4;             // API port number (default: 443)
-  bool verify_ssl = 5;        // Whether to verify SSL certificates
-  string image_filename = 6;  // Filename of the image to install (must be fetched first)
+  string rack_id = 2; // Rack containing the target switch (required)
+  string node_id = 3; // Target switch node identifier (required)
+  int32 port = 4; // API port number (default: 443)
+  bool verify_ssl = 5; // Whether to verify SSL certificates
+  string image_filename = 6; // Filename of the image to install (must be fetched first)
 }
 
 // InstallSwitchSystemImageResponse reports the installation initiation result.
 message InstallSwitchSystemImageResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if installation started, FAILURE otherwise
-  string job_id = 3;        // Job identifier for tracking installation progress
+  ReturnCode status = 2; // SUCCESS if installation started, FAILURE otherwise
+  string job_id = 3; // Job identifier for tracking installation progress
   string error_message = 4; // Error details if installation failed to start
 }
 
 // ListSwitchSystemImagesRequest retrieves available OS images on a switch.
 message ListSwitchSystemImagesRequest {
   Metadata metadata = 1;
-  string rack_id = 2;     // Rack containing the target switch (required)
-  string node_id = 3;     // Target switch node identifier (required)
-  int32 port = 4;         // API port number (default: 443)
-  bool verify_ssl = 5;    // Whether to verify SSL certificates
+  string rack_id = 2; // Rack containing the target switch (required)
+  string node_id = 3; // Target switch node identifier (required)
+  int32 port = 4; // API port number (default: 443)
+  bool verify_ssl = 5; // Whether to verify SSL certificates
 }
 
 // ListSwitchSystemImagesResponse returns available OS images.
 message ListSwitchSystemImagesResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if retrieved, FAILURE otherwise
-  string images_json = 3;   // JSON array containing image information
+  ReturnCode status = 2; // SUCCESS if retrieved, FAILURE otherwise
+  string images_json = 3; // JSON array containing image information
   string error_message = 4; // Error details if query failed
 }
 
@@ -1277,48 +1271,48 @@ message ListSwitchSystemImagesResponse {
 message EnableScaleUpFabricTelemetryInterfaceRequest {
   Metadata metadata = 1;
   NewNodeInfo device = 2; // Target switch identity and direct connection information
-  bool enable = 3;        // true to enable ScaleUpFabricTelemetryInterface, false to disable
-  bool verify_ssl = 4;    // Whether to verify SSL certificates
+  bool enable = 3; // true to enable ScaleUpFabricTelemetryInterface, false to disable
+  bool verify_ssl = 4; // Whether to verify SSL certificates
 }
 
 // EnableScaleUpFabricTelemetryInterfaceResponse reports the FabricTelemetryInterface status.
 message EnableScaleUpFabricTelemetryInterfaceResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  string result_json = 3;   // JSON object containing configuration result
+  ReturnCode status = 2; // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3; // JSON object containing configuration result
   string error_message = 4; // Error details if configuration failed
 }
 
 message ListFirmwareOnSwitchCommand {
   Metadata metadata = 1;
-  string rack_id = 2;                              // Required: Rack ID for inventory lookup
-  string node_id = 3;                              // Required: Node ID for inventory lookup
-  SwitchFirmwareComponentType component_type = 4;  // Required: Firmware component type enum
-  int32 port = 5;                                  // Optional: API port (default: 443)
-  bool verify_ssl = 6;                             // Optional: Whether to verify SSL certificates
+  string rack_id = 2; // Required: Rack ID for inventory lookup
+  string node_id = 3; // Required: Node ID for inventory lookup
+  SwitchFirmwareComponentType component_type = 4; // Required: Firmware component type enum
+  int32 port = 5; // Optional: API port (default: 443)
+  bool verify_ssl = 6; // Optional: Whether to verify SSL certificates
 }
 
 message ListFirmwareOnSwitchResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  string result_json = 3;   // JSON object containing configuration result
+  ReturnCode status = 2; // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3; // JSON object containing configuration result
   string error_message = 4; // Error details if configuration failed
 }
 
 // PushFirmwareToSwitch command/response
 message PushFirmwareToSwitchCommand {
   Metadata metadata = 1;
-  string rack_id = 2;                              // Required: Rack ID for inventory lookup
-  string node_id = 3;                              // Required: Node ID for inventory lookup
-  SwitchFirmwareComponentType component_type = 4;  // Required: Firmware component type enum
-  string filename = 5;                             // Required: Desired filename on the switch (used as-is, no suffix modification)
-  string local_file_path = 6;                      // Required: Local file path on rackmanager host (file must be at least 1KB)
+  string rack_id = 2; // Required: Rack ID for inventory lookup
+  string node_id = 3; // Required: Node ID for inventory lookup
+  SwitchFirmwareComponentType component_type = 4; // Required: Firmware component type enum
+  string filename = 5; // Required: Desired filename on the switch (used as-is, no suffix modification)
+  string local_file_path = 6; // Required: Local file path on rackmanager host (file must be at least 1KB)
 }
 
 message PushFirmwareToSwitchResponse {
-  Metadata metadata = 1;    
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  string result_json = 3;   // JSON object containing configuration result
+  Metadata metadata = 1;
+  ReturnCode status = 2; // SUCCESS if configured, FAILURE otherwise
+  string result_json = 3; // JSON object containing configuration result
   string error_message = 4; // Error details if configuration failed
 }
 
@@ -1326,39 +1320,39 @@ message PushFirmwareToSwitchResponse {
 // If node_id is empty, upgrades all switches in the rack in parallel.
 message UpgradeFirmwareOnSwitchCommand {
   Metadata metadata = 1;
-  string rack_id = 2;                                    // Required: Rack ID for inventory lookup
-  optional string node_id = 3;                           // Optional: Node ID. If empty, upgrades all switches in rack
-  SwitchFirmwareComponentType component = 4;             // Required: Firmware component type enum
-  string filename = 5;                                   // Required: Local filesystem path to firmware file
-  int32 port = 6;                                        // Optional: API port (default: 443)
-  bool verify_ssl = 7;                                   // Optional: Whether to verify SSL certificates
+  string rack_id = 2; // Required: Rack ID for inventory lookup
+  optional string node_id = 3; // Optional: Node ID. If empty, upgrades all switches in rack
+  SwitchFirmwareComponentType component = 4; // Required: Firmware component type enum
+  string filename = 5; // Required: Local filesystem path to firmware file
+  int32 port = 6; // Optional: API port (default: 443)
+  bool verify_ssl = 7; // Optional: Whether to verify SSL certificates
 }
 
 message UpgradeFirmwareOnSwitchResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                                // SUCCESS if upgrade completed, FAILURE otherwise
-  UpgradeStage failed_stage = 3;                         // Stage where upgrade failed (if status is FAILURE)
-  string error_message = 4;                             // Error details if upgrade failed (or summary message for multi-switch mode)
-  string current_filename = 5;                          // Firmware filename before upgrade (single switch mode only)
-  string new_filename = 6;                              // Firmware filename after upgrade (if successful, single switch mode only)
-  string result_json = 7;                               // JSON array with detailed results for all switches (multi-switch mode only)
+  ReturnCode status = 2; // SUCCESS if upgrade completed, FAILURE otherwise
+  UpgradeStage failed_stage = 3; // Stage where upgrade failed (if status is FAILURE)
+  string error_message = 4; // Error details if upgrade failed (or summary message for multi-switch mode)
+  string current_filename = 5; // Firmware filename before upgrade (single switch mode only)
+  string new_filename = 6; // Firmware filename after upgrade (if successful, single switch mode only)
+  string result_json = 7; // JSON array with detailed results for all switches (multi-switch mode only)
 }
 
 message PollJobStatusCommand {
   Metadata metadata = 1;
-  string rack_id = 2;               // Required: Rack ID for inventory lookup
-  string node_id = 3;               // Required: Node ID for inventory lookup
-  string job_id = 4;                // Job id for previously submitted job
-  int32 port = 5;                   // Optional: API port (default: 443)
-  bool verify_ssl = 6;              // Optional: Whether to verify SSL certificates
-  int32 timeout_seconds = 7;        // Optional: Timeout for the polling job
-  int32 poll_interval_seconds = 8;  // Optional: Poll interval in seconds (default: 5)
+  string rack_id = 2; // Required: Rack ID for inventory lookup
+  string node_id = 3; // Required: Node ID for inventory lookup
+  string job_id = 4; // Job id for previously submitted job
+  int32 port = 5; // Optional: API port (default: 443)
+  bool verify_ssl = 6; // Optional: Whether to verify SSL certificates
+  int32 timeout_seconds = 7; // Optional: Timeout for the polling job
+  int32 poll_interval_seconds = 8; // Optional: Poll interval in seconds (default: 5)
 }
 
 message PollJobStatusResponse {
-  Metadata metadata = 1;   
-  ReturnCode status = 2;    // SUCCESS if configured, FAILURE otherwise
-  string state = 3;        // State of the job (active,pending,running)   
+  Metadata metadata = 1;
+  ReturnCode status = 2; // SUCCESS if configured, FAILURE otherwise
+  string state = 3; // State of the job (active,pending,running)
   string result_json = 4; // JSON object containing configuration result
   string error_message = 5; // Error details if configuration failed
 }
@@ -1370,9 +1364,9 @@ message PollJobStatusResponse {
 // UpdateSwitchSystemPasswordRequest updates the OS-level password for a user on a set of switch devices.
 message UpdateSwitchSystemPasswordRequest {
   Metadata metadata = 1;
-  NodeSet nodes = 2;       // Switch devices to update
-  string username = 3;     // Target OS username whose password will be changed (mandatory)
-  string password = 4;     // New password to set for the user (mandatory)
+  NodeSet nodes = 2; // Switch devices to update
+  string username = 3; // Target OS username whose password will be changed (mandatory)
+  string password = 4; // New password to set for the user (mandatory)
 }
 
 // UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
@@ -1387,42 +1381,42 @@ message UpdateSwitchSystemPasswordResponse {
 // GetFirmwareJobStatusRequest queries the status of an asynchronous firmware job.
 message GetFirmwareJobStatusRequest {
   Metadata metadata = 1;
-  string job_id = 2;       // Job ID returned from UpdateNodeFirmwareAsync or UpdateFirmwareByNodeTypeAsync
+  string job_id = 2; // Job ID returned from UpdateNodeFirmwareAsync or UpdateFirmwareByNodeTypeAsync
 }
 
 // GetFirmwareJobStatusResponse returns the current state of a firmware job.
 message GetFirmwareJobStatusResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;                 // SUCCESS if job found, FAILURE if job_id not found
-  string job_id = 3;                     // Echoed job ID
-  FirmwareJobState job_state = 4;        // Current state of the firmware job
-  string state_description = 5;          // Human-readable description of current state (e.g., "Installing firmware")
-  string rack_id = 6;                    // Rack ID associated with this job
-  string node_id = 7;                    // Node ID associated with this job
-  FirmwareUpdateError error_code = 8;    // Error code if job failed
-  string error_message = 9;             // Error details if job failed
-  string result_json = 10;              // JSON with detailed result data (populated on completion)
-  int64 created_at = 11;                // Unix timestamp (ms) when job was created
-  int64 updated_at = 12;                // Unix timestamp (ms) when job was last updated
+  ReturnCode status = 2; // SUCCESS if job found, FAILURE if job_id not found
+  string job_id = 3; // Echoed job ID
+  FirmwareJobState job_state = 4; // Current state of the firmware job
+  string state_description = 5; // Human-readable description of current state (e.g., "Installing firmware")
+  string rack_id = 6; // Rack ID associated with this job
+  string node_id = 7; // Node ID associated with this job
+  FirmwareUpdateError error_code = 8; // Error code if job failed
+  string error_message = 9; // Error details if job failed
+  string result_json = 10; // JSON with detailed result data (populated on completion)
+  int64 created_at = 11; // Unix timestamp (ms) when job was created
+  int64 updated_at = 12; // Unix timestamp (ms) when job was last updated
 }
 
 // GetSwitchSystemImageJobStatusRequest queries the status of an asynchronous switch system image job.
 message GetSwitchSystemImageJobStatusRequest {
   Metadata metadata = 1;
-  string job_id = 2;       // Parent or child job ID returned from UpdateSwitchSystemImage
+  string job_id = 2; // Parent or child job ID returned from UpdateSwitchSystemImage
 }
 
 // GetSwitchSystemImageJobStatusResponse returns the current state of a switch system image job.
 message GetSwitchSystemImageJobStatusResponse {
   Metadata metadata = 1;
-  ReturnCode status = 2;   // SUCCESS if job found, FAILURE if job_id not found
-  string job_id = 3;       // Echoed job ID
-  string state = 4;        // queued, running, completed, or failed
-  string message = 5;      // Human-readable progress description
-  string rack_id = 6;      // Rack ID associated with this job
-  string node_id = 7;      // Node ID associated with this job; empty for parent jobs
+  ReturnCode status = 2; // SUCCESS if job found, FAILURE if job_id not found
+  string job_id = 3; // Echoed job ID
+  string state = 4; // queued, running, completed, or failed
+  string message = 5; // Human-readable progress description
+  string rack_id = 6; // Rack ID associated with this job
+  string node_id = 7; // Node ID associated with this job; empty for parent jobs
   string error_message = 8; // Error details if job failed
-  string result_json = 9;  // JSON with detailed result data (populated on completion)
-  int64 created_at = 10;   // Unix timestamp (ms) when job was created
-  int64 updated_at = 11;   // Unix timestamp (ms) when job was last updated
+  string result_json = 9; // JSON with detailed result data (populated on completion)
+  int64 created_at = 10; // Unix timestamp (ms) when job was created
+  int64 updated_at = 11; // Unix timestamp (ms) when job was last updated
 }
