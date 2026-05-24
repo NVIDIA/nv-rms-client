@@ -43,6 +43,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.FirmwareObjectHistoryRecord.applied_at",
             "#[serde(default, with = \"crate::timestamp_serde\")]",
         )
+        .type_attribute(
+            "rack_manager.Result",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.SwitchAttestationResult",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetSwitchAttestationRequest",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
+        .type_attribute(
+            "rack_manager.GetSwitchAttestationResponse",
+            "#[derive(serde::Deserialize, serde::Serialize)]",
+        )
         .include_file("prost_common.rs")
         .build_server(false)
         .build_client(true)
