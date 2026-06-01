@@ -73,13 +73,13 @@ enum FirmwareUpdateError {
   FIRMWARE_UPDATE_ERROR_UNKNOWN            = 12;  // Unknown or unclassified error
 }
 
-// NodeType identifies the category of a node in the rack.
+// NodeType identifies the hardware-specific node implementation in the rack.
 enum NodeType {
-  NODE_TYPE_UNSPECIFIED = 0;  // Caller left the node type missing or at the proto3 default
-  NODE_TYPE_UNKNOWN     = 1;  // Unknown or unclassified node type
-  NODE_TYPE_COMPUTE     = 2;  // Compute node (GPU server, CPU server)
-  NODE_TYPE_POWERSHELF  = 3;  // Power shelf (power distribution unit)
-  NODE_TYPE_SWITCH      = 4;  // Network switch
+  NODE_TYPE_UNSPECIFIED     = 0;  // Caller left the node type missing or at the proto3 default
+  NVIDIA_GB200_COMPUTE     = 1;  // NVIDIA GB200 compute node
+  LITEON_GB200_POWERSHELF  = 2;  // LiteOn GB200 power shelf
+  NVIDIA_GB200_SWITCH      = 3;  // NVIDIA GB200 network switch
+  DELTA_GB200_POWERSHELF   = 4;  // Delta GB200 power shelf
 }
 
 // SwitchFirmwareComponentType identifies the firmware component type on a switch.
@@ -156,7 +156,7 @@ message Endpoint {
 message NodeInfo {
   string node_id = 1;             // Unique identifier for the node within the rack
   string rack_id = 2;             // Identifier of the rack containing this node
-  optional NodeType type = 3;     // Type/category of the node
+  optional NodeType type = 3;     // Hardware-specific node type
   optional Endpoint bmc_endpoint = 4;  // BMC connection info and credentials
   optional Endpoint host_endpoint = 5; // Host connection info and credentials
 }
@@ -182,7 +182,7 @@ message NodeInventoryInfo {
   string health = 3;                        // Health status
   string ip_address = 4;                    // IP address of the node's BMC
   uint32 port = 5;                          // Port number for BMC communication
-  NodeType type = 6;                        // Type/category of the node
+  NodeType type = 6;                        // Hardware-specific node type
   repeated ComponentInventoryInfo components = 7; // List of components within the node
   string mac_address = 8;                   // MAC address of the node's BMC interface
   string rack_id = 9;                       // Identifier of the rack containing this node
