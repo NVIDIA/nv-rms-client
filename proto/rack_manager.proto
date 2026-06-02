@@ -75,11 +75,11 @@ enum FirmwareUpdateError {
 
 // NodeType identifies the hardware-specific node implementation in the rack.
 enum NodeType {
-  NODE_TYPE_UNSPECIFIED     = 0;  // Caller left the node type missing or at the proto3 default
-  NVIDIA_GB200_COMPUTE     = 1;  // NVIDIA GB200 compute node
-  LITEON_GB200_POWERSHELF  = 2;  // LiteOn GB200 power shelf
-  NVIDIA_GB200_SWITCH      = 3;  // NVIDIA GB200 network switch
-  DELTA_GB200_POWERSHELF   = 4;  // Delta GB200 power shelf
+  NODE_TYPE_UNSPECIFIED   = 0;  // Caller left the node type missing or at the proto3 default
+  COMPUTE_GB200_NVIDIA    = 1;  // NVIDIA GB200 compute node
+  POWERSHELF_GB200_LITEON = 2;  // LiteOn GB200 power shelf
+  SWITCH_GB200_NVIDIA     = 3;  // NVIDIA GB200 network switch
+  POWERSHELF_GB200_DELTA  = 4;  // Delta GB200 power shelf
 }
 
 // SwitchFirmwareComponentType identifies the firmware component type on a switch.
