@@ -71,6 +71,7 @@ enum FirmwareUpdateError {
   FIRMWARE_UPDATE_ERROR_MONITORING_TIMEOUT = 10;  // Timed out waiting for update to complete
   FIRMWARE_UPDATE_ERROR_TASK_EXCEPTION     = 11;  // Exception in task monitoring
   FIRMWARE_UPDATE_ERROR_UNKNOWN            = 12;  // Unknown or unclassified error
+  FIRMWARE_UPDATE_ERROR_UPDATE_IN_PROGRESS = 13;  // The node already has an active firmware update.
 }
 
 // NodeType identifies the hardware-specific node implementation in the rack.
