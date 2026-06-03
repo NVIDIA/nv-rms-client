@@ -81,6 +81,11 @@ enum NodeType {
   POWERSHELF_GB200_LITEON = 2;  // LiteOn GB200 power shelf
   SWITCH_GB200_NVIDIA     = 3;  // NVIDIA GB200 network switch
   POWERSHELF_GB200_DELTA  = 4;  // Delta GB200 power shelf
+  COMPUTE_GB300_NVIDIA    = 5;  // NVIDIA GB300 compute node
+  SWITCH_GB300_NVIDIA     = 6;  // NVIDIA GB300 network switch
+  POWERSHELF_GB300_LITEON = 7;  // LiteOn GB300 power shelf
+  POWERSHELF_GB300_DELTA  = 8;  // Delta GB300 power shelf
+  COMPUTE_GB300_LENOVO    = 9;  // Lenovo GB300 compute node
 }
 
 // SwitchFirmwareComponentType identifies the firmware component type on a switch.
