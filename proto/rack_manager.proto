@@ -78,13 +78,10 @@ enum FirmwareUpdateError {
 enum NodeType {
   NODE_TYPE_UNSPECIFIED   = 0;  // Caller left the node type missing or at the proto3 default
   COMPUTE_GB200_NVIDIA    = 1;  // NVIDIA GB200 compute node
-  POWERSHELF_GB200_LITEON = 2;  // LiteOn GB200 power shelf
-  SWITCH_GB200_NVIDIA     = 3;  // NVIDIA GB200 network switch
-  POWERSHELF_GB200_DELTA  = 4;  // Delta GB200 power shelf
+  POWERSHELF_LITEON       = 2;  // LiteOn power shelf
+  SWITCH_GB_NVIDIA        = 3;  // NVIDIA GB switch
+  POWERSHELF_DELTA        = 4;  // Delta  power shelf
   COMPUTE_GB300_NVIDIA    = 5;  // NVIDIA GB300 compute node
-  SWITCH_GB300_NVIDIA     = 6;  // NVIDIA GB300 network switch
-  POWERSHELF_GB300_LITEON = 7;  // LiteOn GB300 power shelf
-  POWERSHELF_GB300_DELTA  = 8;  // Delta GB300 power shelf
   COMPUTE_GB300_LENOVO    = 9;  // Lenovo GB300 compute node
 }
 
