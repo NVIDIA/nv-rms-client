@@ -546,6 +546,20 @@ service RackManager {
   rpc SetScaleUpFabricTelemetryInterfaceState(SetScaleUpFabricTelemetryInterfaceStateRequest) returns (SetScaleUpFabricTelemetryInterfaceStateResponse) {}
 
   /*---------------------------------------------------------------------------
+   * TLS control RPCs
+   *-------------------------------------------------------------------------*/
+
+  /*
+   * ReloadTls reloads all configured RMS TLS material from the mounted certificate paths.
+   */
+  rpc ReloadTls(ReloadTlsRequest) returns (ReloadTlsResponse) {}
+
+  /*
+   * InstallSwitchTlsCertificates installs RMS-configured TLS certificates on all supplied switches.
+   */
+  rpc InstallSwitchTlsCertificates(InstallSwitchTlsCertificatesRequest) returns (InstallSwitchTlsCertificatesResponse) {}
+
+  /*---------------------------------------------------------------------------
    * Switch Control RPCs
    * Connection settings, credentials, port, and TLS validation behavior are
    * resolved from the node's stored inventory data.
@@ -1166,6 +1180,34 @@ message GetScaleUpFabricStateResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if retrieved, RETURN_CODE_FAILURE otherwise
   string state_json = 3; // JSON object containing ScaleUpFabric state information
   string error_message = 4; // Error details if query failed
+}
+
+/*******************************************************************************
+ * TLS CONTROL MESSAGES
+ *
+ * These messages manage RMS TLS reloads and switch TLS certificate installation.
+ * Certificate file paths are resolved from RMS startup configuration.
+ ******************************************************************************/
+
+// ReloadTlsRequest reloads all configured RMS TLS material.
+message ReloadTlsRequest {
+}
+
+// ReloadTlsResponse reports whether RMS reloaded its configured TLS material.
+message ReloadTlsResponse {
+  bool reloaded = 1;  // true if all configured TLS material was reloaded
+  string message = 2; // Human-readable status or error message
+}
+
+// InstallSwitchTlsCertificatesRequest installs RMS-configured TLS certificates on supplied switches.
+message InstallSwitchTlsCertificatesRequest {
+  NodeSet nodes = 2; // Switch nodes to update
+  bool activate = 3; // true to activate/reload switch services after certificate installation
+}
+
+// InstallSwitchTlsCertificatesResponse reports the per-switch certificate installation results.
+message InstallSwitchTlsCertificatesResponse {
+  NodeBatchResponse response = 1;
 }
 
 /*******************************************************************************
