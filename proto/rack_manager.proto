@@ -550,14 +550,9 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * ReloadTls reloads all configured RMS TLS material from the mounted certificate paths.
+   * ConfigureSwitchCertificate installs RMS-configured TLS certificates on all supplied switches.
    */
-  rpc ReloadTls(ReloadTlsRequest) returns (ReloadTlsResponse) {}
-
-  /*
-   * InstallSwitchTlsCertificates installs RMS-configured TLS certificates on all supplied switches.
-   */
-  rpc InstallSwitchTlsCertificates(InstallSwitchTlsCertificatesRequest) returns (InstallSwitchTlsCertificatesResponse) {}
+  rpc ConfigureSwitchCertificate(ConfigureSwitchCertificateRequest) returns (ConfigureSwitchCertificateResponse) {}
 
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
@@ -1189,24 +1184,14 @@ message GetScaleUpFabricStateResponse {
  * Certificate file paths are resolved from RMS startup configuration.
  ******************************************************************************/
 
-// ReloadTlsRequest reloads all configured RMS TLS material.
-message ReloadTlsRequest {
+// ConfigureSwitchCertificateRequest installs RMS-configured TLS certificates on supplied switches.
+message ConfigureSwitchCertificateRequest {
+  NodeSet nodes = 1; // Switch nodes to update; each NodeInfo.rack_id is required to select the rack-specific mounted certificate directory
+  bool TestHello = 2; // Test Hello Connection over mtls
 }
 
-// ReloadTlsResponse reports whether RMS reloaded its configured TLS material.
-message ReloadTlsResponse {
-  bool reloaded = 1;  // true if all configured TLS material was reloaded
-  string message = 2; // Human-readable status or error message
-}
-
-// InstallSwitchTlsCertificatesRequest installs RMS-configured TLS certificates on supplied switches.
-message InstallSwitchTlsCertificatesRequest {
-  NodeSet nodes = 2; // Switch nodes to update
-  bool activate = 3; // true to activate/reload switch services after certificate installation
-}
-
-// InstallSwitchTlsCertificatesResponse reports the per-switch certificate installation results.
-message InstallSwitchTlsCertificatesResponse {
+// ConfigureSwitchCertificateResponse reports the per-switch certificate installation results.
+message ConfigureSwitchCertificateResponse {
   NodeBatchResponse response = 1;
 }
 

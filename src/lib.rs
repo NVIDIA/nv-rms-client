@@ -325,6 +325,10 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::SetScaleUpFabricTelemetryInterfaceStateRequest,
     ) -> Result<rms::SetScaleUpFabricTelemetryInterfaceStateResponse, RackManagerError>;
+    async fn configure_switch_certificate(
+        &self,
+        cmd: rms::ConfigureSwitchCertificateRequest,
+    ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError>;
     async fn list_switch_system_images(
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
@@ -586,6 +590,12 @@ impl RmsApi for RackManagerApi {
             .set_scale_up_fabric_telemetry_interface_state(cmd)
             .await?)
     }
+    async fn configure_switch_certificate(
+        &self,
+        cmd: rms::ConfigureSwitchCertificateRequest,
+    ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError> {
+        Ok(self.client.configure_switch_certificate(cmd).await?)
+    }
     async fn list_switch_system_images(
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
@@ -732,6 +742,8 @@ mod tests {
         assert_serde::<rms::SetPowerStateResponse>();
         assert_serde::<rms::BatchSetScaleUpFabricStateRequest>();
         assert_serde::<rms::BatchSetScaleUpFabricStateResponse>();
+        assert_serde::<rms::ConfigureSwitchCertificateRequest>();
+        assert_serde::<rms::ConfigureSwitchCertificateResponse>();
 
         // Timestamp-backed responses
         assert_serde::<rms::GetFirmwareJobStatusResponse>();

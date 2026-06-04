@@ -61,6 +61,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.GetSwitchSystemImageJobStatusResponse.updated_at",
             "#[serde(default, with = \"crate::timestamp_serde\")]",
         )
+        .field_attribute(
+            "rack_manager.ConfigureSwitchCertificateRequest.TestHello",
+            "#[serde(rename = \"TestHello\")]",
+        )
         .include_file("prost_common.rs")
         .build_server(false)
         .build_client(true)
