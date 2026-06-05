@@ -1019,12 +1019,11 @@ message FirmwareObjectSwitchSystemImage {
   bool required = 5;
 }
 
-// AddFirmwareObjectRequest adds firmware object config and authorizes RMS artifact download.
 message AddFirmwareObjectRequest {
   Metadata metadata = 1;
   string config_json = 2;
-  // Used only for immediate/background artifact download; RMS does not persist this token.
-  string access_token = 3;
+  // required if artifact download server requires auth. Used only for immediate/background artifact download; RMS does not persist this token.
+  optional string access_token = 3;
   string hardware_type = 4;
   // If true, mark this object as default for hardware_type after add.
   bool set_default = 5;
@@ -1080,7 +1079,7 @@ message ApplyFirmwareObjectFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string config_json = 3;         // SOT JSON containing the firmware object ID and artifacts
-  string access_token = 4;        // Used only for artifact download; RMS does not persist it
+  optional string access_token = 4; // Optional. Used only for artifact download; RMS does not persist it
   string firmware_type = 5;       // "dev" or "prod"
   string hardware_type = 6;
   NodeSet nodes = 7;              // Caller-supplied devices
@@ -1110,7 +1109,7 @@ message ApplySwitchSystemImageFromJsonRequest {
   Metadata metadata = 1;
   string rack_id = 2;
   string config_json = 3;       // SOT JSON containing the firmware object ID and switch image
-  string access_token = 4;      // Used only for artifact download; RMS does not persist it
+  optional string access_token = 4; // Optional. Used only for artifact download; RMS does not persist it
   string software_type = 5;     // "dev" or "prod"
   string hardware_type = 6;
   NodeSet nodes = 7;            // Caller-supplied switch devices
