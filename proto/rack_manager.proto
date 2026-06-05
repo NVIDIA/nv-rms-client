@@ -1184,13 +1184,13 @@ message GetScaleUpFabricStateResponse {
 }
 
 /*******************************************************************************
- * TLS CONTROL MESSAGES
+ * mTLS CONTROL MESSAGES
  *
- * These messages manage RMS TLS reloads and switch TLS certificate installation.
+ * These messages manage switch TLS certificate installation.
  * Certificate file paths are resolved from RMS startup configuration.
  ******************************************************************************/
 
-// ConfigureSwitchCertificateRequest installs RMS-configured TLS certificates on supplied switches.
+// ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   bool test_hello = 2; // Test Hello Connection over mtls
