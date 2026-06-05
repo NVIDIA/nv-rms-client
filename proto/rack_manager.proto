@@ -1193,7 +1193,8 @@ message GetScaleUpFabricStateResponse {
 // ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
-  bool test_hello = 2; // Test Hello Connection over mtls
+  string primary_switch_id = 2; // Primary switch node_id in nodes
+  bool test_hello = 3; // Test Hello Connection over mtls
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
