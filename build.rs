@@ -62,6 +62,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "#[serde(default, with = \"crate::timestamp_serde\")]",
         )
         .field_attribute(
+            "rack_manager.GetConfigureSwitchCertificateJobStatusResponse.created_at",
+            "#[serde(default, with = \"crate::timestamp_serde\")]",
+        )
+        .field_attribute(
+            "rack_manager.GetConfigureSwitchCertificateJobStatusResponse.updated_at",
+            "#[serde(default, with = \"crate::timestamp_serde\")]",
+        )
+        .field_attribute(
             "rack_manager.ConfigureSwitchCertificateRequest.TestHello",
             "#[serde(rename = \"TestHello\")]",
         )

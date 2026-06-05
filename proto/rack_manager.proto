@@ -550,9 +550,15 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * ConfigureSwitchCertificate installs RMS-configured TLS certificates on all supplied switches.
+   * ConfigureSwitchCertificate initiates asynchronous RMS-configured TLS certificate installation on all supplied switches.
+   * Returns a parent job ID for tracking overall progress, along with individual child job IDs per switch.
    */
   rpc ConfigureSwitchCertificate(ConfigureSwitchCertificateRequest) returns (ConfigureSwitchCertificateResponse) {}
+
+  /*
+   * GetConfigureSwitchCertificateJobStatus retrieves the current status of an asynchronous switch certificate configuration job.
+   */
+  rpc GetConfigureSwitchCertificateJobStatus(GetConfigureSwitchCertificateJobStatusRequest) returns (GetConfigureSwitchCertificateJobStatusResponse) {}
 
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
@@ -1186,13 +1192,20 @@ message GetScaleUpFabricStateResponse {
 
 // ConfigureSwitchCertificateRequest installs RMS-configured TLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
-  NodeSet nodes = 1; // Switch nodes to update; each NodeInfo.rack_id is required to select the rack-specific mounted certificate directory
+  NodeSet nodes = 1; // Switch nodes to update
   bool TestHello = 2; // Test Hello Connection over mtls
 }
 
-// ConfigureSwitchCertificateResponse reports the per-switch certificate installation results.
+// ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
 message ConfigureSwitchCertificateResponse {
-  NodeBatchResponse response = 1;
+  NodeBatchResponse response = 1; // response.job_id is parent job id
+  repeated ConfigureSwitchCertificateJobInfo jobs = 2; // Individual child job ID per switch
+}
+
+// ConfigureSwitchCertificateJobInfo pairs a switch node ID with its async certificate configuration job ID.
+message ConfigureSwitchCertificateJobInfo {
+  string node_id = 1; // Switch node identifier
+  string job_id = 2;  // Child job ID for this switch
 }
 
 /*******************************************************************************
@@ -1338,6 +1351,25 @@ message GetFirmwareJobStatusResponse {
   string result_json = 10; // JSON with detailed result data (populated on completion)
   google.protobuf.Timestamp created_at = 11; // Time when job was created
   google.protobuf.Timestamp updated_at = 12; // Time when job was last updated
+}
+
+// GetConfigureSwitchCertificateJobStatusRequest queries the status of an asynchronous switch certificate configuration job.
+message GetConfigureSwitchCertificateJobStatusRequest {
+  string job_id = 1; // Parent or child job ID returned from ConfigureSwitchCertificate
+}
+
+// GetConfigureSwitchCertificateJobStatusResponse returns the current state of a switch certificate configuration job.
+message GetConfigureSwitchCertificateJobStatusResponse {
+  ReturnCode status = 1; // RETURN_CODE_SUCCESS if job found, RETURN_CODE_FAILURE if job_id not found
+  string job_id = 2;     // Echoed job ID
+  string state = 3;      // queued, running, completed, or failed
+  string message = 4;    // Human-readable progress description
+  string rack_id = 5;    // Rack ID associated with this job
+  string node_id = 6;    // Node ID associated with this job; empty for parent jobs
+  string error_message = 7; // Error details if job failed
+  string result_json = 8;   // JSON with detailed result data (populated on completion)
+  google.protobuf.Timestamp created_at = 9;  // Time when job was created
+  google.protobuf.Timestamp updated_at = 10; // Time when job was last updated
 }
 
 // GetSwitchSystemImageJobStatusRequest queries the status of an asynchronous switch system image job.
