@@ -1193,7 +1193,7 @@ message GetScaleUpFabricStateResponse {
 // ConfigureSwitchCertificateRequest installs RMS-configured TLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
-  bool TestHello = 2; // Test Hello Connection over mtls
+  bool test_hello = 2; // Test Hello Connection over mtls
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
