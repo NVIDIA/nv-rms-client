@@ -749,6 +749,7 @@ mod tests {
         // Top-level enums
         assert_serde::<rms::NodeType>();
         assert_serde::<rms::PowerOperation>();
+        assert_serde::<rms::SwitchService>();
 
         // Representative request/response pair
         assert_serde::<rms::SetPowerStateRequest>();
