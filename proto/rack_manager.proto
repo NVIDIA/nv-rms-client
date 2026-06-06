@@ -122,6 +122,15 @@ enum UpgradeStage {
   UPGRADE_STAGE_COMPLETE = 8; // Upgrade completed successfully
 }
 
+// SwitchCertificateService identifies a switch service that should use the installed mTLS certificates.
+enum SwitchCertificateService {
+  SWITCH_CERTIFICATE_SERVICE_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
+  SWITCH_CERTIFICATE_SERVICE_NVUE_API = 1;                            // NVUE REST API service
+  SWITCH_CERTIFICATE_SERVICE_SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
+  SWITCH_CERTIFICATE_SERVICE_SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
+  SWITCH_CERTIFICATE_SERVICE_SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
+}
+
 /*******************************************************************************
  * COMMON MESSAGES
  ******************************************************************************/
@@ -1193,8 +1202,8 @@ message GetScaleUpFabricStateResponse {
 // ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
-  string primary_switch_id = 2; // Primary switch node_id in nodes
-  bool test_hello = 3; // Test Hello Connection over mtls
+  repeated SwitchCertificateService services = 2; // Switch services to protect with the installed mTLS certificates
+  bool test_hello = 3; // Test Hello Connection over mTLS
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
