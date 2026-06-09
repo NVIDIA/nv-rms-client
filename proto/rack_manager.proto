@@ -1204,6 +1204,11 @@ message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
+  // Optional NodeInfo.node_id values that select per-switch certificate directories.
+  // For target "switch-01", RMS resolves switch certificate material under
+  // <switch_cert_root>/switch-01 and TestHello client material under
+  // <client_tls_root>/switch-01. If empty, RMS uses default flat mounted paths.
+  repeated string switch_certificate_targets = 4;
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
