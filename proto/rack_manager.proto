@@ -552,18 +552,6 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * FetchSwitchSystemImage downloads a switch OS image from a remote URL to the switch.
-   * Returns a job ID for tracking the download progress.
-   */
-  rpc FetchSwitchSystemImage(FetchSwitchSystemImageRequest) returns (FetchSwitchSystemImageResponse) {}
-
-  /*
-   * InstallSwitchSystemImage installs a previously fetched OS image on the switch.
-   * Returns a job ID for tracking the installation progress.
-   */
-  rpc InstallSwitchSystemImage(InstallSwitchSystemImageRequest) returns (InstallSwitchSystemImageResponse) {}
-
-  /*
    * ListSwitchSystemImages retrieves the list of OS images available on the switch.
    * Returns information about installed and staged images.
    */
@@ -1187,34 +1175,6 @@ message GetScaleUpFabricStateResponse {
  * Connection settings, credentials, port, and TLS validation behavior are
  * resolved from the node's stored inventory data.
  ******************************************************************************/
-
-// FetchSwitchSystemImageRequest downloads an OS image to a switch.
-message FetchSwitchSystemImageRequest {
-  string rack_id = 2; // Rack containing the target switch
-  string node_id = 3; // Target switch node identifier
-  string remote_url = 6; // URL to download the system image from
-}
-
-// FetchSwitchSystemImageResponse reports the download initiation result.
-message FetchSwitchSystemImageResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if download started, RETURN_CODE_FAILURE otherwise
-  string job_id = 3; // Job identifier for tracking download progress
-  string error_message = 4; // Error details if download failed to start
-}
-
-// InstallSwitchSystemImageRequest installs an OS image on a switch.
-message InstallSwitchSystemImageRequest {
-  string rack_id = 2; // Rack containing the target switch
-  string node_id = 3; // Target switch node identifier
-  string image_filename = 6; // Filename of the image to install (must be fetched first)
-}
-
-// InstallSwitchSystemImageResponse reports the installation initiation result.
-message InstallSwitchSystemImageResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if installation started, RETURN_CODE_FAILURE otherwise
-  string job_id = 3; // Job identifier for tracking installation progress
-  string error_message = 4; // Error details if installation failed to start
-}
 
 // ListSwitchSystemImagesRequest retrieves available OS images on a switch.
 message ListSwitchSystemImagesRequest {
