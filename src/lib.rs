@@ -325,14 +325,6 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::SetScaleUpFabricTelemetryInterfaceStateRequest,
     ) -> Result<rms::SetScaleUpFabricTelemetryInterfaceStateResponse, RackManagerError>;
-    async fn fetch_switch_system_image(
-        &self,
-        cmd: rms::FetchSwitchSystemImageRequest,
-    ) -> Result<rms::FetchSwitchSystemImageResponse, RackManagerError>;
-    async fn install_switch_system_image(
-        &self,
-        cmd: rms::InstallSwitchSystemImageRequest,
-    ) -> Result<rms::InstallSwitchSystemImageResponse, RackManagerError>;
     async fn list_switch_system_images(
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
@@ -593,18 +585,6 @@ impl RmsApi for RackManagerApi {
             .client
             .set_scale_up_fabric_telemetry_interface_state(cmd)
             .await?)
-    }
-    async fn fetch_switch_system_image(
-        &self,
-        cmd: rms::FetchSwitchSystemImageRequest,
-    ) -> Result<rms::FetchSwitchSystemImageResponse, RackManagerError> {
-        Ok(self.client.fetch_switch_system_image(cmd).await?)
-    }
-    async fn install_switch_system_image(
-        &self,
-        cmd: rms::InstallSwitchSystemImageRequest,
-    ) -> Result<rms::InstallSwitchSystemImageResponse, RackManagerError> {
-        Ok(self.client.install_switch_system_image(cmd).await?)
     }
     async fn list_switch_system_images(
         &self,
