@@ -124,11 +124,11 @@ enum UpgradeStage {
 
 // SwitchApi identifies a switch API that should use the installed mTLS certificates.
 enum SwitchApi {
-  UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
-  NVUE_API = 1;                            // NVUE REST API service
-  SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
-  SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
-  SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
+  SWITCH_API_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
+  SWITCH_API_NVUE_API = 1;                            // NVUE REST API service
+  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
+  SWITCH_API_SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
+  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
 }
 
 /*******************************************************************************
