@@ -122,7 +122,7 @@ enum UpgradeStage {
   UPGRADE_STAGE_COMPLETE = 8; // Upgrade completed successfully
 }
 
-// SwitchService identifies a switch service that should use the installed mTLS certificates.
+// SwitchApi identifies a switch API that should use the installed mTLS certificates.
 enum SwitchApi {
   UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
   NVUE_API = 1;                            // NVUE REST API service
