@@ -325,6 +325,14 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::SetScaleUpFabricTelemetryInterfaceStateRequest,
     ) -> Result<rms::SetScaleUpFabricTelemetryInterfaceStateResponse, RackManagerError>;
+    async fn configure_switch_certificate(
+        &self,
+        cmd: rms::ConfigureSwitchCertificateRequest,
+    ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError>;
+    async fn get_configure_switch_certificate_job_status(
+        &self,
+        cmd: rms::GetConfigureSwitchCertificateJobStatusRequest,
+    ) -> Result<rms::GetConfigureSwitchCertificateJobStatusResponse, RackManagerError>;
     async fn list_switch_system_images(
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
@@ -586,6 +594,21 @@ impl RmsApi for RackManagerApi {
             .set_scale_up_fabric_telemetry_interface_state(cmd)
             .await?)
     }
+    async fn configure_switch_certificate(
+        &self,
+        cmd: rms::ConfigureSwitchCertificateRequest,
+    ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError> {
+        Ok(self.client.configure_switch_certificate(cmd).await?)
+    }
+    async fn get_configure_switch_certificate_job_status(
+        &self,
+        cmd: rms::GetConfigureSwitchCertificateJobStatusRequest,
+    ) -> Result<rms::GetConfigureSwitchCertificateJobStatusResponse, RackManagerError> {
+        Ok(self
+            .client
+            .get_configure_switch_certificate_job_status(cmd)
+            .await?)
+    }
     async fn list_switch_system_images(
         &self,
         cmd: rms::ListSwitchSystemImagesRequest,
@@ -726,12 +749,18 @@ mod tests {
         // Top-level enums
         assert_serde::<rms::NodeType>();
         assert_serde::<rms::PowerOperation>();
+        assert_serde::<rms::SwitchApi>();
 
         // Representative request/response pair
         assert_serde::<rms::SetPowerStateRequest>();
         assert_serde::<rms::SetPowerStateResponse>();
         assert_serde::<rms::BatchSetScaleUpFabricStateRequest>();
         assert_serde::<rms::BatchSetScaleUpFabricStateResponse>();
+        assert_serde::<rms::ConfigureSwitchCertificateRequest>();
+        assert_serde::<rms::ConfigureSwitchCertificateResponse>();
+        assert_serde::<rms::ConfigureSwitchCertificateJobInfo>();
+        assert_serde::<rms::GetConfigureSwitchCertificateJobStatusRequest>();
+        assert_serde::<rms::GetConfigureSwitchCertificateJobStatusResponse>();
 
         // Timestamp-backed responses
         assert_serde::<rms::GetFirmwareJobStatusResponse>();

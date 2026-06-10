@@ -122,6 +122,15 @@ enum UpgradeStage {
   UPGRADE_STAGE_COMPLETE = 8; // Upgrade completed successfully
 }
 
+// SwitchApi identifies a switch API that should use the installed mTLS certificates.
+enum SwitchApi {
+  SWITCH_API_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
+  SWITCH_API_NVUE_API = 1;                            // NVUE REST API service
+  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
+  SWITCH_API_SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
+  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
+}
+
 /*******************************************************************************
  * COMMON MESSAGES
  ******************************************************************************/
@@ -544,6 +553,21 @@ service RackManager {
    * FabricTelemetryInterface provides streaming telemetry and configuration management capabilities.
    */
   rpc SetScaleUpFabricTelemetryInterfaceState(SetScaleUpFabricTelemetryInterfaceStateRequest) returns (SetScaleUpFabricTelemetryInterfaceStateResponse) {}
+
+  /*---------------------------------------------------------------------------
+   * TLS control RPCs
+   *-------------------------------------------------------------------------*/
+
+  /*
+   * ConfigureSwitchCertificate initiates asynchronous RMS-configured TLS certificate installation on all supplied switches.
+   * Returns a parent job ID for tracking overall progress, along with individual child job IDs per switch.
+   */
+  rpc ConfigureSwitchCertificate(ConfigureSwitchCertificateRequest) returns (ConfigureSwitchCertificateResponse) {}
+
+  /*
+   * GetConfigureSwitchCertificateJobStatus retrieves the current status of an asynchronous switch certificate configuration job.
+   */
+  rpc GetConfigureSwitchCertificateJobStatus(GetConfigureSwitchCertificateJobStatusRequest) returns (GetConfigureSwitchCertificateJobStatusResponse) {}
 
   /*---------------------------------------------------------------------------
    * Switch Control RPCs
@@ -1169,6 +1193,35 @@ message GetScaleUpFabricStateResponse {
 }
 
 /*******************************************************************************
+ * mTLS CONTROL MESSAGES
+ *
+ * These messages manage switch TLS certificate installation.
+ * Certificate file paths are resolved from RMS startup configuration.
+ ******************************************************************************/
+
+// ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
+message ConfigureSwitchCertificateRequest {
+  NodeSet nodes = 1; // Switch nodes to update
+  repeated SwitchApi services = 2; // Switch services to protect with the installed mTLS certificates
+  bool test_hello = 3; // Test Hello Connection over mTLS
+  repeated string domain = 4; // For target "switch-01", RMS resolves switch certificate material under
+  // <switch_cert_root>/domain and TestHello client material under
+  // <client_tls_root>/domain. 
+}
+
+// ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
+message ConfigureSwitchCertificateResponse {
+  NodeBatchResponse response = 1; // response.job_id is parent job id
+  repeated ConfigureSwitchCertificateJobInfo jobs = 2; // Individual child job ID per switch
+}
+
+// ConfigureSwitchCertificateJobInfo pairs a switch node ID with its async certificate configuration job ID.
+message ConfigureSwitchCertificateJobInfo {
+  string node_id = 1; // Switch node identifier
+  string job_id = 2;  // Child job ID for this switch
+}
+
+/*******************************************************************************
  * SWITCH CONTROL MESSAGES
  *
  * These messages are used for managing NVIDIA network switches via API.
@@ -1311,6 +1364,25 @@ message GetFirmwareJobStatusResponse {
   string result_json = 10; // JSON with detailed result data (populated on completion)
   google.protobuf.Timestamp created_at = 11; // Time when job was created
   google.protobuf.Timestamp updated_at = 12; // Time when job was last updated
+}
+
+// GetConfigureSwitchCertificateJobStatusRequest queries the status of an asynchronous switch certificate configuration job.
+message GetConfigureSwitchCertificateJobStatusRequest {
+  string job_id = 1; // Parent or child job ID returned from ConfigureSwitchCertificate
+}
+
+// GetConfigureSwitchCertificateJobStatusResponse returns the current state of a switch certificate configuration job.
+message GetConfigureSwitchCertificateJobStatusResponse {
+  ReturnCode status = 1; // RETURN_CODE_SUCCESS if job found, RETURN_CODE_FAILURE if job_id not found
+  string job_id = 2;     // Echoed job ID
+  string state = 3;      // queued, running, completed, or failed
+  string message = 4;    // Human-readable progress description
+  string rack_id = 5;    // Rack ID associated with this job
+  string node_id = 6;    // Node ID associated with this job; empty for parent jobs
+  string error_message = 7; // Error details if job failed
+  string result_json = 8;   // JSON with detailed result data (populated on completion)
+  google.protobuf.Timestamp created_at = 9;  // Time when job was created
+  google.protobuf.Timestamp updated_at = 10; // Time when job was last updated
 }
 
 // GetSwitchSystemImageJobStatusRequest queries the status of an asynchronous switch system image job.
