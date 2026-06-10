@@ -122,13 +122,13 @@ enum UpgradeStage {
   UPGRADE_STAGE_COMPLETE = 8; // Upgrade completed successfully
 }
 
-// SwitchApi identifies a switch API that should use the installed mTLS certificates.
-enum SwitchApi {
-  SWITCH_API_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
-  SWITCH_API_NVUE_API = 1;                            // NVUE REST API service
-  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
-  SWITCH_API_SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
-  SWITCH_API_SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
+// SwitchService identifies a switch service that should use the installed mTLS certificates.
+enum SwitchService {
+  SWITCH_SERVICE_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
+  SWITCH_SERVICE_NVUE_API = 1;                            // NVUE REST API service
+  SWITCH_SERVICE_SCALE_UP_FABRIC_TELEMETRY = 2;           // Scale-up fabric telemetry service
+  SWITCH_SERVICE_SCALE_UP_FABRIC_MANAGER = 3;             // Scale-up fabric manager service
+  SWITCH_SERVICE_SCALE_UP_FABRIC_TELEMETRY_INTERFACE = 4; // Scale-up fabric telemetry interface service
 }
 
 /*******************************************************************************
@@ -1202,11 +1202,11 @@ message GetScaleUpFabricStateResponse {
 // ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
 message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
-  repeated SwitchApi services = 2; // Switch services to protect with the installed mTLS certificates
+  repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  repeated string domain = 4; // For target "switch-01", RMS resolves switch certificate material under
-  // <switch_cert_root>/domain and TestHello client material under
-  // <client_tls_root>/domain. 
+  string domain = 4; // Required domain/site selector applied to all nodes in this request.
+  // RMS resolves switch certificate material under <switch_cert_root>/<domain>
+  // and TestHello client material under <client_tls_root>/<domain>.
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
