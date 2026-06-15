@@ -1137,6 +1137,7 @@ message FirmwareObjectHistoryRecord {
 message ConfigureScaleUpFabricManagerRequest {
   NodeInfo node = 2; // Target switch identity and direct connection information
   string topology_type = 3; // Topology to be set for ScaleUpFabric
+  optional string domain = 7; // Optional site selector; defaults to --default-switch-tls-domain when unset.
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
@@ -1146,7 +1147,6 @@ message ConfigureScaleUpFabricManagerResponse {
   string topology_used = 4; // multi-node scaleup topology that was applied
   bool scale_up_fabric_state_enabled = 5; // Whether the ScaleUpFabricState State is now enabled
   bool grpc_enabled = 6; // Whether gRPC access is now enabled
-  optional string domain = 7; // Optional site selector; defaults to --default-switch-tls-domain when unset.
 }
 
 /*
