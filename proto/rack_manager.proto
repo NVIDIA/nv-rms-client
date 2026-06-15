@@ -1204,7 +1204,7 @@ message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  string domain = 4; // Required domain/site selector applied to all nodes in this request.
+  optional string domain = 4; // Required domain/site selector applied to all nodes in this request.
   // RMS resolves switch certificate material under <switch_cert_root>/<domain>
   // and TestHello client material under <client_tls_root>/<domain>.
 }
