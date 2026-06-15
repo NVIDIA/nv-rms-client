@@ -1137,7 +1137,7 @@ message FirmwareObjectHistoryRecord {
 message ConfigureScaleUpFabricManagerRequest {
   NodeInfo node = 2; // Target switch identity and direct connection information
   string topology_type = 3; // Topology to be set for ScaleUpFabric
-  optional string domain = 7; // Optional site selector; defaults to --default-switch-tls-domain when unset.
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-tls-domain when unset.
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
@@ -1205,9 +1205,7 @@ message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  optional string domain = 4; // Required domain/site selector applied to all nodes in this request.
-  // RMS resolves switch certificate material under <switch_cert_root>/<domain>
-  // and TestHello client material under <client_tls_root>/<domain>.
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-tls-domain when unset.  
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
