@@ -8,7 +8,7 @@ version = "0.0.14"
 edition = "2024"
 
 [dependencies]
-tonic-client-wrapper = { path = "tonic-client-wrapper", default-features = false, version = "1.0.0", features = ["codegen"] }
+tonic-client-wrapper = { path = "tonic-client-wrapper", default-features = false, version = "1.0.0" }
 
 tokio = { version = "1", features = ["full", "tracing"] }
 tonic = { version = "0.14", features = ["tls-ring"] }
