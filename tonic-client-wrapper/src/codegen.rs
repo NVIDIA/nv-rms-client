@@ -607,68 +607,79 @@ fn write_token_stream_if_not_up_to_date<T: AsRef<Path>>(
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
+    use prost_types::MethodDescriptorProto;
+    use quote::quote;
+
     use super::*;
 
-    fn test_generator(proto_file: &str) -> CodeGenerator {
-        let proto_dir = temp_dir::TempDir::new().expect("Could not create temporary directory");
-        fs::write(proto_dir.path().join("test.proto"), proto_file)
-            .expect("Could not write test proto file");
+    fn test_generator() -> CodeGenerator {
+        let proto_file =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/test_fixtures/test.proto");
+        let include_path = proto_file
+            .parent()
+            .expect("test fixture path should have a parent");
         let cfg = Config {
             wrapper_name: "TestWrapper".to_string(),
             inner_rpc_client_type: "TestInnerClient".to_string(),
-            generated_types_path_within_crate: "test".to_string(),
-            proto_files: vec![
-                proto_dir
-                    .path()
-                    .join("test.proto")
-                    .to_string_lossy()
-                    .to_string(),
-            ],
-            include_paths: vec![proto_dir.path().to_string_lossy().to_string()],
-            extern_paths: vec![(".ExternType", "crate::CustomExternType")],
+            generated_types_path_within_crate: "protos".to_string(),
+            proto_files: vec![proto_file.to_string_lossy().to_string()],
+            include_paths: vec![include_path.to_string_lossy().to_string()],
+            extern_paths: vec![(".test.ExternType", "crate::CustomExternType")],
         };
 
-        CodeGenerator::new(cfg).expect("Could not build CodeGenerator")
+        CodeGenerator::new(cfg).expect("test generator should parse fixture proto")
+    }
+
+    fn rpc_methods(generator: &CodeGenerator) -> HashMap<&str, &MethodDescriptorProto> {
+        generator
+            .proto_fds
+            .iter()
+            .flat_map(|file| &file.service)
+            .flat_map(|service| &service.method)
+            .map(|method| (method.name(), method))
+            .collect()
+    }
+
+    fn message<'a>(generator: &'a CodeGenerator, name: &str) -> &'a MessageWithPackage {
+        generator
+            .message_types
+            .get(name)
+            .unwrap_or_else(|| panic!("missing test message {name}"))
+    }
+
+    fn assert_tokens_eq(name: &str, actual: TokenStream, expected: TokenStream) {
+        assert_eq!(actual.to_string(), expected.to_string(), "{name}");
     }
 
     #[test]
-    fn test_rpc_wrapper_method() {
-        let generator = test_generator(include_str!("test_fixtures/test.proto"));
+    fn generates_rpc_wrapper_methods() {
+        struct TestCase {
+            name: &'static str,
+            expected: TokenStream,
+        }
 
-        let methods = generator
-            .proto_fds
-            .iter()
-            .flat_map(|f| &f.service)
-            .flat_map(|f| &f.method)
-            .map(|m| (m.name(), m))
-            .collect::<HashMap<_, _>>();
-
-        {
-            let rpc = methods.get("VoidRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn void_rpc(&self) -> Result<crate::test::SomeResponse, tonic::Status> {
+        let generator = test_generator();
+        let methods = rpc_methods(&generator);
+        let cases = [
+            TestCase {
+                name: "VoidRpc",
+                expected: quote! {
+                    pub async fn void_rpc(&self) -> Result<crate::protos::test::SomeResponse, tonic::Status> {
                         Ok(self
                             .connection()
                             .await?
-                            .void_rpc(tonic::Request::new(crate::test::VoidRequest {}))
+                            .void_rpc(tonic::Request::new(crate::protos::test::VoidRequest {}))
                             .await?
                             .into_inner())
                     }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("SingleMessageRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn single_message_rpc<T: Into<crate::test::SingleMessageRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
+                },
+            },
+            TestCase {
+                name: "SingleMessageRpc",
+                expected: quote! {
+                    pub async fn single_message_rpc<T: Into<crate::protos::test::SingleMessageRequest>>(&self, request: T) -> Result<crate::protos::test::SomeResponse, tonic::Status> {
                         Ok(self
                             .connection()
                             .await?
@@ -676,315 +687,168 @@ mod tests {
                             .await?
                             .into_inner())
                     }
-                }
-                .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("SinglePrimitiveRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn single_primitive_rpc<T: Into<crate::test::SinglePrimitiveRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
+                },
+            },
+            TestCase {
+                name: "SingleStreamingMessageRpc",
+                expected: quote! {
+                    pub async fn single_streaming_message_rpc<T: Into<crate::protos::test::SingleMessageRequest>>(&self, request: T) -> Result<tonic::codec::Streaming<crate::protos::test::SomeResponse>, tonic::Status> {
                         Ok(self
-                            .connection()
-                            .await?
-                            .single_primitive_rpc(tonic::Request::new(request.into()))
-                            .await?
-                            .into_inner())
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("SingleOneOfMessageRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn single_one_of_message_rpc<T: Into<crate::test::SingleOneOfMessageRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
-                        Ok(self
-                            .connection()
-                            .await?
-                            .single_one_of_message_rpc(tonic::Request::new(request.into()))
-                            .await?
-                            .into_inner())
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("SingleOneOfPrimitiveRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn single_one_of_primitive_rpc<T: Into<crate::test::SingleOneOfPrimitiveRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
-                        Ok(self
-                            .connection()
-                            .await?
-                            .single_one_of_primitive_rpc(tonic::Request::new(request.into()))
-                            .await?
-                            .into_inner())
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("MultiRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn multi_rpc<T: Into<crate::test::MultiRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
-                        Ok(self
-                            .connection()
-                            .await?
-                            .multi_rpc(tonic::Request::new(request.into()))
-                            .await?
-                            .into_inner())
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("ExternRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn extern_rpc<T: Into<crate::test::ExternRequest>>(&self, request: T) -> Result<crate::test::SomeResponse, tonic::Status> {
-                        Ok(self
-                            .connection()
-                            .await?
-                            .extern_rpc(tonic::Request::new(request.into()))
-                            .await?
-                            .into_inner())
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let rpc = methods.get("SingleStreamingMessageRpc").unwrap();
-            let wrapper = generator.make_rpc_wrapper_method(rpc).unwrap();
-            assert_eq!(
-                wrapper.to_string(),
-                quote! {
-                    pub async fn single_streaming_message_rpc<T: Into<crate::test::SingleMessageRequest>>(&self, request: T) -> Result<tonic::codec::Streaming<crate::test::SomeResponse>, tonic::Status> {
-                       Ok(self
                             .connection()
                             .await?
                             .single_streaming_message_rpc(tonic::Request::new(request.into()))
                             .await?
                             .into_inner())
                     }
-                }
-                .to_string()
-            );
+                },
+            },
+            TestCase {
+                name: "ClientStreamingRpc",
+                expected: quote! {
+                    pub async fn client_streaming_rpc<S>(&self, request: S) -> Result<crate::protos::test::SomeResponse, tonic::Status>
+                    where
+                        S: tonic::IntoStreamingRequest<Message = crate::protos::test::SingleMessageRequest>,
+                    {
+                        Ok(self
+                            .connection()
+                            .await?
+                            .client_streaming_rpc(request)
+                            .await?
+                            .into_inner())
+                    }
+                },
+            },
+            TestCase {
+                name: "BidirectionalStreamingRpc",
+                expected: quote! {
+                    pub async fn bidirectional_streaming_rpc<S>(&self, request: S) -> Result<tonic::Response<tonic::codec::Streaming<crate::protos::test::SomeResponse>>, tonic::Status>
+                    where
+                        S: tonic::IntoStreamingRequest<Message = crate::protos::test::SingleMessageRequest>,
+                    {
+                        self.connection().await?.bidirectional_streaming_rpc(request).await
+                    }
+                },
+            },
+        ];
+
+        for case in cases {
+            let method = methods
+                .get(case.name)
+                .unwrap_or_else(|| panic!("missing test RPC {}", case.name));
+            let actual = generator
+                .make_rpc_wrapper_method(method)
+                .unwrap_or_else(|error| panic!("failed to generate {}: {error}", case.name));
+
+            assert_tokens_eq(case.name, actual, case.expected);
         }
     }
 
     #[test]
-    fn test_convenience_wrapper_method() {
-        let generator = test_generator(include_str!("test_fixtures/test.proto"));
+    fn generates_convenience_converters() {
+        struct TestCase {
+            name: &'static str,
+            expected: TokenStream,
+        }
 
-        {
-            let message_with_package = generator.message_types.get(".VoidRequest").unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl From<()> for crate::test::VoidRequest {
+        let generator = test_generator();
+        let cases = [
+            TestCase {
+                name: ".test.VoidRequest",
+                expected: quote! {
+                    impl From<()> for crate::protos::test::VoidRequest {
                         fn from(_: ()) -> Self {
                             Self {}
                         }
                     }
-                }
-                .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator
-                .message_types
-                .get(".SingleMessageRequest")
-                .unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<crate::test::SingleMessage>> From<T> for crate::test::SingleMessageRequest {
+                },
+            },
+            TestCase {
+                name: ".test.SingleMessageRequest",
+                expected: quote! {
+                    impl<T: Into<crate::protos::test::SingleMessage>> From<T> for crate::protos::test::SingleMessageRequest {
                         fn from(t: T) -> Self {
                             Self {
                                 value: Some(t.into())
                             }
                         }
                     }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator
-                .message_types
-                .get(".SinglePrimitiveRequest")
-                .unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<::prost::alloc::string::String>> From<T> for crate::test::SinglePrimitiveRequest {
+                },
+            },
+            TestCase {
+                name: ".test.SinglePrimitiveRequest",
+                expected: quote! {
+                    impl<T: Into<::prost::alloc::string::String>> From<T> for crate::protos::test::SinglePrimitiveRequest {
                         fn from(t: T) -> Self {
                             Self {
                                 value: t.into()
                             }
                         }
                     }
-                }
-                .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator
-                .message_types
-                .get(".SingleOneOfMessageRequest")
-                .unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<crate::test::SingleMessage>> From<T> for crate::test::SingleOneOfMessageRequest {
+                },
+            },
+            TestCase {
+                name: ".test.SingleOneOfMessageRequest",
+                expected: quote! {
+                    impl<T: Into<crate::protos::test::SingleMessage>> From<T> for crate::protos::test::SingleOneOfMessageRequest {
                         fn from(t: T) -> Self {
                             Self {
-                                value: Some(crate::test::single_one_of_message_request::Value::Inner(t.into()))
+                                value: Some(crate::protos::test::single_one_of_message_request::Value::Inner(t.into()))
                             }
                         }
                     }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator
-                .message_types
-                .get(".SingleOneOfPrimitiveRequest")
-                .unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<::prost::alloc::string::String>> From<T> for crate::test::SingleOneOfPrimitiveRequest {
+                },
+            },
+            TestCase {
+                name: ".test.SingleOneOfPrimitiveRequest",
+                expected: quote! {
+                    impl<T: Into<::prost::alloc::string::String>> From<T> for crate::protos::test::SingleOneOfPrimitiveRequest {
                         fn from(t: T) -> Self {
                             Self {
-                                value: Some(crate::test::single_one_of_primitive_request::Value::Inner(t.into()))
+                                value: Some(crate::protos::test::single_one_of_primitive_request::Value::Inner(t.into()))
                             }
                         }
                     }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator.message_types.get(".SingleMessage").unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<::prost::alloc::string::String>> From<T> for crate::test::SingleMessage {
-                        fn from(t: T) -> Self {
-                            Self {
-                                value: t.into()
-                            }
-                        }
-                    }
-                }
-                    .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator.message_types.get(".EmptyMessage").unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl From<()> for crate::test::EmptyMessage {
-                        fn from(_: ()) -> Self {
-                            Self {}
-                        }
-                    }
-                }
-                .to_string()
-            );
-        }
-
-        {
-            let message_with_package = generator.message_types.get(".MultiRequest").unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap();
-            assert!(
-                converter.is_none(),
-                "Messages with multiple elements don't get convenience converters"
-            );
-        }
-
-        {
-            let message_with_package = generator.message_types.get(".ExternRequest").unwrap();
-            let converter = generator
-                .make_convenience_converter(message_with_package)
-                .unwrap()
-                .unwrap();
-            assert_eq!(
-                converter.to_string(),
-                quote! {
-                    impl<T: Into<crate::CustomExternType>> From<T> for crate::test::ExternRequest {
+                },
+            },
+            TestCase {
+                name: ".test.ExternRequest",
+                expected: quote! {
+                    impl<T: Into<crate::CustomExternType>> From<T> for crate::protos::test::ExternRequest {
                         fn from(t: T) -> Self {
                             Self {
                                 value: Some(t.into())
                             }
                         }
                     }
-                }
-                .to_string()
-            );
+                },
+            },
+            TestCase {
+                name: ".test.EmptyMessage",
+                expected: quote! {
+                    impl From<()> for crate::protos::test::EmptyMessage {
+                        fn from(_: ()) -> Self {
+                            Self {}
+                        }
+                    }
+                },
+            },
+        ];
+
+        for case in cases {
+            let actual = generator
+                .make_convenience_converter(message(&generator, case.name))
+                .unwrap_or_else(|error| panic!("failed to generate {}: {error}", case.name))
+                .unwrap_or_else(|| panic!("missing converter for {}", case.name));
+
+            assert_tokens_eq(case.name, actual, case.expected);
         }
+
+        let multi_request = generator
+            .make_convenience_converter(message(&generator, ".test.MultiRequest"))
+            .expect("multi-field converter check should not fail");
+        assert!(
+            multi_request.is_none(),
+            "multi-field messages should not get convenience converters"
+        );
     }
 }

@@ -11,6 +11,8 @@ service my_service {
   rpc MultiRpc(MultiRequest) returns (SomeResponse);
   rpc ExternRpc(ExternRequest) returns (SomeResponse);
   rpc SingleStreamingMessageRpc(SingleMessageRequest) returns (stream SomeResponse);
+  rpc ClientStreamingRpc(stream SingleMessageRequest) returns (SomeResponse);
+  rpc BidirectionalStreamingRpc(stream SingleMessageRequest) returns (stream SomeResponse);
 }
 
 message VoidRequest { }
