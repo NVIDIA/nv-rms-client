@@ -153,6 +153,7 @@ message Credentials {
 message NetworkInterface {
   string ip_address = 1; // IPv4 or IPv6 textual address
   string mac_address = 2; // Text MAC address
+  optional string host_name = 3; // Host name is required for TLS connection
 }
 
 // Endpoint describes one network endpoint and its credentials.
