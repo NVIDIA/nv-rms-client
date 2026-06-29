@@ -560,10 +560,10 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * ConfigureSwitchCertificate initiates asynchronous RMS-configured TLS certificate installation on all supplied switches.
+   * BatchConfigureSwitchCertificate initiates asynchronous RMS-configured TLS certificate installation on all supplied switches.
    * Returns a parent job ID for tracking overall progress, along with individual child job IDs per switch.
    */
-  rpc ConfigureSwitchCertificate(ConfigureSwitchCertificateRequest) returns (ConfigureSwitchCertificateResponse) {}
+  rpc BatchConfigureSwitchCertificate(BatchConfigureSwitchCertificateRequest) returns (BatchConfigureSwitchCertificateResponse) {}
 
   /*
    * GetConfigureSwitchCertificateJobStatus retrieves the current status of an asynchronous switch certificate configuration job.
@@ -1201,16 +1201,21 @@ message GetScaleUpFabricStateResponse {
  * Certificate file paths are resolved from RMS startup configuration.
  ******************************************************************************/
 
-// ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
-message ConfigureSwitchCertificateRequest {
+// BatchConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
+message BatchConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.  
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.
+  // The amount of older certificates than the most recent one that should get retained on the switch
+  // This allows for certificate rotation
+  // - Default retains one older certificate
+  // - Can be set to 0 to delete all older certificates
+  optional uint32 retained_old_certificates = 5;
 }
 
-// ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
-message ConfigureSwitchCertificateResponse {
+// BatchConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
+message BatchConfigureSwitchCertificateResponse {
   NodeBatchResponse response = 1; // response.job_id is parent job id
   repeated ConfigureSwitchCertificateJobInfo jobs = 2; // Individual child job ID per switch
 }
@@ -1368,7 +1373,7 @@ message GetFirmwareJobStatusResponse {
 
 // GetConfigureSwitchCertificateJobStatusRequest queries the status of an asynchronous switch certificate configuration job.
 message GetConfigureSwitchCertificateJobStatusRequest {
-  string job_id = 1; // Parent or child job ID returned from ConfigureSwitchCertificate
+  string job_id = 1; // Parent or child job ID returned from BatchConfigureSwitchCertificate
 }
 
 // GetConfigureSwitchCertificateJobStatusResponse returns the current state of a switch certificate configuration job.
