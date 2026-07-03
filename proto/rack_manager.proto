@@ -588,6 +588,17 @@ service RackManager {
   rpc BatchResetSwitchSdnFactoryDefault(BatchResetSwitchSdnFactoryDefaultRequest) returns (BatchResetSwitchSdnFactoryDefaultResponse) {}
 
   /*
+   * Configures all switches which make up a NVLink domain
+   */
+  rpc ConfigureNvlinkFabric(ConfigureNvlinkFabricRequest) returns (ConfigureNvlinkFabricResponse) {}
+
+  /**
+   * Retrieves the NVLink fabric status by inspecting switches that form a domain
+   * without changing any of their configurations
+   */
+  rpc GetNvlinkFabricStatus(GetNVLinkFabricStatusRequest) returns (NVLinkFabricStatusResponse) {}
+
+  /*
    * BatchSetScaleUpFabricState synchronously sets ScaleUpFabric state and saves
    * config across all supplied switches.
    */
@@ -1198,6 +1209,89 @@ message ConfigureScaleUpFabricManagerRequest {
   NodeInfo node = 2; // Target switch identity and direct connection information
   string topology_type = 3; // Topology to be set for ScaleUpFabric
   optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.
+}
+
+message NVLinkFabricConfig {
+  // Topology to be configured for NVLink
+  string topology_type = 1;
+  
+  // NVLink Domain ID to be configured. If empty, a random domain ID will be utilized
+  optional string nvlink_domain_id = 2;
+
+  // Additional configuration parameters that will be applied to NMX Controller
+  // via SetStaticConfig calls
+  repeated NVLinkConfigKeyVals extra_static_configs = 3;
+}
+
+message NVLinkFabricStatus {
+  // Topology type string configured for the NVLink fabric
+  string topology_type = 1;
+  // The NVLink domain ID configured for the NVLink fabric
+  string nvlink_domain_id = 2;
+
+  // Returns the detailed set of static configurations as retrieved from NMX Controller
+  // running on switches
+  repeated NVLinkConfigKeyVals extra_static_configs = 3;
+
+  // TODO:
+  // - Info about switches which form the fabric
+  // - Potential information which switches are not in sync and need to get updates applied
+  // - The caller should be able to determine whether they need to call
+  //  ConfigureNvlinkFabric based on it.
+  // - Health information
+}
+
+message NVLinkConfigKey {
+  string config_file_name = 1;
+  string key = 2;
+}
+
+message NVLinkConfigKeys {
+  repeated NVLinkConfigKey config_key = 1;
+}
+
+message NVLinkConfigKeyVal {
+  string config_file_name = 1;
+  string key = 2;
+  string value = 3;
+}
+
+message NVLinkConfigKeyVals {
+  repeated NVLinkConfigKey config_key_val = 1;
+}
+
+message ConfigureNvlinkFabricRequest {
+  // All NVLink switches that form the fabric
+  repeated NodeInfo node = 2;
+  // The ID of the switch node which should be configured as primary.
+  // If absent, the switch that is on the lowest position of the Rack will be configured
+  optional string primary_switch_node_id = 3;
+  
+  // Domain name used for server verification
+  // TODO: Unclear if this should be in the requests or can be derived another way
+  // Potentially from RMS site-config, or whether the individual node addresses are just URLs
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.
+
+  // NVLink fabric configuration to be applied
+  NVLinkFabricConfig config = 5;
+}
+
+message ConfigureNvlinkFabricResponse {
+  // ID of the asynchronous job that reconfigures the NVLink fabric
+  // Once completed, the `result_json` field will contain a value of type `NVLinkFabricStatus`.
+  string job_id = 1;
+}
+
+message GetNVLinkFabricStatusRequest {
+  // All NVLink switches that form the fabric
+  repeated NodeInfo node = 2;
+  // The ID of the switch node which should be configured as primary.
+  // If absent, the switch that is on the lowest position of the Rack will be configured
+  optional string primary_switch_node_id = 3;
+}
+
+message NVLinkFabricStatusResponse {
+  NVLinkFabricStatus status = 1;
 }
 
 // ConfigureScaleUpFabricManagerResponse reports the ScaleUpFabricManager  configuration result.
