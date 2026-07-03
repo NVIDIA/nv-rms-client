@@ -20,14 +20,20 @@ pub mod rack_manager {
     include!(concat!(env!("OUT_DIR"), "/rack_manager.rs"));
 }
 
-#[allow(clippy::all)]
-#[rustfmt::skip]
-pub mod rack_manager_client {
-    include!(concat!(env!("OUT_DIR"), "/rack_manager_client.rs"));
+#[cfg(feature = "client")]
+mod client_generated {
+    #[allow(clippy::all)]
+    #[rustfmt::skip]
+    pub mod rack_manager_client {
+        include!(concat!(env!("OUT_DIR"), "/rack_manager_client.rs"));
+    }
+
+    #[allow(clippy::all)]
+    #[rustfmt::skip]
+    pub mod rack_manager_converters {
+        include!(concat!(env!("OUT_DIR"), "/rack_manager_converters.rs"));
+    }
 }
 
-#[allow(clippy::all)]
-#[rustfmt::skip]
-pub mod rack_manager_converters {
-    include!(concat!(env!("OUT_DIR"), "/rack_manager_converters.rs"));
-}
+#[cfg(feature = "client")]
+pub use client_generated::{rack_manager_client, rack_manager_converters};

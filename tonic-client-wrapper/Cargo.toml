@@ -6,7 +6,7 @@ license = "Apache-2.0"
 authors = [ "NVIDIA Engineering <dcss-forge-rms@exchange.nvidia.com>" ]
 
 [features]
-default = ["codegen"]
+default = ["codegen", "tls-ring"]
 codegen = [
   "dep:proc-macro2",
   "dep:tonic-prost-build",
@@ -17,10 +17,11 @@ codegen = [
   "dep:prost-types",
   "dep:lazy_static",
 ]
+tls-ring = ["tonic/tls-ring"]
 
 [dependencies]
 thiserror = "2.0.14"
-tonic = { version = "0.14", features = ["tls-ring"] }
+tonic = "0.14"
 async-trait = "0.1.88"
 proc-macro2 = { optional = true, default-features = false, version = "1.0.92" }
 tonic-prost-build = { optional = true, version = "0.14" }
