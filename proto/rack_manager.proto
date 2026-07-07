@@ -56,6 +56,29 @@ enum ReturnCode {
   RETURN_CODE_FAILURE = 2; // Operation failed (see message field for details)
 }
 
+// JobError provides detailed error codes for asynchronous operations.
+enum JobError {
+  // General
+
+  JOB_ERROR_UNSPECIFIED = 0; // Server left the error code unset or at the proto3 default
+  JOB_ERROR_INTERNAL = 1; // Operation failed due to a RMS internal issue
+  JOB_ERROR_OTHER = 2; // Operation failed due to a non-specified reason
+  JOB_ERROR_INVALID_ARGUMENT = 3; // Arguments that have been provided during job start are not valid
+
+  // Communication-specific
+
+  JOB_ERROR_CLIENT_ERROR = 11; // HTTP/Redfish client side communication error
+  JOB_ERROR_SERVER_ERROR = 12; // Server returned an error response
+  JOB_ERROR_TIMEOUT = 13; // Timed out waiting for an operation to complete
+  JOB_ERROR_INVALID_RESPONSE = 14; // Received invalid or malformed response
+  
+  // Update specific
+
+  JOB_ERROR_TARGET_NOT_FOUND = 21; // Target component for update not found on node
+  JOB_ERROR_FILE_NOT_FOUND = 22; // Specified firmware file does not exist
+  JOB_ERROR_UPDATE_IN_PROGRESS = 23; // The node already has an active firmware update.  
+}
+
 // FirmwareUpdateError provides detailed error codes for firmware update operations.
 enum FirmwareUpdateError {
   FIRMWARE_UPDATE_ERROR_UNSPECIFIED = 0; // Server left the error code unset or at the proto3 default
@@ -101,12 +124,22 @@ enum SwitchFirmwareComponentType {
 }
 
 // FirmwareJobState represents the lifecycle state of an asynchronous firmware job.
+// Deprecated: Use the equivalent and binary compatible JobState definition
 enum FirmwareJobState {
   FIRMWARE_JOB_STATE_UNSPECIFIED = 0; // Server left the job state unset or at the proto3 default
   FIRMWARE_JOB_STATE_QUEUED = 1; // Job has been created and is waiting to start
   FIRMWARE_JOB_STATE_RUNNING = 2; // Job is actively executing
   FIRMWARE_JOB_STATE_COMPLETED = 3; // Job finished successfully
   FIRMWARE_JOB_STATE_FAILED = 4; // Job finished with an error
+}
+
+// JobExecutionState represents the lifecycle state of an asynchronous job
+enum JobExecutionState {
+  JOB_EXECUTION_STATE_UNSPECIFIED = 0; // Server left the job state unset or at the proto3 default
+  JOB_EXECUTION_STATE_QUEUED = 1; // Job has been created and is waiting to start
+  JOB_EXECUTION_STATE_RUNNING = 2; // Job is actively executing
+  JOB_EXECUTION_STATE_COMPLETED = 3; // Job finished successfully
+  JOB_EXECUTION_STATE_FAILED = 4; // Job finished with an error
 }
 
 // UpgradeStage identifies the stage of firmware upgrade process on a switch.
@@ -281,6 +314,39 @@ message NodeBatchResponse {
   repeated NodeOperationResult node_results = 7; // Individual results for each node
   string job_id = 8; // Parent job ID for async batch operations
   NodeOperationStats stats = 9; // Aggregate node counts
+}
+
+// The detailed status of a Job
+message JobStatus {
+  // ID of the job
+  string job_id = 1;
+  // ID of the parent job if applicable
+  optional string parent_job_id = 2;
+  // The list of child jobs
+  repeated string child_job_ids = 3;
+  // Current execution status of the job
+  JobExecutionState execution_state = 4;
+  // Human-readable message
+  // This message is guaranteed to be set if the job failed.
+  // If the job succeeded, the results will be stored in result_json.
+  string error_message = 5;
+  // Error code if job failed.
+  JobError error_code = 6;
+  // JSON with detailed result data (populated on completion)
+  // The schema of the JSON depends on the workflow that initiated the response
+  string result_json = 7;
+  // Human-readable description of current state (e.g., "Installing firmware")
+  string state_description = 8;
+  // Rack ID associated with this job
+  // Empty if the job is not directly associated with a single rack
+  optional string rack_id = 9;
+  // Node ID associated with this job
+  // Empty if the job is not directly associated with a single node
+  optional string node_id = 10;
+  // Time when job was created
+  google.protobuf.Timestamp created_at = 11;
+  // Time when job was last updated
+  google.protobuf.Timestamp updated_at = 12;
 }
 
 /*******************************************************************************
@@ -615,6 +681,13 @@ service RackManager {
    * Works for all node types (compute, powershelf, switch) and parent batch jobs.
    */
   rpc GetFirmwareJobStatus(GetFirmwareJobStatusRequest) returns (GetFirmwareJobStatusResponse) {}
+
+  /*
+   * GetJobStatus returns the current state of a job including its results if finished.
+   * If the job has any associated child jobs, it is possible to query results for all jobs
+   * with a single call.
+   */
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse) {}
 }
 
 /*******************************************************************************
@@ -1364,6 +1437,20 @@ message GetFirmwareJobStatusResponse {
   string result_json = 10; // JSON with detailed result data (populated on completion)
   google.protobuf.Timestamp created_at = 11; // Time when job was created
   google.protobuf.Timestamp updated_at = 12; // Time when job was last updated
+}
+
+message GetJobStatusRequest {
+  // ID of the job to query
+  string job_id = 1;
+  // Whether to include results of child jobs.
+  // This is disabled by default
+  bool include_child_job_states = 2;
+}
+
+message GetJobStatusResponse {
+  // States of all jobs queried
+  // If a parent job is queried, it will be the first in the result list
+  repeated JobStatus job_states = 1;
 }
 
 // GetConfigureSwitchCertificateJobStatusRequest queries the status of an asynchronous switch certificate configuration job.
