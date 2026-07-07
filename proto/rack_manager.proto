@@ -598,6 +598,15 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
+   * BatchResetSwitchSdnFactoryDefault submits asynchronous SDN factory-default resets.
+   * All switches in the request use the same domain for switch mTLS material.
+   * Returns parent and per-node child job IDs. Use GetJobStatus to track progress.
+   * The reset is idempotent; callers can retry after transport or service failure.
+   * Note: post hard reset, operator has to trigger the nmxconfigure rack state machine substate.
+   */
+  rpc BatchResetSwitchSdnFactoryDefault(BatchResetSwitchSdnFactoryDefaultRequest) returns (BatchResetSwitchSdnFactoryDefaultResponse) {}
+
+  /*
    * BatchSetScaleUpFabricState synchronously sets ScaleUpFabric state and saves
    * config across all supplied switches.
    */
@@ -1221,6 +1230,17 @@ message ConfigureScaleUpFabricManagerResponse {
   string topology_used = 4; // multi-node scaleup topology that was applied
   bool scale_up_fabric_state_enabled = 5; // Whether the ScaleUpFabricState State is now enabled
   bool grpc_enabled = 6; // Whether gRPC access is now enabled
+}
+
+// BatchResetSwitchSdnFactoryDefaultRequest submits SDN factory-default resets for caller-supplied switches.
+message BatchResetSwitchSdnFactoryDefaultRequest {
+  NodeSet nodes = 1; // Target switch identities and direct connection information
+  optional string domain = 2; // Optional NVL domain for the target switch group; defaults to configured switch domain when unset
+}
+
+// BatchResetSwitchSdnFactoryDefaultResponse reports asynchronous reset submission status.
+message BatchResetSwitchSdnFactoryDefaultResponse {
+  NodeBatchResponse response = 1; // response.job_id is the parent job ID for GetJobStatus
 }
 
 /*

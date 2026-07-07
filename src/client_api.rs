@@ -301,6 +301,11 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
 
+    async fn batch_reset_switch_sdn_factory_default(
+        &self,
+        cmd: rms::BatchResetSwitchSdnFactoryDefaultRequest,
+    ) -> Result<rms::BatchResetSwitchSdnFactoryDefaultResponse, RackManagerError>;
+
     async fn batch_set_scale_up_fabric_state(
         &self,
         cmd: rms::BatchSetScaleUpFabricStateRequest,
@@ -357,6 +362,11 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::GetFirmwareJobStatusRequest,
     ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError>;
+
+    async fn get_job_status(
+        &self,
+        cmd: rms::GetJobStatusRequest,
+    ) -> Result<rms::GetJobStatusResponse, RackManagerError>;
 }
 
 #[async_trait::async_trait]
@@ -602,6 +612,16 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
     }
 
+    async fn batch_reset_switch_sdn_factory_default(
+        &self,
+        cmd: rms::BatchResetSwitchSdnFactoryDefaultRequest,
+    ) -> Result<rms::BatchResetSwitchSdnFactoryDefaultResponse, RackManagerError> {
+        Ok(self
+            .client
+            .batch_reset_switch_sdn_factory_default(cmd)
+            .await?)
+    }
+
     async fn batch_set_scale_up_fabric_state(
         &self,
         cmd: rms::BatchSetScaleUpFabricStateRequest,
@@ -690,6 +710,13 @@ impl RmsApi for RackManagerApi {
         cmd: rms::GetFirmwareJobStatusRequest,
     ) -> Result<rms::GetFirmwareJobStatusResponse, RackManagerError> {
         Ok(self.client.get_firmware_job_status(cmd).await?)
+    }
+
+    async fn get_job_status(
+        &self,
+        cmd: rms::GetJobStatusRequest,
+    ) -> Result<rms::GetJobStatusResponse, RackManagerError> {
+        Ok(self.client.get_job_status(cmd).await?)
     }
 }
 

@@ -143,6 +143,11 @@ mod tests {
         assert_serde::<rms::SetPowerStateResponse>();
         assert_serde::<rms::BatchSetScaleUpFabricStateRequest>();
         assert_serde::<rms::BatchSetScaleUpFabricStateResponse>();
+        assert_serde::<rms::BatchResetSwitchSdnFactoryDefaultRequest>();
+        assert_serde::<rms::BatchResetSwitchSdnFactoryDefaultResponse>();
+        assert_serde::<rms::JobStatus>();
+        assert_serde::<rms::GetJobStatusRequest>();
+        assert_serde::<rms::GetJobStatusResponse>();
         assert_serde::<rms::ConfigureSwitchCertificateRequest>();
         assert_serde::<rms::ConfigureSwitchCertificateResponse>();
         assert_serde::<rms::ConfigureSwitchCertificateJobInfo>();
