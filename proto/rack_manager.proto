@@ -1241,13 +1241,6 @@ message BatchResetSwitchSdnFactoryDefaultRequest {
 // BatchResetSwitchSdnFactoryDefaultResponse reports asynchronous reset submission status.
 message BatchResetSwitchSdnFactoryDefaultResponse {
   NodeBatchResponse response = 1; // response.job_id is the parent job ID for GetJobStatus
-  repeated SwitchSdnFactoryDefaultResetJobInfo jobs = 2; // Per-node child jobs for GetJobStatus
-}
-
-// SwitchSdnFactoryDefaultResetJobInfo identifies a per-node SDN reset job.
-message SwitchSdnFactoryDefaultResetJobInfo {
-  string node_id = 1; // Target node ID
-  string job_id = 2; // Child job ID for this target switch
 }
 
 /*

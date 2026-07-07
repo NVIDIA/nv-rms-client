@@ -145,7 +145,6 @@ mod tests {
         assert_serde::<rms::BatchSetScaleUpFabricStateResponse>();
         assert_serde::<rms::BatchResetSwitchSdnFactoryDefaultRequest>();
         assert_serde::<rms::BatchResetSwitchSdnFactoryDefaultResponse>();
-        assert_serde::<rms::SwitchSdnFactoryDefaultResetJobInfo>();
         assert_serde::<rms::JobStatus>();
         assert_serde::<rms::GetJobStatusRequest>();
         assert_serde::<rms::GetJobStatusResponse>();
