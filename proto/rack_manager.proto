@@ -600,7 +600,7 @@ service RackManager {
   /*
    * BatchResetSwitchSdnFactoryDefault submits asynchronous SDN factory-default resets.
    * All switches in the request use the same domain for switch mTLS material.
-   * Returns parent and per-node child job IDs. Use GetJobStatus to track progress.
+   * Returns a parent job ID. Use GetJobStatus with child job states to track per-node progress.
    * The reset is idempotent; callers can retry after transport or service failure.
    * Note: post hard reset, operator has to trigger the nmxconfigure rack state machine substate.
    */
