@@ -71,6 +71,7 @@ enum JobError {
   JOB_ERROR_SERVER_ERROR = 12; // Server returned an error response
   JOB_ERROR_TIMEOUT = 13; // Timed out waiting for an operation to complete
   JOB_ERROR_INVALID_RESPONSE = 14; // Received invalid or malformed response
+  JOB_ERROR_UNAUTHENTICATED = 15; // Provided credentials could not authenticate
   
   // Update specific
 
@@ -664,9 +665,11 @@ service RackManager {
   rpc GetSwitchSystemImageJobStatus(GetSwitchSystemImageJobStatusRequest) returns (GetSwitchSystemImageJobStatusResponse) {}
 
   /*
-   * UpdateSwitchSystemPassword updates the OS-level password for a specific user
-   * on a caller-supplied list of switch nodes. Credentials are resolved from
-   * the node's stored inventory data.
+   * UpdateSwitchSystemPassword initiates asynchronous OS-level password updates
+   * for a specific user on a caller-supplied list of switch nodes. The caller
+   * supplies both the current password and desired next password so retries can
+   * resume after a partial failure. Returns a parent job ID in response.job_id;
+   * use GetJobStatus to track progress.
    */
   rpc UpdateSwitchSystemPassword(UpdateSwitchSystemPasswordRequest) returns (UpdateSwitchSystemPasswordResponse) {}
 
@@ -1411,16 +1414,16 @@ message PollSwitchFirmwareJobStatusResponse {
  * SWITCH PASSWORD CONTROL MESSAGES
  ******************************************************************************/
 
-// UpdateSwitchSystemPasswordRequest updates the OS-level password for a user on a set of switch nodes.
+// UpdateSwitchSystemPasswordRequest starts an OS-level password update for a user on a set of switch nodes.
 message UpdateSwitchSystemPasswordRequest {
   NodeSet nodes = 2; // Switch nodes to update
   string username = 3; // Target OS username whose password will be changed (mandatory)
   string password = 4; // New password to set for the user (mandatory)
 }
 
-// UpdateSwitchSystemPasswordResponse reports the per-node results of a synchronous password update.
+// UpdateSwitchSystemPasswordResponse reports switch password update job creation results.
 message UpdateSwitchSystemPasswordResponse {
-  NodeBatchResponse response = 1;
+  NodeBatchResponse response = 1; // response.job_id is the parent job ID for GetJobStatus
 }
 
 /*******************************************************************************
