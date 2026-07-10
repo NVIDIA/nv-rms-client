@@ -195,7 +195,6 @@ message Endpoint {
   NetworkInterface interface = 1; // Network interface used to reach this endpoint
   uint32 port = 2; // Port number for endpoint communication (max: 65535)
   Credentials credentials = 3;
-  bool dangerously_accept_invalid_certs = 4; // If true, TLS certificate validation is disabled for this endpoint; unset/false keeps normal validation
 }
 
 /*******************************************************************************
@@ -1212,8 +1211,7 @@ message FirmwareObjectHistoryRecord {
 /*******************************************************************************
  * Switch ScaleUpFabricServices CONTROL MESSAGES
  *
- * Direct switch requests use node.host_endpoint for host address, credentials,
- * and TLS certificate validation behavior.
+ * Direct switch requests use node.host_endpoint for host address and credentials.
  ******************************************************************************/
 
 /*
