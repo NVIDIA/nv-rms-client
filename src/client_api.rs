@@ -291,11 +291,6 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
-    async fn upgrade_switch_firmware(
-        &self,
-        cmd: rms::UpgradeSwitchFirmwareRequest,
-    ) -> Result<rms::UpgradeSwitchFirmwareResponse, RackManagerError>;
-
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
@@ -352,11 +347,6 @@ pub trait RmsApi: Send + Sync + 'static {
     ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError>;
 
     async fn get_version(&self) -> Result<rms::GetVersionResponse, RackManagerError>;
-
-    async fn poll_switch_firmware_job_status(
-        &self,
-        cmd: rms::PollSwitchFirmwareJobStatusRequest,
-    ) -> Result<rms::PollSwitchFirmwareJobStatusResponse, RackManagerError>;
 
     async fn get_firmware_job_status(
         &self,
@@ -598,13 +588,6 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.push_switch_firmware(cmd).await?)
     }
 
-    async fn upgrade_switch_firmware(
-        &self,
-        cmd: rms::UpgradeSwitchFirmwareRequest,
-    ) -> Result<rms::UpgradeSwitchFirmwareResponse, RackManagerError> {
-        Ok(self.client.upgrade_switch_firmware(cmd).await?)
-    }
-
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
@@ -696,13 +679,6 @@ impl RmsApi for RackManagerApi {
 
     async fn get_version(&self) -> Result<rms::GetVersionResponse, RackManagerError> {
         Ok(self.client.get_version().await?)
-    }
-
-    async fn poll_switch_firmware_job_status(
-        &self,
-        cmd: rms::PollSwitchFirmwareJobStatusRequest,
-    ) -> Result<rms::PollSwitchFirmwareJobStatusResponse, RackManagerError> {
-        Ok(self.client.poll_switch_firmware_job_status(cmd).await?)
     }
 
     async fn get_firmware_job_status(

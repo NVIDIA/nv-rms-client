@@ -143,19 +143,6 @@ enum JobExecutionState {
   JOB_EXECUTION_STATE_FAILED = 4; // Job finished with an error
 }
 
-// UpgradeStage identifies the stage of firmware upgrade process on a switch.
-enum UpgradeStage {
-  UPGRADE_STAGE_UNSPECIFIED = 0; // Server left the upgrade stage unset or at the proto3 default
-  UPGRADE_STAGE_UNKNOWN = 1; // Unknown stage
-  UPGRADE_STAGE_CHECK_CURRENT_VERSION = 2; // Checking current firmware version
-  UPGRADE_STAGE_PUSH_FIRMWARE = 3; // Pushing firmware file to switch
-  UPGRADE_STAGE_INSTALL_FIRMWARE = 4; // Installing firmware on switch
-  UPGRADE_STAGE_POWER_CYCLE = 5; // Power cycling the switch
-  UPGRADE_STAGE_WAIT_FOR_HEALTH = 6; // Waiting for switch to become healthy
-  UPGRADE_STAGE_VERIFY_VERSION = 7; // Verifying upgraded firmware version
-  UPGRADE_STAGE_COMPLETE = 8; // Upgrade completed successfully
-}
-
 // SwitchService identifies a switch service that should use the installed mTLS certificates.
 enum SwitchService {
   SWITCH_SERVICE_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
@@ -577,14 +564,6 @@ service RackManager {
    */
   rpc PushSwitchFirmware(PushSwitchFirmwareRequest) returns (PushSwitchFirmwareResponse) {}
 
-  /*
-   * UpgradeSwitchFirmware performs a complete firmware upgrade workflow for a switch component.
-   * This includes: checking current version, pushing firmware file, installing firmware,
-   * power cycling the switch, waiting for health, and verifying the new version.
-   * Returns the stage where upgrade failed (if any) along with error details.
-   */
-  rpc UpgradeSwitchFirmware(UpgradeSwitchFirmwareRequest) returns (UpgradeSwitchFirmwareResponse) {}
-
   /*---------------------------------------------------------------------------
    * Scale Up switch control RPCs
    *-------------------------------------------------------------------------*/
@@ -680,11 +659,6 @@ service RackManager {
    * GetVersion returns server version information.
    */
   rpc GetVersion(GetVersionRequest) returns (GetVersionResponse) {}
-
-  /*
-   * PollSwitchFirmwareJobStatus polls given job id in an interval.
-   */
-  rpc PollSwitchFirmwareJobStatus(PollSwitchFirmwareJobStatusRequest) returns (PollSwitchFirmwareJobStatusResponse) {}
 
   /*
    * GetFirmwareJobStatus retrieves the current status of an asynchronous firmware job.
@@ -1374,38 +1348,6 @@ message PushSwitchFirmwareResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if pushed, RETURN_CODE_FAILURE otherwise
   string result_json = 3; // JSON object containing push result
   string error_message = 4; // Error details if push failed
-}
-
-// UpgradeSwitchFirmwareRequest performs complete firmware upgrade workflow for a switch component.
-message UpgradeSwitchFirmwareRequest {
-  string rack_id = 2; // Rack ID for inventory lookup
-  string node_id = 3; // Node ID for inventory lookup
-  SwitchFirmwareComponentType component_type = 4; // Required: Firmware component type enum
-  string filename = 5; // Required: Local filesystem path to firmware file
-}
-
-message UpgradeSwitchFirmwareResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if upgrade completed, RETURN_CODE_FAILURE otherwise
-  UpgradeStage failed_stage = 3; // Stage where upgrade failed (if status is RETURN_CODE_FAILURE)
-  string error_message = 4; // Error details if upgrade failed (or summary message for multi-switch mode)
-  string current_filename = 5; // Firmware filename before upgrade (single switch mode only)
-  string new_filename = 6; // Firmware filename after upgrade (if successful, single switch mode only)
-  string result_json = 7; // JSON array with detailed results for all switches (multi-switch mode only)
-}
-
-message PollSwitchFirmwareJobStatusRequest {
-  string rack_id = 2; // Rack ID for inventory lookup
-  string node_id = 3; // Node ID for inventory lookup
-  string job_id = 4; // Job id for previously submitted job
-  uint32 timeout_seconds = 7; // Optional: Timeout for the polling job
-  uint32 poll_interval_seconds = 8; // Optional: Poll interval in seconds (default: 5)
-}
-
-message PollSwitchFirmwareJobStatusResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if polled, RETURN_CODE_FAILURE otherwise
-  string state = 3; // State of the job (active,pending,running)
-  string result_json = 4; // JSON object containing job status result
-  string error_message = 5; // Error details if polling failed
 }
 
 /*******************************************************************************
