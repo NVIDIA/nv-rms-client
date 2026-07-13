@@ -68,6 +68,35 @@ pub(crate) use client::RackManagerClientT;
 #[cfg(feature = "client")]
 pub use client_api::*;
 
+#[cfg(test)]
+mod proto_model_tests {
+    use super::protos::rack_manager::NodeType;
+
+    #[test]
+    fn vr200_node_types_have_stable_wire_values_and_names() {
+        assert_eq!(NodeType::ComputeVr200Nvidia as i32, 10);
+        assert_eq!(NodeType::SwitchVr200Nvidia as i32, 11);
+
+        assert_eq!(
+            NodeType::ComputeVr200Nvidia.as_str_name(),
+            "COMPUTE_VR200_NVIDIA"
+        );
+        assert_eq!(
+            NodeType::SwitchVr200Nvidia.as_str_name(),
+            "SWITCH_VR200_NVIDIA"
+        );
+
+        assert_eq!(
+            NodeType::from_str_name("COMPUTE_VR200_NVIDIA"),
+            Some(NodeType::ComputeVr200Nvidia)
+        );
+        assert_eq!(
+            NodeType::from_str_name("SWITCH_VR200_NVIDIA"),
+            Some(NodeType::SwitchVr200Nvidia)
+        );
+    }
+}
+
 #[cfg(all(test, feature = "client"))]
 mod client_feature_tests {
     use super::*;
