@@ -73,26 +73,26 @@ mod proto_model_tests {
     use super::protos::rack_manager::NodeType;
 
     #[test]
-    fn vr200_node_types_have_stable_wire_values_and_names() {
-        assert_eq!(NodeType::ComputeVr200Nvidia as i32, 10);
-        assert_eq!(NodeType::SwitchVr200Nvidia as i32, 11);
+    fn vrnvl72_node_types_have_stable_wire_values_and_names() {
+        assert_eq!(NodeType::ComputeVrnvl72Nvidia as i32, 10);
+        assert_eq!(NodeType::SwitchVrnvl72Nvidia as i32, 11);
 
         assert_eq!(
-            NodeType::ComputeVr200Nvidia.as_str_name(),
-            "COMPUTE_VR200_NVIDIA"
+            NodeType::ComputeVrnvl72Nvidia.as_str_name(),
+            "COMPUTE_VRNVL72_NVIDIA"
         );
         assert_eq!(
-            NodeType::SwitchVr200Nvidia.as_str_name(),
-            "SWITCH_VR200_NVIDIA"
+            NodeType::SwitchVrnvl72Nvidia.as_str_name(),
+            "SWITCH_VRNVL72_NVIDIA"
         );
 
         assert_eq!(
-            NodeType::from_str_name("COMPUTE_VR200_NVIDIA"),
-            Some(NodeType::ComputeVr200Nvidia)
+            NodeType::from_str_name("COMPUTE_VRNVL72_NVIDIA"),
+            Some(NodeType::ComputeVrnvl72Nvidia)
         );
         assert_eq!(
-            NodeType::from_str_name("SWITCH_VR200_NVIDIA"),
-            Some(NodeType::SwitchVr200Nvidia)
+            NodeType::from_str_name("SWITCH_VRNVL72_NVIDIA"),
+            Some(NodeType::SwitchVrnvl72Nvidia)
         );
     }
 }
