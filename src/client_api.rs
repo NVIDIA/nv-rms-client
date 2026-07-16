@@ -291,15 +291,20 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
+    async fn configure_nvlink_fabric(
+        &self,
+        cmd: rms::ConfigureNvlinkFabricRequest,
+    ) -> Result<rms::ConfigureNvlinkFabricResponse, RackManagerError>;
+
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
 
-    async fn get_scale_up_fabric_status(
+    async fn get_nvlink_fabric_status(
         &self,
-        cmd: rms::GetScaleUpFabricStatusRequest,
-    ) -> Result<rms::ScaleUpFabricStatusResponse, RackManagerError>;
+        cmd: rms::GetNvLinkFabricStatusRequest,
+    ) -> Result<rms::NvLinkFabricStatusResponse, RackManagerError>;
 
     async fn batch_reset_switch_sdn_factory_default(
         &self,
@@ -593,6 +598,13 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.push_switch_firmware(cmd).await?)
     }
 
+    async fn configure_nvlink_fabric(
+        &self,
+        cmd: rms::ConfigureNvlinkFabricRequest,
+    ) -> Result<rms::ConfigureNvlinkFabricResponse, RackManagerError> {
+        Ok(self.client.configure_nvlink_fabric(cmd).await?)
+    }
+
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
@@ -600,11 +612,11 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
     }
 
-    async fn get_scale_up_fabric_status(
+    async fn get_nvlink_fabric_status(
         &self,
-        cmd: rms::GetScaleUpFabricStatusRequest,
-    ) -> Result<rms::ScaleUpFabricStatusResponse, RackManagerError> {
-        Ok(self.client.get_scale_up_fabric_status(cmd).await?)
+        cmd: rms::GetNvLinkFabricStatusRequest,
+    ) -> Result<rms::NvLinkFabricStatusResponse, RackManagerError> {
+        Ok(self.client.get_nvlink_fabric_status(cmd).await?)
     }
 
     async fn batch_reset_switch_sdn_factory_default(
