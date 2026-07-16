@@ -571,7 +571,7 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * ConfigureScaleUpFabric declaratively configures the NVLink scale-up fabric across
+   * ConfigureScaleUpFabricManager declaratively configures the NVLink scale-up fabric across
    * all supplied switches. The caller describes the desired fabric configuration and
    * RMS starts a single asynchronous reconciliation job that performs only the actions
    * required to move the observed switch state toward the desired state: it skips
@@ -581,7 +581,7 @@ service RackManager {
    * The call is safe to invoke periodically in a loop to keep switch configuration
    * "as intended" without causing NVLink availability issues. RMS aims to run one
    * reconciliation job at a time; callers should poll GetJobStatus before resubmitting
-   * and avoid issuing concurrent ConfigureScaleUpFabric requests.
+   * and avoid issuing concurrent ConfigureScaleUpFabricManager requests.
    *
    * Requests with an empty topology_type or otherwise invalid config are rejected
    * synchronously with INVALID_ARGUMENT; no job is started.
@@ -589,7 +589,7 @@ service RackManager {
    * Returns a job_id; poll it via GetJobStatus. On completion, JobStatus.result_json
    * holds a JSON-encoded ScaleUpFabricStatus describing the resulting fabric state.
    */
-  rpc ConfigureScaleUpFabric(ConfigureScaleUpFabricRequest) returns (ConfigureScaleUpFabricResponse) {}
+  rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
    * GetScaleUpFabricStatus synchronously inspects the fabric without changing anything and
@@ -1214,14 +1214,14 @@ message FirmwareObjectHistoryRecord {
  ******************************************************************************/
 
 /*
- * ConfigureScaleUpFabricRequest declaratively describes the desired NVLink scale-up
+ * ConfigureScaleUpFabricManagerRequest declaratively describes the desired NVLink scale-up
  * fabric across a set of switches. RMS reconciles the switches toward this desired
  * state, applying only the changes that are required (for example, it does nothing
  * when the observed configuration already matches this request).
  *
  * Direct switch requests use each node's host_endpoint for address and credentials.
  */
-message ConfigureScaleUpFabricRequest {
+message ConfigureScaleUpFabricManagerRequest {
   // All NVLink switches that form the scale-up fabric.
   NodeSet nodes = 1;
 
@@ -1237,8 +1237,8 @@ message ConfigureScaleUpFabricRequest {
   ScaleUpFabricConfig config = 4;
 }
 
-// ConfigureScaleUpFabricResponse returns the handle to the reconciliation job.
-message ConfigureScaleUpFabricResponse {
+// ConfigureScaleUpFabricManagerResponse returns the handle to the reconciliation job.
+message ConfigureScaleUpFabricManagerResponse {
   // ID of the asynchronous job that reconciles the scale-up fabric.
   // Poll it via GetJobStatus. Once completed, JobStatus.result_json contains a
   // JSON-encoded ScaleUpFabricStatus describing the resulting fabric state.
@@ -1296,7 +1296,7 @@ message ScaleUpFabricStatusResponse {
 
 // ScaleUpFabricStatus reports the observed scale-up fabric configuration as read back
 // from the switches. It is returned directly by GetScaleUpFabricStatus, and is also
-// stored, JSON-encoded, in JobStatus.result_json when a ConfigureScaleUpFabric job
+// stored, JSON-encoded, in JobStatus.result_json when a ConfigureScaleUpFabricManager job
 // completes. Comparing a desired ScaleUpFabricConfig against this observed status lets a
 // caller detect drift.
 message ScaleUpFabricStatus {

@@ -291,10 +291,10 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
-    async fn configure_scale_up_fabric(
+    async fn configure_scale_up_fabric_manager(
         &self,
-        cmd: rms::ConfigureScaleUpFabricRequest,
-    ) -> Result<rms::ConfigureScaleUpFabricResponse, RackManagerError>;
+        cmd: rms::ConfigureScaleUpFabricManagerRequest,
+    ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
 
     async fn get_scale_up_fabric_status(
         &self,
@@ -593,11 +593,11 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.push_switch_firmware(cmd).await?)
     }
 
-    async fn configure_scale_up_fabric(
+    async fn configure_scale_up_fabric_manager(
         &self,
-        cmd: rms::ConfigureScaleUpFabricRequest,
-    ) -> Result<rms::ConfigureScaleUpFabricResponse, RackManagerError> {
-        Ok(self.client.configure_scale_up_fabric(cmd).await?)
+        cmd: rms::ConfigureScaleUpFabricManagerRequest,
+    ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
+        Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
     }
 
     async fn get_scale_up_fabric_status(
