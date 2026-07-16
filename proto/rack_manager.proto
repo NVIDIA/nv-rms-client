@@ -1258,7 +1258,8 @@ message ScaleUpFabricConfig {
 
   // Additional NMX Controller static configuration entries to apply. This is a
   // generic pass-through for any configuration not modeled by a dedicated field
-  // above; RMS applies each entry via its NMX-C static-config API.
+  // above; RMS applies each entry via its NMX-C static-config API. Each
+  // (config_file_name, key) must be unique; duplicate keys are rejected.
   repeated ScaleUpFabricStaticConfig extra_static_configs = 2;
 
   // The NVLink domain ID/UUID is not configurable yet and is intentionally omitted.
