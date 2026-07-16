@@ -1275,17 +1275,10 @@ message ScaleUpFabricStaticConfig {
   string value = 3;            // Value for the key
 }
 
-// ScaleUpFabricConfigKey identifies an NMX Controller static config entry by the
-// config file and key, without a value. Used to request specific extra static
-// configs be read back in a status query.
-message ScaleUpFabricConfigKey {
-  string config_file_name = 1; // NMX-C static config file that holds the key
-  string key = 2;              // Config key within the file
-}
-
 /*
  * GetScaleUpFabricStatusRequest inspects the supplied switches and returns their
- * observed scale-up fabric configuration without modifying anything.
+ * observed scale-up fabric configuration, including every static config entry
+ * reported by NMX Controller, without modifying anything.
  */
 message GetScaleUpFabricStatusRequest {
   // All NVLink switches that form the scale-up fabric.
@@ -1294,10 +1287,6 @@ message GetScaleUpFabricStatusRequest {
   // Optional site selector used for switch server verification (TLS).
   // Defaults to --default-switch-domain when unset.
   optional string domain = 2;
-
-  // Extra NMX Controller static config entries to read back into the observed
-  // status. Topology is always reported; these select any additional keys.
-  repeated ScaleUpFabricConfigKey extra_static_config_keys = 3;
 }
 
 // ScaleUpFabricStatusResponse returns the observed scale-up fabric status.
@@ -1316,8 +1305,8 @@ message ScaleUpFabricStatus {
   // Topology type currently configured for the scale-up fabric.
   string topology_type = 1;
 
-  // Observed values of the NMX Controller static configuration entries RMS reads back for
-  // the fabric, keyed by the same (config_file_name, key) identity used in the request.
+  // All observed NMX Controller static configuration entries except the topology
+  // entry represented by topology_type above.
   repeated ScaleUpFabricStaticConfig extra_static_configs = 2;
 
   // Per-switch observed state across the fabric: which switch runs NMX Controller
