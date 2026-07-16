@@ -72,12 +72,12 @@ enum JobError {
   JOB_ERROR_TIMEOUT = 13; // Timed out waiting for an operation to complete
   JOB_ERROR_INVALID_RESPONSE = 14; // Received invalid or malformed response
   JOB_ERROR_UNAUTHENTICATED = 15; // Provided credentials could not authenticate
-  
+
   // Update specific
 
   JOB_ERROR_TARGET_NOT_FOUND = 21; // Target component for update not found on node
   JOB_ERROR_FILE_NOT_FOUND = 22; // Specified firmware file does not exist
-  JOB_ERROR_UPDATE_IN_PROGRESS = 23; // The node already has an active firmware update.  
+  JOB_ERROR_UPDATE_IN_PROGRESS = 23; // The node already has an active firmware update.
 }
 
 // FirmwareUpdateError provides detailed error codes for firmware update operations.
@@ -579,11 +579,9 @@ service RackManager {
    * configuration already matches the request.
    *
    * The call is safe to invoke periodically in a loop to keep switch configuration
-   * "as intended" without causing NVLink availability issues. RMS supports a single
-   * outstanding reconciliation job at a time: if a reconciliation job is already
-   * running, RMS does not start a second one and instead returns the id of the in-flight
-   * job, so a caller that lost the id (for example, after a restart) can re-attach and
-   * keep polling.
+   * "as intended" without causing NVLink availability issues. RMS aims to run one
+   * reconciliation job at a time; callers should poll GetJobStatus before resubmitting
+   * and avoid issuing concurrent ConfigureScaleUpFabric requests.
    *
    * Requests with an empty topology_type or otherwise invalid config are rejected
    * synchronously with INVALID_ARGUMENT; no job is started.
@@ -1391,7 +1389,7 @@ message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.  
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.
