@@ -1342,9 +1342,8 @@ message NVLinkFabricStatus {
 message NVLinkFabricSwitchStatus {
   string node_id = 1;        // Switch node identifier
   bool enabled = 2;          // Whether the scale-up fabric cluster is enabled on this switch
-  bool is_primary = 3;       // Whether this switch runs NMX Controller (the primary)
-  string nmx_controller_status = 4; // Raw NMX Controller app status reported by the switch; empty when unavailable
-  string error_message = 5;  // Set when this switch could not be inspected
+  string nmx_controller_status = 3; // Raw NMX Controller app status reported by the switch; empty when unavailable
+  string error_message = 4;  // Set when this switch could not be inspected
 }
 
 // BatchResetSwitchSdnFactoryDefaultRequest submits SDN factory-default resets for caller-supplied switches.
