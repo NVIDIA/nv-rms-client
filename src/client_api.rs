@@ -291,20 +291,20 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
-    async fn configure_nvlink_fabric(
+    async fn configure_scale_up_fabric_manager_v2(
         &self,
-        cmd: rms::ConfigureNvlinkFabricRequest,
-    ) -> Result<rms::ConfigureNvlinkFabricResponse, RackManagerError>;
+        cmd: rms::ConfigureScaleUpFabricManagerV2Request,
+    ) -> Result<rms::ConfigureScaleUpFabricManagerV2Response, RackManagerError>;
 
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
 
-    async fn get_nvlink_fabric_status(
+    async fn get_scale_up_fabric_status(
         &self,
-        cmd: rms::GetNvLinkFabricStatusRequest,
-    ) -> Result<rms::NvLinkFabricStatusResponse, RackManagerError>;
+        cmd: rms::GetScaleUpFabricStatusRequest,
+    ) -> Result<rms::GetScaleUpFabricStatusResponse, RackManagerError>;
 
     async fn batch_reset_switch_sdn_factory_default(
         &self,
@@ -598,11 +598,14 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.push_switch_firmware(cmd).await?)
     }
 
-    async fn configure_nvlink_fabric(
+    async fn configure_scale_up_fabric_manager_v2(
         &self,
-        cmd: rms::ConfigureNvlinkFabricRequest,
-    ) -> Result<rms::ConfigureNvlinkFabricResponse, RackManagerError> {
-        Ok(self.client.configure_nvlink_fabric(cmd).await?)
+        cmd: rms::ConfigureScaleUpFabricManagerV2Request,
+    ) -> Result<rms::ConfigureScaleUpFabricManagerV2Response, RackManagerError> {
+        Ok(self
+            .client
+            .configure_scale_up_fabric_manager_v2(cmd)
+            .await?)
     }
 
     async fn configure_scale_up_fabric_manager(
@@ -612,11 +615,11 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
     }
 
-    async fn get_nvlink_fabric_status(
+    async fn get_scale_up_fabric_status(
         &self,
-        cmd: rms::GetNvLinkFabricStatusRequest,
-    ) -> Result<rms::NvLinkFabricStatusResponse, RackManagerError> {
-        Ok(self.client.get_nvlink_fabric_status(cmd).await?)
+        cmd: rms::GetScaleUpFabricStatusRequest,
+    ) -> Result<rms::GetScaleUpFabricStatusResponse, RackManagerError> {
+        Ok(self.client.get_scale_up_fabric_status(cmd).await?)
     }
 
     async fn batch_reset_switch_sdn_factory_default(
