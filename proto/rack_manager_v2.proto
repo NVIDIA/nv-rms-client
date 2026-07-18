@@ -1,0 +1,95 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+package rack_manager_v2;
+
+import "rack_manager.proto";
+
+service RackManagerV2 {
+  /*
+   * ConfigureScaleUpFabricManager declaratively configures the scale-up fabric across
+   * all supplied switches. The caller describes the desired fabric configuration and
+   * RMS starts a single asynchronous reconciliation job that performs only the actions
+   * required to move the observed switch state toward the desired state: it skips
+   * disabling the fabric when it is already disabled, and does nothing when the observed
+   * configuration already matches the request.
+   *
+   * The call is safe to invoke periodically in a loop to keep switch configuration
+   * "as intended" without causing fabric availability issues. RMS aims to run one
+   * reconciliation job at a time; callers should poll GetJobStatus before resubmitting
+   * and avoid issuing concurrent ConfigureScaleUpFabricManager requests.
+   *
+   * Requests with an empty topology_type or otherwise invalid config are rejected
+   * synchronously with INVALID_ARGUMENT; no job is started.
+   *
+   * Returns a job_id; poll it via rack_manager.GetJobStatus. On completion,
+   * rack_manager.JobStatus.result_json holds a JSON-encoded
+   * rack_manager.ScaleUpFabricStatus describing the resulting fabric state.
+   */
+  rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
+}
+
+/*
+ * ScaleUpFabricConfig captures the desired scale-up fabric configuration in logical
+ * terms, so RMS can apply it regardless of which switch API it uses to configure
+ * the fabric manager.
+ */
+message ScaleUpFabricConfig {
+  // Topology to be configured for the scale-up fabric (applied to the fabric manager).
+  string topology_type = 1;
+
+  // Additional static configuration entries to apply to the fabric manager. This is a
+  // generic pass-through for any configuration not modeled by a dedicated field
+  // above; RMS applies each entry via the fabric manager's static-config API. Each
+  // (config_file_name, key) must be unique; duplicate keys are rejected.
+  repeated rack_manager.ScaleUpFabricStaticConfig extra_static_configs = 2;
+}
+
+/*
+ * ConfigureScaleUpFabricManagerRequest declaratively describes the desired scale-up
+ * fabric across a set of switches. RMS reconciles the switches toward this desired
+ * state, applying only the changes that are required (for example, it does nothing
+ * when the observed configuration already matches this request).
+ *
+ * Direct switch requests use each node's host_endpoint for address and credentials.
+ */
+message ConfigureScaleUpFabricManagerRequest {
+  // All switches that form the scale-up fabric.
+  rack_manager.NodeSet nodes = 1;
+
+  // ID of the switch node that should run the fabric manager (the primary host).
+  // If absent, RMS selects the switch at the lowest position in the rack.
+  optional string primary_switch_node_id = 2;
+
+  // Optional site selector used for switch server verification (TLS).
+  // Defaults to --default-switch-domain when unset.
+  optional string domain = 3;
+
+  // Desired scale-up fabric configuration to reconcile the switches toward.
+  ScaleUpFabricConfig config = 4;
+}
+
+// ConfigureScaleUpFabricManagerResponse returns the handle to the reconciliation job.
+message ConfigureScaleUpFabricManagerResponse {
+  // ID of the asynchronous job that reconciles the scale-up fabric.
+  // Poll it via rack_manager.GetJobStatus. Once completed,
+  // rack_manager.JobStatus.result_json contains a JSON-encoded
+  // rack_manager.ScaleUpFabricStatus describing the resulting fabric state.
+  string job_id = 1;
+}

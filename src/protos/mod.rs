@@ -20,6 +20,13 @@ pub mod rack_manager {
     include!(concat!(env!("OUT_DIR"), "/rack_manager.rs"));
 }
 
+#[allow(clippy::all)]
+#[rustfmt::skip]
+/// Generated wire models and service bindings for RackManagerV2.
+pub mod rack_manager_v2 {
+    include!(concat!(env!("OUT_DIR"), "/rack_manager_v2.rs"));
+}
+
 #[cfg(feature = "client")]
 mod client_generated {
     #[allow(clippy::all)]
@@ -33,7 +40,27 @@ mod client_generated {
     pub mod rack_manager_converters {
         include!(concat!(env!("OUT_DIR"), "/rack_manager_converters.rs"));
     }
+
+    #[allow(clippy::all)]
+    #[rustfmt::skip]
+    pub mod rack_manager_v2_client {
+        include!(concat!(env!("OUT_DIR"), "/rack_manager_v2_client.rs"));
+    }
+
+    #[allow(clippy::all)]
+    #[rustfmt::skip]
+    pub mod rack_manager_v2_converters {
+        include!(concat!(env!("OUT_DIR"), "/rack_manager_v2_converters.rs"));
+    }
 }
 
 #[cfg(feature = "client")]
 pub use client_generated::{rack_manager_client, rack_manager_converters};
+
+#[cfg(feature = "client")]
+/// Generated high-level client wrapper for RackManagerV2.
+pub use client_generated::rack_manager_v2_client;
+
+#[cfg(feature = "client")]
+/// Generated convenience conversions for RackManagerV2 request types.
+pub use client_generated::rack_manager_v2_converters;

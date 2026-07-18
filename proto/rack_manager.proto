@@ -571,27 +571,6 @@ service RackManager {
    *-------------------------------------------------------------------------*/
 
   /*
-   * ConfigureScaleUpFabricManagerV2 declaratively configures the scale-up fabric across
-   * all supplied switches. The caller describes the desired fabric configuration and
-   * RMS starts a single asynchronous reconciliation job that performs only the actions
-   * required to move the observed switch state toward the desired state: it skips
-   * disabling the fabric when it is already disabled, and does nothing when the observed
-   * configuration already matches the request.
-   *
-   * The call is safe to invoke periodically in a loop to keep switch configuration
-   * "as intended" without causing fabric availability issues. RMS aims to run one
-   * reconciliation job at a time; callers should poll GetJobStatus before resubmitting
-   * and avoid issuing concurrent ConfigureScaleUpFabricManagerV2 requests.
-   *
-   * Requests with an empty topology_type or otherwise invalid config are rejected
-   * synchronously with INVALID_ARGUMENT; no job is started.
-   *
-   * Returns a job_id; poll it via GetJobStatus. On completion, JobStatus.result_json
-   * holds a JSON-encoded ScaleUpFabricStatus describing the resulting fabric state.
-   */
-  rpc ConfigureScaleUpFabricManagerV2(ConfigureScaleUpFabricManagerV2Request) returns (ConfigureScaleUpFabricManagerV2Response) {}
-
-  /*
    * ConfigureScaleUpFabricManager performs complete ScaleUpFabricManager configuration on a switch.
    * This includes enabling the scale fabric services services,configuring gRPC access,and sets
    * multi-node scaleup topology based on the hardware platform.
@@ -601,11 +580,9 @@ service RackManager {
 
   /*
    * GetScaleUpFabricStatus synchronously inspects the fabric without changing anything and
-   * returns the observed scale-up configuration: per-switch state (which switch runs the
-   * fabric manager, and each switch's enabled/disabled state and status) plus the topology and
-   * any requested static configs read from the fabric manager on the observed primary (the
-   * enabled switch). This is a standalone read for callers to inspect current state; it is
-   * not associated with any reconciliation job.
+   * returns the observed scale-up configuration: per-switch state, topology, and static
+   * configuration reported by the fabric manager. This read is not associated with a
+   * reconciliation job.
    */
   rpc GetScaleUpFabricStatus(GetScaleUpFabricStatusRequest) returns (GetScaleUpFabricStatusResponse) {}
 
@@ -1222,38 +1199,6 @@ message FirmwareObjectHistoryRecord {
  ******************************************************************************/
 
 /*
- * ConfigureScaleUpFabricManagerV2Request declaratively describes the desired scale-up
- * fabric across a set of switches. RMS reconciles the switches toward this desired
- * state, applying only the changes that are required (for example, it does nothing
- * when the observed configuration already matches this request).
- *
- * Direct switch requests use each node's host_endpoint for address and credentials.
- */
-message ConfigureScaleUpFabricManagerV2Request {
-  // All switches that form the scale-up fabric.
-  NodeSet nodes = 1;
-
-  // ID of the switch node that should run the fabric manager (the primary host).
-  // If absent, RMS selects the switch at the lowest position in the rack.
-  optional string primary_switch_node_id = 2;
-
-  // Optional site selector used for switch server verification (TLS).
-  // Defaults to --default-switch-domain when unset.
-  optional string domain = 3;
-
-  // Desired scale-up fabric configuration to reconcile the switches toward.
-  ScaleUpFabricConfig config = 4;
-}
-
-// ConfigureScaleUpFabricManagerV2Response returns the handle to the reconciliation job.
-message ConfigureScaleUpFabricManagerV2Response {
-  // ID of the asynchronous job that reconciles the scale-up fabric.
-  // Poll it via GetJobStatus. Once completed, JobStatus.result_json contains a
-  // JSON-encoded ScaleUpFabricStatus describing the resulting fabric state.
-  string job_id = 1;
-}
-
-/*
  * ConfigureScaleUpFabricManagerRequest performs complete ScaleUpFabricManager setup on a switch.
  * This operation enables the ScaleUpFabricManager, configures ScaleUpFabricManager access, and sets topology.
  */
@@ -1272,26 +1217,10 @@ message ConfigureScaleUpFabricManagerResponse {
   bool grpc_enabled = 6; // Whether gRPC access is now enabled
 }
 
-/*
- * ScaleUpFabricConfig captures the desired scale-up fabric configuration in logical
- * terms, so RMS can apply it regardless of which switch API it uses to configure
- * the fabric manager.
- */
-message ScaleUpFabricConfig {
-  // Topology to be configured for the scale-up fabric (applied to the fabric manager).
-  string topology_type = 1;
-
-  // Additional static configuration entries to apply to the fabric manager. This is a
-  // generic pass-through for any configuration not modeled by a dedicated field
-  // above; RMS applies each entry via the fabric manager's static-config API. Each
-  // (config_file_name, key) must be unique; duplicate keys are rejected.
-  repeated ScaleUpFabricStaticConfig extra_static_configs = 2;
-}
-
 // ScaleUpFabricStaticConfig is a single fabric manager static configuration entry,
 // identified by the config file it lives in and the key within that file. It is shared
-// by requests and status, so value is the desired value in a ScaleUpFabricConfig and the
-// observed value in a ScaleUpFabricStatus.
+// by requests and status, so value is the desired value in a
+// rack_manager_v2.ScaleUpFabricConfig and the observed value in a ScaleUpFabricStatus.
 message ScaleUpFabricStaticConfig {
   string config_file_name = 1; // Static config file that holds the key
   string key = 2;              // Config key within the file
@@ -1314,16 +1243,16 @@ message GetScaleUpFabricStatusRequest {
 
 // GetScaleUpFabricStatusResponse returns the observed scale-up fabric status.
 message GetScaleUpFabricStatusResponse {
-  ReturnCode status = 1;                 // RETURN_CODE_SUCCESS if the fabric was inspected, RETURN_CODE_FAILURE otherwise
+  ReturnCode status = 1;                 // RETURN_CODE_SUCCESS if inspected, RETURN_CODE_FAILURE otherwise
   ScaleUpFabricStatus fabric_status = 2; // Observed configuration; unset when status is RETURN_CODE_FAILURE
   string error_message = 3;              // Error details if inspection failed
 }
 
 // ScaleUpFabricStatus reports the observed scale-up fabric configuration as read back
-// from the switches. It is returned directly by GetScaleUpFabricStatus, and is also
-// stored, JSON-encoded, in JobStatus.result_json when a ConfigureScaleUpFabricManagerV2 job
-// completes. Comparing a desired ScaleUpFabricConfig against this observed status lets a
-// caller detect drift.
+// from the switches. It is returned directly by GetScaleUpFabricStatus and is also stored,
+// JSON-encoded, in JobStatus.result_json when a rack_manager_v2.RackManagerV2.
+// ConfigureScaleUpFabricManager job completes. Callers can compare desired and observed
+// configurations to detect drift.
 message ScaleUpFabricStatus {
   // Topology type currently configured for the scale-up fabric.
   string topology_type = 1;

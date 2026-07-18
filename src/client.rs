@@ -33,15 +33,19 @@ use tryhard::{NoOnRetry, RetryFutureConfig};
 
 pub use crate::client_config::RmsClientConfig;
 use crate::protos::rack_manager::rack_manager_client::RackManagerClient;
+use crate::protos::rack_manager_v2::rack_manager_v2_client::RackManagerV2Client;
 use crate::{ConfigurationError, RmsTlsClientError};
 
-pub type RackManagerClientT = RackManagerClient<
-    BoxCloneService<
-        hyper::Request<Body>,
-        hyper::Response<Incoming>,
-        hyper_util::client::legacy::Error,
-    >,
+type TransportService = BoxCloneService<
+    hyper::Request<Body>,
+    hyper::Response<Incoming>,
+    hyper_util::client::legacy::Error,
 >;
+
+pub type RackManagerClientT = RackManagerClient<TransportService>;
+
+/// Transport-backed client type exposed for RackManagerV2 connection providers.
+pub type RackManagerV2ClientT = RackManagerV2Client<TransportService>;
 
 pub type RmsTlsClientResult<T> = std::result::Result<T, RmsTlsClientError>;
 pub type RmsHttpsClientResult<T> = std::result::Result<T, RmsTlsClientError>;
@@ -214,12 +218,10 @@ impl<'a> RmsTlsClient<'a> {
         Self { rms_client_config }
     }
 
-    /// Builds a new Client for the Rack Manager API which uses a HTTPS/TLS connector
-    /// and appropriate certificates for connecting to the Rack Manager service.
-    pub fn build_rms_client<S: AsRef<str>>(
+    fn build_transport<S: AsRef<str>>(
         &self,
         url: S,
-    ) -> RmsTlsClientResult<RackManagerClientT> {
+    ) -> RmsTlsClientResult<(TransportService, Uri)> {
         let mut http_connector = TimeoutConnector::new(HttpConnector::new());
         http_connector.set_connect_timeout(self.rms_client_config.connect_timeout);
         http_connector.set_read_timeout(self.rms_client_config.connect_timeout);
@@ -323,13 +325,38 @@ impl<'a> RmsTlsClient<'a> {
             .build(https_connector)
             .boxed_clone();
 
-        let mut rms_client = RackManagerClient::with_origin(hyper_client, uri);
+        Ok((hyper_client, uri))
+    }
+
+    /// Builds a new Client for the Rack Manager API which uses a HTTPS/TLS connector
+    /// and appropriate certificates for connecting to the Rack Manager service.
+    pub fn build_rms_client<S: AsRef<str>>(
+        &self,
+        url: S,
+    ) -> RmsTlsClientResult<RackManagerClientT> {
+        let (transport, uri) = self.build_transport(url)?;
+        let mut rms_client = RackManagerClient::with_origin(transport, uri);
 
         if let Some(max_decoding_message_size) = self.rms_client_config.max_decoding_message_size {
             rms_client = rms_client.max_decoding_message_size(max_decoding_message_size);
         }
 
         Ok(rms_client)
+    }
+
+    /// Builds a new Client for the RackManagerV2 service.
+    pub fn build_rms_client_v2<S: AsRef<str>>(
+        &self,
+        url: S,
+    ) -> RmsTlsClientResult<RackManagerV2ClientT> {
+        let (transport, uri) = self.build_transport(url)?;
+        let mut client_v2 = RackManagerV2Client::with_origin(transport, uri);
+
+        if let Some(max_decoding_message_size) = self.rms_client_config.max_decoding_message_size {
+            client_v2 = client_v2.max_decoding_message_size(max_decoding_message_size);
+        }
+
+        Ok(client_v2)
     }
 
     /// retry_build creates a new RmsTlsClient from
