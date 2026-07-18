@@ -614,7 +614,7 @@ service RackManager {
    * All switches in the request use the same domain for switch mTLS material.
    * Returns a parent job ID. Use GetJobStatus with child job states to track per-node progress.
    * The reset is idempotent; callers can retry after transport or service failure.
-   * Note: post hard reset, operator has to trigger the configure rack state machine substate.
+   * Note: post hard reset, the scale-up fabric must be reconfigured.
    */
   rpc BatchResetSwitchSdnFactoryDefault(BatchResetSwitchSdnFactoryDefaultRequest) returns (BatchResetSwitchSdnFactoryDefaultResponse) {}
 
