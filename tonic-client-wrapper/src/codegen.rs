@@ -15,7 +15,7 @@
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use heck::{ToSnakeCase, ToUpperCamelCase};
 use proc_macro2::{LexError, TokenStream};
@@ -36,6 +36,11 @@ pub enum Error {
     Lex(#[from] LexError),
     #[error("Invalid protobuf type: {0}")]
     InvalidProtobufType(String),
+
+    /// The requested input proto could not be matched to its descriptor.
+    #[error("Input protobuf file was not present in the descriptor set: {0}")]
+    MissingProtoFile(String),
+
     #[error(transparent)]
     Io(#[from] std::io::Error),
     #[error("Syntax error in generated code: {0}")]
@@ -75,7 +80,10 @@ pub type RustType = &'static str;
 pub struct CodeGenerator {
     inner_rpc_client_type: TokenStream,
     wrapper_name: TokenStream,
-    proto_fds: Vec<FileDescriptorProto>,
+
+    /// Only the explicitly listed proto files, used for service/converter generation.
+    /// Transitive imports are excluded; cross-file type references are resolved via message_types.
+    target_proto_fds: Vec<FileDescriptorProto>,
     generated_types_path_within_crate: TokenStream,
     message_types: HashMap<String, MessageWithPackage>,
     extern_paths: HashMap<ProtobufType, RustType>,
@@ -106,7 +114,7 @@ impl CodeGenerator {
                 error,
             })?;
 
-        let proto_fds = tonic_prost_build::Config::new()
+        let all_proto_fds = tonic_prost_build::Config::new()
             .protoc_arg("--experimental_allow_proto3_optional")
             .load_fds(
                 config.proto_files.as_slice(),
@@ -114,8 +122,40 @@ impl CodeGenerator {
             )?
             .file;
 
-        // Make an index of the messages by fully-qualified name, so we can refer to them later
-        let message_types: HashMap<String, MessageWithPackage> = proto_fds
+        // Descriptor names are relative to an include path and may retain nested directories.
+        // Resolve each input to the longest matching descriptor suffix so imported services stay
+        // excluded without losing explicitly listed nested proto files.
+        let target_filenames: HashSet<String> = config
+            .proto_files
+            .iter()
+            .map(|proto_file| {
+                let proto_path = fs::canonicalize(proto_file)
+                    .unwrap_or_else(|_| PathBuf::from(proto_file));
+
+                all_proto_fds
+                    .iter()
+                    .filter_map(|fd| fd.name.as_deref())
+                    .filter(|name| proto_path.ends_with(Path::new(name)))
+                    .max_by_key(|name| Path::new(name).components().count())
+                    .map(str::to_string)
+                    .ok_or_else(|| Error::MissingProtoFile(proto_file.clone()))
+            })
+            .collect::<Result<_>>()?;
+
+        let target_proto_fds: Vec<FileDescriptorProto> = all_proto_fds
+            .iter()
+            .filter(|fd| {
+                fd.name
+                    .as_deref()
+                    .map(|name| target_filenames.contains(name))
+                    .unwrap_or(false)
+            })
+            .cloned()
+            .collect();
+
+        // Make an index of the messages by fully-qualified name, so we can refer to them later.
+        // Include transitive imports so cross-file type references resolve correctly.
+        let message_types: HashMap<String, MessageWithPackage> = all_proto_fds
             .iter()
             .flat_map(|fd| {
                 fd.message_type.iter().map(|message| {
@@ -133,7 +173,7 @@ impl CodeGenerator {
         Ok(Self {
             inner_rpc_client_type,
             wrapper_name,
-            proto_fds,
+            target_proto_fds,
             generated_types_path_within_crate,
             message_types,
             extern_paths,
@@ -144,7 +184,7 @@ impl CodeGenerator {
     pub fn write_rpc_client_wrapper<P: AsRef<Path>>(&self, out: P) -> Result<()> {
         let mut wrapper_methods = TokenStream::new();
 
-        self.proto_fds
+        self.target_proto_fds
             .iter()
             .flat_map(|fd| &fd.service)
             .flat_map(|svc| &svc.method)
@@ -237,7 +277,7 @@ impl CodeGenerator {
         // Grab the input type of every method from every service in every file. Use a HashSet so we
         // don't create the same converter twice
         let method_inputs_type_strings: HashSet<&String> = self
-            .proto_fds
+            .target_proto_fds
             .iter()
             .flat_map(|fd| &fd.service)
             .flat_map(|service| &service.method)
@@ -634,7 +674,7 @@ mod tests {
 
     fn rpc_methods(generator: &CodeGenerator) -> HashMap<&str, &MethodDescriptorProto> {
         generator
-            .proto_fds
+            .target_proto_fds
             .iter()
             .flat_map(|file| &file.service)
             .flat_map(|service| &service.method)
@@ -651,6 +691,30 @@ mod tests {
 
     fn assert_tokens_eq(name: &str, actual: TokenStream, expected: TokenStream) {
         assert_eq!(actual.to_string(), expected.to_string(), "{name}");
+    }
+
+    #[test]
+    fn includes_rpc_methods_from_nested_target_proto() {
+        let fixture_root =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src/test_fixtures");
+
+        let proto_file = fixture_root.join("nested/test.proto");
+
+        let cfg = Config {
+            wrapper_name: "NestedTestWrapper".to_string(),
+            inner_rpc_client_type: "NestedTestInnerClient".to_string(),
+            generated_types_path_within_crate: "protos".to_string(),
+            proto_files: vec![proto_file.to_string_lossy().to_string()],
+            include_paths: vec![fixture_root.to_string_lossy().to_string()],
+            extern_paths: vec![],
+        };
+
+        let generator =
+            CodeGenerator::new(cfg).expect("nested target fixture should load");
+
+        let methods = rpc_methods(&generator);
+
+        assert!(methods.contains_key("Ping"), "nested target RPC was omitted");
     }
 
     #[test]

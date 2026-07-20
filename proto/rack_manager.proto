@@ -72,12 +72,12 @@ enum JobError {
   JOB_ERROR_TIMEOUT = 13; // Timed out waiting for an operation to complete
   JOB_ERROR_INVALID_RESPONSE = 14; // Received invalid or malformed response
   JOB_ERROR_UNAUTHENTICATED = 15; // Provided credentials could not authenticate
-  
+
   // Update specific
 
   JOB_ERROR_TARGET_NOT_FOUND = 21; // Target component for update not found on node
   JOB_ERROR_FILE_NOT_FOUND = 22; // Specified firmware file does not exist
-  JOB_ERROR_UPDATE_IN_PROGRESS = 23; // The node already has an active firmware update.  
+  JOB_ERROR_UPDATE_IN_PROGRESS = 23; // The node already has an active firmware update.
 }
 
 // FirmwareUpdateError provides detailed error codes for firmware update operations.
@@ -579,11 +579,19 @@ service RackManager {
   rpc ConfigureScaleUpFabricManager(ConfigureScaleUpFabricManagerRequest) returns (ConfigureScaleUpFabricManagerResponse) {}
 
   /*
+   * GetScaleUpFabricStatus synchronously inspects the fabric without changing anything and
+   * returns the observed scale-up configuration: per-switch state, topology, and static
+   * configuration reported by the fabric manager. This read is not associated with a
+   * reconciliation job.
+   */
+  rpc GetScaleUpFabricStatus(GetScaleUpFabricStatusRequest) returns (GetScaleUpFabricStatusResponse) {}
+
+  /*
    * BatchResetSwitchSdnFactoryDefault submits asynchronous SDN factory-default resets.
    * All switches in the request use the same domain for switch mTLS material.
    * Returns a parent job ID. Use GetJobStatus with child job states to track per-node progress.
    * The reset is idempotent; callers can retry after transport or service failure.
-   * Note: post hard reset, operator has to trigger the nmxconfigure rack state machine substate.
+   * Note: post hard reset, the scale-up fabric must be reconfigured.
    */
   rpc BatchResetSwitchSdnFactoryDefault(BatchResetSwitchSdnFactoryDefaultRequest) returns (BatchResetSwitchSdnFactoryDefaultResponse) {}
 
@@ -1209,10 +1217,68 @@ message ConfigureScaleUpFabricManagerResponse {
   bool grpc_enabled = 6; // Whether gRPC access is now enabled
 }
 
+// ScaleUpFabricStaticConfig is a single fabric manager static configuration entry,
+// identified by the config file it lives in and the key within that file. It is shared
+// by requests and status, so value is the desired value in a
+// rack_manager_v2.ScaleUpFabricConfig and the observed value in a ScaleUpFabricStatus.
+message ScaleUpFabricStaticConfig {
+  string config_file_name = 1; // Static config file that holds the key
+  string key = 2;              // Config key within the file
+  string value = 3;            // Value for the key
+}
+
+/*
+ * GetScaleUpFabricStatusRequest inspects the supplied switches and returns their
+ * observed scale-up fabric configuration, including every static config entry
+ * reported by the fabric manager, without modifying anything.
+ */
+message GetScaleUpFabricStatusRequest {
+  // All switches that form the scale-up fabric.
+  NodeSet nodes = 1;
+
+  // Optional site selector used for switch server verification (TLS).
+  // Defaults to --default-switch-domain when unset.
+  optional string domain = 2;
+}
+
+// GetScaleUpFabricStatusResponse returns the observed scale-up fabric status.
+message GetScaleUpFabricStatusResponse {
+  ReturnCode status = 1;                 // RETURN_CODE_SUCCESS if inspected, RETURN_CODE_FAILURE otherwise
+  ScaleUpFabricStatus fabric_status = 2; // Observed configuration; unset when status is RETURN_CODE_FAILURE
+  string error_message = 3;              // Error details if inspection failed
+}
+
+// ScaleUpFabricStatus reports the observed scale-up fabric configuration as read back
+// from the switches. It is returned directly by GetScaleUpFabricStatus and is also stored,
+// JSON-encoded, in JobStatus.result_json when a rack_manager_v2.RackManagerV2.
+// ConfigureScaleUpFabricManager job completes. Callers can compare desired and observed
+// configurations to detect drift.
+message ScaleUpFabricStatus {
+  // Topology type currently configured for the scale-up fabric.
+  string topology_type = 1;
+
+  // All observed static configuration entries except the topology
+  // entry represented by topology_type above.
+  repeated ScaleUpFabricStaticConfig extra_static_configs = 2;
+
+  // Per-switch observed state across the fabric: which switch runs the fabric manager
+  // (the primary), each switch's enabled/disabled state, and fabric manager status.
+  // Lets a caller see membership and whether any switch is out of sync.
+  repeated ScaleUpFabricSwitchStatus switches = 3;
+}
+
+// ScaleUpFabricSwitchStatus is the observed state of a single switch in the fabric.
+message ScaleUpFabricSwitchStatus {
+  string node_id = 1;        // Switch node identifier
+  bool enabled = 2;          // Whether the scale-up fabric cluster is enabled on this switch
+  string fabric_manager_status = 3; // Raw fabric manager app status reported by the switch; empty when unavailable
+  string error_message = 4;  // Set when this switch could not be inspected
+}
+
 // BatchResetSwitchSdnFactoryDefaultRequest submits SDN factory-default resets for caller-supplied switches.
 message BatchResetSwitchSdnFactoryDefaultRequest {
   NodeSet nodes = 1; // Target switch identities and direct connection information
-  optional string domain = 2; // Optional NVL domain for the target switch group; defaults to configured switch domain when unset
+  optional string domain = 2; // Optional domain for the target switch group; defaults to configured switch domain when unset
 }
 
 // BatchResetSwitchSdnFactoryDefaultResponse reports asynchronous reset submission status.
@@ -1240,7 +1306,7 @@ message ScaleUpFabricServiceStatusEntry {
   string error_message = 2; // Error details if query failed
 }
 
-// BatchGetScaleUpFabricServiceStatusRequest checks cluster health and nmx-controller status on caller-supplied switches.
+// BatchGetScaleUpFabricServiceStatusRequest checks cluster health and fabric manager status on caller-supplied switches.
 message BatchGetScaleUpFabricServiceStatusRequest {
   NodeSet nodes = 2; // Switch nodes to query
 }
@@ -1276,7 +1342,7 @@ message ConfigureSwitchCertificateRequest {
   NodeSet nodes = 1; // Switch nodes to update
   repeated SwitchService services = 2; // Switch services to protect with the installed mTLS certificates
   bool test_hello = 3; // Test Hello Connection over mTLS
-  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.  
+  optional string domain = 4; // Optional site selector; defaults to --default-switch-domain when unset.
 }
 
 // ConfigureSwitchCertificateResponse reports switch certificate configuration job creation results.

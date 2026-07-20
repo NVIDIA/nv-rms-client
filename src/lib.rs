@@ -63,7 +63,7 @@ pub mod timestamp_serde {
 }
 
 #[cfg(feature = "client")]
-pub(crate) use client::RackManagerClientT;
+pub(crate) use client::{RackManagerClientT, RackManagerV2ClientT};
 
 #[cfg(feature = "client")]
 pub use client_api::*;
@@ -119,9 +119,15 @@ mod client_feature_tests {
                 >,
             >(),
             assert_public_type::<protos::rack_manager_client::RackManagerApiClient>(),
+            assert_public_type::<
+                protos::rack_manager_v2::rack_manager_v2_client::RackManagerV2Client<
+                    tonic::transport::Channel,
+                >,
+            >(),
+            assert_public_type::<protos::rack_manager_v2_client::RackManagerV2ApiClient>(),
         ];
 
-        assert_eq!(public_api_types.len(), 7);
+        assert_eq!(public_api_types.len(), 9);
     }
 }
 
@@ -135,13 +141,18 @@ mod server_feature_tests {
             protos::rack_manager::rack_manager_server::RackManagerServer<()>,
         >();
 
+        let server_v2_type = std::any::type_name::<
+            protos::rack_manager_v2::rack_manager_v2_server::RackManagerV2Server<()>,
+        >();
+
         assert!(server_type.ends_with("RackManagerServer<()>"));
+        assert!(server_v2_type.ends_with("RackManagerV2Server<()>"));
     }
 }
 
 #[cfg(all(test, feature = "serde"))]
 mod tests {
-    use super::protos::rack_manager as rms;
+    use super::protos::{rack_manager as rms, rack_manager_v2 as rms_v2};
 
     /// Compile-time trait bound check. The function body is empty and optimized away;
     /// the compiler just verifies T satisfies Serialize + DeserializeOwned. If the
@@ -182,6 +193,18 @@ mod tests {
         assert_serde::<rms::ConfigureSwitchCertificateJobInfo>();
         assert_serde::<rms::GetConfigureSwitchCertificateJobStatusRequest>();
         assert_serde::<rms::GetConfigureSwitchCertificateJobStatusResponse>();
+
+        // Scale-up fabric status models exposed by RackManager.
+        assert_serde::<rms::GetScaleUpFabricStatusRequest>();
+        assert_serde::<rms::GetScaleUpFabricStatusResponse>();
+        assert_serde::<rms::ScaleUpFabricStaticConfig>();
+        assert_serde::<rms::ScaleUpFabricStatus>();
+        assert_serde::<rms::ScaleUpFabricSwitchStatus>();
+
+        // RackManagerV2 request, response, and desired configuration model.
+        assert_serde::<rms_v2::ConfigureScaleUpFabricManagerRequest>();
+        assert_serde::<rms_v2::ConfigureScaleUpFabricManagerResponse>();
+        assert_serde::<rms_v2::ScaleUpFabricConfig>();
 
         // Timestamp-backed responses
         assert_serde::<rms::GetFirmwareJobStatusResponse>();

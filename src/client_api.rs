@@ -16,10 +16,14 @@ use std::sync::Arc;
 use std::time::SystemTime;
 use std::{fs, io};
 
-use crate::client::{RackManagerClientT, RetryConfig, RmsApiConfig, RmsTlsClient};
+use crate::client::{
+    RackManagerClientT, RackManagerV2ClientT, RetryConfig, RmsApiConfig, RmsTlsClient,
+};
 use crate::client_config::RmsClientConfig;
 use crate::protos::rack_manager as rms;
 use crate::protos::rack_manager_client::RackManagerApiClient;
+use crate::protos::rack_manager_v2 as rms_v2;
+use crate::protos::rack_manager_v2_client::RackManagerV2ApiClient;
 
 use chrono::{DateTime, Utc};
 use tonic::Status;
@@ -73,6 +77,17 @@ impl RackManagerApiClient {
     }
 }
 
+impl RackManagerV2ApiClient {
+    /// Creates a lazy wrapper client for RackManagerV2 RPCs.
+    pub fn new(rms_config: &RmsApiConfig<'_>) -> Self {
+        Self::build(RmsTlsConnectionProviderV2 {
+            url: rms_config.url.to_string(),
+            client_config: rms_config.client_config.clone(),
+            retry_config: rms_config.retry_config,
+        })
+    }
+}
+
 // TODO: Add more error types for better error handling.
 #[derive(thiserror::Error, Debug)]
 pub enum RackManagerError {
@@ -119,6 +134,7 @@ impl RackManagerApi {
     /// create a rack manager client that can be used in the api server
     pub fn new(rms_api_config: &RmsApiConfig<'_>) -> Self {
         let client = RackManagerApiClient::new(rms_api_config);
+
         Self {
             client,
             config: rms_api_config.client_config.clone(),
@@ -291,10 +307,33 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
+    /// Submits V2 scale-up fabric reconciliation configuration.
+    ///
+    /// Implementors may omit this method; the default returns `Unimplemented`.
+    async fn configure_scale_up_fabric_manager_v2(
+        &self,
+        _cmd: rms_v2::ConfigureScaleUpFabricManagerRequest,
+    ) -> Result<rms_v2::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
+        Err(tonic::Status::unimplemented("RackManagerV2 is not implemented by this RmsApi").into())
+    }
+
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError>;
+
+    /// Retrieves the observed scale-up fabric state.
+    ///
+    /// Implementors may omit this method; the default returns `Unimplemented`.
+    async fn get_scale_up_fabric_status(
+        &self,
+        _cmd: rms::GetScaleUpFabricStatusRequest,
+    ) -> Result<rms::GetScaleUpFabricStatusResponse, RackManagerError> {
+        Err(tonic::Status::unimplemented(
+            "GetScaleUpFabricStatus is not implemented by this RmsApi",
+        )
+        .into())
+    }
 
     async fn batch_reset_switch_sdn_factory_default(
         &self,
@@ -588,11 +627,33 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.push_switch_firmware(cmd).await?)
     }
 
+    async fn configure_scale_up_fabric_manager_v2(
+        &self,
+        cmd: rms_v2::ConfigureScaleUpFabricManagerRequest,
+    ) -> Result<rms_v2::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
+        // Reuse the V1 provider's configured readiness and retry policy before calling V2.
+        let _ = self.client.connection().await?;
+
+        let mut client_v2 = RmsTlsClient::new(&self.config).build_rms_client_v2(&self.api_url)?;
+
+        Ok(client_v2
+            .configure_scale_up_fabric_manager(tonic::Request::new(cmd))
+            .await?
+            .into_inner())
+    }
+
     async fn configure_scale_up_fabric_manager(
         &self,
         cmd: rms::ConfigureScaleUpFabricManagerRequest,
     ) -> Result<rms::ConfigureScaleUpFabricManagerResponse, RackManagerError> {
         Ok(self.client.configure_scale_up_fabric_manager(cmd).await?)
+    }
+
+    async fn get_scale_up_fabric_status(
+        &self,
+        cmd: rms::GetScaleUpFabricStatusRequest,
+    ) -> Result<rms::GetScaleUpFabricStatusResponse, RackManagerError> {
+        Ok(self.client.get_scale_up_fabric_status(cmd).await?)
     }
 
     async fn batch_reset_switch_sdn_factory_default(
@@ -762,6 +823,102 @@ impl tonic_client_wrapper::ConnectionProvider<RackManagerClientT> for RmsTlsConn
                         %old_key_date,
                         %new_key_date,
                         "RmsApiClient: Reconnecting to pick up newer client key"
+                    );
+
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    fn connection_url(&self) -> &str {
+        self.url.as_str()
+    }
+}
+
+/// Supplies V2 clients after the shared RMS endpoint passes a `GetVersion` readiness check.
+#[derive(Debug)]
+pub struct RmsTlsConnectionProviderV2 {
+    /// RMS endpoint used by the V2 client.
+    pub url: String,
+
+    /// TLS configuration used by the V2 client.
+    pub client_config: RmsClientConfig,
+
+    /// Retry policy applied while establishing a connection.
+    pub retry_config: RetryConfig,
+}
+
+#[async_trait::async_trait]
+impl tonic_client_wrapper::ConnectionProvider<RackManagerV2ClientT> for RmsTlsConnectionProviderV2 {
+    async fn provide_connection(&self) -> Result<RackManagerV2ClientT, Status> {
+        let mut retries = 0;
+
+        loop {
+            match RmsTlsClient::retry_build_rms(
+                &RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(RetryConfig {
+                    // Count retries here so the provider applies the configured attempt limit.
+                    retries: 1,
+                    interval: self.retry_config.interval,
+                }),
+            )
+            .await
+            .map_err(Into::into)
+            {
+                Ok(_) => {
+                    return RmsTlsClient::new(&self.client_config)
+                        .build_rms_client_v2(&self.url)
+                        .map_err(Into::into);
+                }
+
+                Err(e) => {
+                    retries += 1;
+
+                    if retries > self.retry_config.retries {
+                        return Err(e);
+                    }
+                }
+            }
+        }
+    }
+
+    async fn connection_is_stale(&self, last_connected: SystemTime) -> bool {
+        if let Some(ref client_cert) = self.client_config.client_cert {
+            if let Ok(mtime) = fs::metadata(&client_cert.cert_path).and_then(|m| m.modified()) {
+                if mtime > last_connected {
+                    let old_cert_date = DateTime::<Utc>::from(last_connected);
+                    let new_cert_date = DateTime::<Utc>::from(mtime);
+
+                    tracing::info!(
+                        cert_path = &client_cert.cert_path,
+                        %old_cert_date,
+                        %new_cert_date,
+                        "RmsV2ApiClient: Reconnecting to pick up newer client certificate"
+                    );
+
+                    true
+                } else {
+                    false
+                }
+            } else if let Ok(mtime) = fs::metadata(&client_cert.key_path).and_then(|m| m.modified())
+            {
+                // Just in case the cert and key are created some amount of time apart and we
+                // last constructed a client with the new cert but the old key...
+                if mtime > last_connected {
+                    let old_key_date = DateTime::<Utc>::from(last_connected);
+                    let new_key_date = DateTime::<Utc>::from(mtime);
+
+                    tracing::info!(
+                        key_path = &client_cert.key_path,
+                        %old_key_date,
+                        %new_key_date,
+                        "RmsV2ApiClient: Reconnecting to pick up newer client key"
                     );
 
                     true
