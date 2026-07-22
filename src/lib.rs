@@ -95,6 +95,19 @@ mod proto_model_tests {
             Some(NodeType::SwitchVrnvl72Nvidia)
         );
     }
+
+    #[test]
+    fn wiwynn_gb200_node_type_has_stable_wire_value_and_name() {
+        assert_eq!(NodeType::ComputeGb200Wiwynn as i32, 12);
+        assert_eq!(
+            NodeType::ComputeGb200Wiwynn.as_str_name(),
+            "COMPUTE_GB200_WIWYNN"
+        );
+        assert_eq!(
+            NodeType::from_str_name("COMPUTE_GB200_WIWYNN"),
+            Some(NodeType::ComputeGb200Wiwynn)
+        );
+    }
 }
 
 #[cfg(all(test, feature = "client"))]

@@ -112,6 +112,7 @@ enum NodeType {
   COMPUTE_GB300_LENOVO = 9; // Lenovo GB300 compute node
   COMPUTE_VRNVL72_NVIDIA = 10; // NVIDIA VR NVL72 compute tray
   SWITCH_VRNVL72_NVIDIA = 11; // NVIDIA VR NVL72 network switch
+  COMPUTE_GB200_WIWYNN = 12; // Wiwynn GB200 compute node
 }
 
 // SwitchFirmwareComponentType identifies the firmware component type on a switch.
