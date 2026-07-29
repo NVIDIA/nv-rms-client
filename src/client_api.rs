@@ -365,6 +365,11 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::ConfigureSwitchCertificateRequest,
     ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError>;
 
+    async fn batch_disable_switch_mtls(
+        &self,
+        cmd: rms::BatchDisableSwitchMtlsRequest,
+    ) -> Result<rms::BatchDisableSwitchMtlsResponse, RackManagerError>;
+
     async fn get_configure_switch_certificate_job_status(
         &self,
         cmd: rms::GetConfigureSwitchCertificateJobStatusRequest,
@@ -705,6 +710,13 @@ impl RmsApi for RackManagerApi {
         cmd: rms::ConfigureSwitchCertificateRequest,
     ) -> Result<rms::ConfigureSwitchCertificateResponse, RackManagerError> {
         Ok(self.client.configure_switch_certificate(cmd).await?)
+    }
+
+    async fn batch_disable_switch_mtls(
+        &self,
+        cmd: rms::BatchDisableSwitchMtlsRequest,
+    ) -> Result<rms::BatchDisableSwitchMtlsResponse, RackManagerError> {
+        Ok(self.client.batch_disable_switch_mtls(cmd).await?)
     }
 
     async fn get_configure_switch_certificate_job_status(
