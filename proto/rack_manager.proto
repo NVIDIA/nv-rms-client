@@ -145,7 +145,7 @@ enum JobExecutionState {
   JOB_EXECUTION_STATE_FAILED = 4; // Job finished with an error
 }
 
-// SwitchService identifies a switch service that should use the installed mTLS certificates.
+// SwitchService identifies a switch service whose mTLS state should be managed.
 enum SwitchService {
   SWITCH_SERVICE_UNSPECIFIED = 0;                         // Caller left the service missing or at the proto3 default
   SWITCH_SERVICE_NVUE_API = 1;                            // NVUE REST API service
@@ -635,6 +635,12 @@ service RackManager {
    * Returns a parent job ID for tracking overall progress, along with individual child job IDs per switch.
    */
   rpc ConfigureSwitchCertificate(ConfigureSwitchCertificateRequest) returns (ConfigureSwitchCertificateResponse) {}
+
+  /*
+   * BatchDisableSwitchMtls asynchronously disables mTLS for selected services
+   * on caller-supplied switches. Returns a parent job ID for GetJobStatus.
+   */
+  rpc BatchDisableSwitchMtls(BatchDisableSwitchMtlsRequest) returns (BatchDisableSwitchMtlsResponse) {}
 
   /*
    * GetConfigureSwitchCertificateJobStatus retrieves the current status of an asynchronous switch certificate configuration job.
@@ -1358,8 +1364,8 @@ message GetScaleUpFabricStateResponse {
 /*******************************************************************************
  * mTLS CONTROL MESSAGES
  *
- * These messages manage switch TLS certificate installation.
- * Certificate file paths are resolved from RMS startup configuration.
+ * These messages manage switch TLS certificate installation and mTLS disable operations.
+ * Certificate installation paths are resolved from RMS startup configuration.
  ******************************************************************************/
 
 // ConfigureSwitchCertificateRequest installs mTLS certificates on supplied switches.
@@ -1380,6 +1386,17 @@ message ConfigureSwitchCertificateResponse {
 message ConfigureSwitchCertificateJobInfo {
   string node_id = 1; // Switch node identifier
   string job_id = 2;  // Child job ID for this switch
+}
+
+// BatchDisableSwitchMtlsRequest disables mTLS for selected services on supplied switches.
+message BatchDisableSwitchMtlsRequest {
+  NodeSet nodes = 1; // Target switch identities and direct connection information
+  repeated SwitchService services = 2; // Switch services that should stop requiring mTLS
+}
+
+// BatchDisableSwitchMtlsResponse reports asynchronous mTLS disable job submission status.
+message BatchDisableSwitchMtlsResponse {
+  NodeBatchResponse response = 1; // response.job_id is the parent job ID for GetJobStatus
 }
 
 /*******************************************************************************

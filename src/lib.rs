@@ -194,6 +194,8 @@ mod tests {
         assert_serde::<rms::ConfigureSwitchCertificateRequest>();
         assert_serde::<rms::ConfigureSwitchCertificateResponse>();
         assert_serde::<rms::ConfigureSwitchCertificateJobInfo>();
+        assert_serde::<rms::BatchDisableSwitchMtlsRequest>();
+        assert_serde::<rms::BatchDisableSwitchMtlsResponse>();
         assert_serde::<rms::GetConfigureSwitchCertificateJobStatusRequest>();
         assert_serde::<rms::GetConfigureSwitchCertificateJobStatusResponse>();
 
