@@ -307,6 +307,19 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError>;
 
+    /// Submits asynchronous NVOS factory-default resets for the given switches.
+    ///
+    /// Implementors may omit this method; the default returns `Unimplemented`.
+    async fn batch_reset_switch_factory_default(
+        &self,
+        _cmd: rms::BatchResetSwitchFactoryDefaultRequest,
+    ) -> Result<rms::BatchResetSwitchFactoryDefaultResponse, RackManagerError> {
+        Err(tonic::Status::unimplemented(
+            "BatchResetSwitchFactoryDefault is not implemented by this RmsApi",
+        )
+        .into())
+    }
+
     /// Submits V2 scale-up fabric reconciliation configuration.
     ///
     /// Implementors may omit this method; the default returns `Unimplemented`.
@@ -630,6 +643,13 @@ impl RmsApi for RackManagerApi {
         cmd: rms::PushSwitchFirmwareRequest,
     ) -> Result<rms::PushSwitchFirmwareResponse, RackManagerError> {
         Ok(self.client.push_switch_firmware(cmd).await?)
+    }
+
+    async fn batch_reset_switch_factory_default(
+        &self,
+        cmd: rms::BatchResetSwitchFactoryDefaultRequest,
+    ) -> Result<rms::BatchResetSwitchFactoryDefaultResponse, RackManagerError> {
+        Ok(self.client.batch_reset_switch_factory_default(cmd).await?)
     }
 
     async fn configure_scale_up_fabric_manager_v2(
