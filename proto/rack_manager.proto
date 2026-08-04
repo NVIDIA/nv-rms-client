@@ -573,6 +573,20 @@ service RackManager {
    */
   rpc PushSwitchFirmware(PushSwitchFirmwareRequest) returns (PushSwitchFirmwareResponse) {}
 
+  /*
+   * BatchResetSwitchFactoryDefault submits asynchronous NVOS factory resets.
+   * All switches in the request use the same domain for switch mTLS material.
+   * Returns a parent job ID. Use GetJobStatus with child job states to track per-node progress.
+   * Unlike the SDN reset, this wipes NVOS configuration back to factory defaults.
+   *
+   * A per-node job completes once the switch has rebooted after the reset and is
+   * reachable again via the default login; the factory default password is
+   * preserved, not rotated. If the supplied switch credentials do not work, RMS
+   * falls back to the factory default password to perform the reset, without
+   * assuming a switch was already reset just because the default login works.
+   */
+  rpc BatchResetSwitchFactoryDefault(BatchResetSwitchFactoryDefaultRequest) returns (BatchResetSwitchFactoryDefaultResponse) {}
+
   /*---------------------------------------------------------------------------
    * Scale Up switch control RPCs
    *-------------------------------------------------------------------------*/
@@ -1458,6 +1472,17 @@ message PushSwitchFirmwareResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if pushed, RETURN_CODE_FAILURE otherwise
   string result_json = 3; // JSON object containing push result
   string error_message = 4; // Error details if push failed
+}
+
+// BatchResetSwitchFactoryDefaultRequest submits NVOS factory-default resets for caller-supplied switches.
+message BatchResetSwitchFactoryDefaultRequest {
+  NodeSet nodes = 1; // Target switch identities and direct connection information
+  optional string domain = 2; // Optional domain for the target switch group; defaults to configured switch domain when unset
+}
+
+// BatchResetSwitchFactoryDefaultResponse reports asynchronous reset submission status.
+message BatchResetSwitchFactoryDefaultResponse {
+  NodeBatchResponse response = 1; // response.job_id is the parent job ID for GetJobStatus
 }
 
 /*******************************************************************************
