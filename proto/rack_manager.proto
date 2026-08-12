@@ -38,17 +38,6 @@ enum PowerOperation {
   POWER_OPERATION_FORCE_RESTART = 8; // Redfish ResetType ForceRestart
 }
 
-/*
- * RackPowerOperation defines power control actions for an entire rack.
- * These operations respect the power-on order configuration for sequenced boot.
- */
-enum RackPowerOperation {
-  RACK_POWER_OPERATION_UNSPECIFIED = 0; // Caller left the operation missing or at the proto3 default
-  RACK_POWER_OPERATION_ON = 1; // Power on all nodes in the rack following power-on order
-  RACK_POWER_OPERATION_OFF = 2; // Power off all nodes in the rack
-  RACK_POWER_OPERATION_CYCLE = 3; // Power cycle all nodes in the rack
-}
-
 // ReturnCode indicates the overall success or failure of an RPC operation.
 enum ReturnCode {
   RETURN_CODE_UNSPECIFIED = 0; // Server left the status unset or at the proto3 default
@@ -265,18 +254,6 @@ message FirmwareInventoryInfo {
   int32 firmware_type = 6; // Type of firmware
 }
 
-// PowerOnOrderItem defines a single entry in the rack power-on sequence.
-message PowerOnOrderItem {
-  string node_id = 1; // Node to power on at this position in sequence
-  CompletionCheck completion_check = 2; // Configuration for boot completion verification
-}
-
-// CompletionCheck configures how to verify a node has completed booting.
-message CompletionCheck {
-  bool enabled = 1; // Whether to wait for boot completion before proceeding
-  uint32 timeout_seconds = 2; // Maximum time to wait for boot completion
-}
-
 // NodeFirmwareInventory groups firmware information for a specific node.
 message NodeFirmwareInventory {
   string node_id = 1; // Node identifier
@@ -383,13 +360,6 @@ service RackManager {
    */
   rpc BatchGetPowerState(BatchGetPowerStateRequest) returns (BatchGetPowerStateResponse) {}
 
-  /*
-   * SequenceRackPower controls the power state of all nodes in a rack.
-   * Operations follow the configured power-on order for sequenced boot.
-   * Requires a valid power-on order to be set before use.
-   */
-  rpc SequenceRackPower(SequenceRackPowerRequest) returns (SequenceRackPowerResponse) {}
-
   /*---------------------------------------------------------------------------
    * Inventory Control RPCs
    *-------------------------------------------------------------------------*/
@@ -415,18 +385,6 @@ service RackManager {
    * DeleteNode removes a node from the inventory. The node must exist in the specified rack.
    */
   rpc DeleteNode(DeleteNodeRequest) returns (DeleteNodeResponse) {}
-
-  /*
-   * GetRackPowerOnSequence retrieves the configured boot sequence for a rack.
-   */
-  rpc GetRackPowerOnSequence(GetRackPowerOnSequenceRequest) returns (GetRackPowerOnSequenceResponse) {}
-
-  /*
-   * SetRackPowerOnSequence configures the boot sequence for a rack.
-   * Must be set before using RackPower operations.
-   * Nodes boot in the specified order with optional completion verification.
-   */
-  rpc SetRackPowerOnSequence(SetRackPowerOnSequenceRequest) returns (SetRackPowerOnSequenceResponse) {}
 
   /*
    * ListRacks returns a list of all rack IDs in the system.
@@ -770,18 +728,6 @@ message BatchGetPowerStateResponse {
   repeated NodePowerState node_power_states = 2; // Power state for each successfully queried node
 }
 
-// SequenceRackPowerRequest controls power for all nodes in a rack.
-message SequenceRackPowerRequest {
-  RackPowerOperation operation = 2; // Rack-wide power operation to perform
-  string rack_id = 3; // Target rack identifier
-}
-
-// SequenceRackPowerResponse confirms the rack power operation result.
-message SequenceRackPowerResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if operation completed, RETURN_CODE_FAILURE otherwise
-  string message = 3; // Human-readable status or error message
-}
-
 /*******************************************************************************
  * INVENTORY CONTROL MESSAGES
  ******************************************************************************/
@@ -825,29 +771,6 @@ message DeleteNodeRequest {
 
 // DeleteNodeResponse confirms the removal result.
 message DeleteNodeResponse {
-  OperationResponse response = 1;
-}
-
-// GetRackPowerOnSequenceRequest retrieves the boot sequence for a rack.
-message GetRackPowerOnSequenceRequest {
-  string rack_id = 2; // Target rack identifier
-}
-
-// GetRackPowerOnSequenceResponse returns the configured boot sequence.
-message GetRackPowerOnSequenceResponse {
-  ReturnCode status = 2; // RETURN_CODE_SUCCESS if retrieved, RETURN_CODE_FAILURE otherwise
-  repeated PowerOnOrderItem power_on_order = 3; // Ordered list of nodes for boot sequence
-  bool is_valid = 4; // Whether the power-on order is valid for use
-}
-
-// SetRackPowerOnSequenceRequest configures the boot sequence for a rack.
-message SetRackPowerOnSequenceRequest {
-  repeated PowerOnOrderItem power_on_order = 2; // Ordered list of nodes for boot sequence
-  string rack_id = 3; // Target rack identifier
-}
-
-// SetRackPowerOnSequenceResponse confirms the configuration result.
-message SetRackPowerOnSequenceResponse {
   OperationResponse response = 1;
 }
 
