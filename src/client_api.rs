@@ -167,11 +167,6 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::BatchGetPowerStateRequest,
     ) -> Result<rms::BatchGetPowerStateResponse, RackManagerError>;
 
-    async fn sequence_rack_power(
-        &self,
-        cmd: rms::SequenceRackPowerRequest,
-    ) -> Result<rms::SequenceRackPowerResponse, RackManagerError>;
-
     async fn list_node_inventory(&self)
     -> Result<rms::ListNodeInventoryResponse, RackManagerError>;
 
@@ -189,16 +184,6 @@ pub trait RmsApi: Send + Sync + 'static {
         &self,
         cmd: rms::DeleteNodeRequest,
     ) -> Result<rms::DeleteNodeResponse, RackManagerError>;
-
-    async fn get_rack_power_on_sequence(
-        &self,
-        cmd: rms::GetRackPowerOnSequenceRequest,
-    ) -> Result<rms::GetRackPowerOnSequenceResponse, RackManagerError>;
-
-    async fn set_rack_power_on_sequence(
-        &self,
-        cmd: rms::SetRackPowerOnSequenceRequest,
-    ) -> Result<rms::SetRackPowerOnSequenceResponse, RackManagerError>;
 
     async fn list_racks(&self) -> Result<rms::ListRacksResponse, RackManagerError>;
 
@@ -446,13 +431,6 @@ impl RmsApi for RackManagerApi {
         Ok(self.client.batch_get_power_state(cmd).await?)
     }
 
-    async fn sequence_rack_power(
-        &self,
-        cmd: rms::SequenceRackPowerRequest,
-    ) -> Result<rms::SequenceRackPowerResponse, RackManagerError> {
-        Ok(self.client.sequence_rack_power(cmd).await?)
-    }
-
     async fn list_node_inventory(
         &self,
     ) -> Result<rms::ListNodeInventoryResponse, RackManagerError> {
@@ -478,20 +456,6 @@ impl RmsApi for RackManagerApi {
         cmd: rms::DeleteNodeRequest,
     ) -> Result<rms::DeleteNodeResponse, RackManagerError> {
         Ok(self.client.delete_node(cmd).await?)
-    }
-
-    async fn get_rack_power_on_sequence(
-        &self,
-        cmd: rms::GetRackPowerOnSequenceRequest,
-    ) -> Result<rms::GetRackPowerOnSequenceResponse, RackManagerError> {
-        Ok(self.client.get_rack_power_on_sequence(cmd).await?)
-    }
-
-    async fn set_rack_power_on_sequence(
-        &self,
-        cmd: rms::SetRackPowerOnSequenceRequest,
-    ) -> Result<rms::SetRackPowerOnSequenceResponse, RackManagerError> {
-        Ok(self.client.set_rack_power_on_sequence(cmd).await?)
     }
 
     async fn list_racks(&self) -> Result<rms::ListRacksResponse, RackManagerError> {
