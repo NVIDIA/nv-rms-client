@@ -2,7 +2,7 @@
 name = "librms"
 description = "NVIDIA Rack Management Service protocol crate"
 authors = [ "NVIDIA Engineering <dcss-forge-rms@exchange.nvidia.com>" ]
-repository = "https://github.com/NVIDIA/nv-rms-client.git"
+repository = "https://github.com/dsx-ai-factory/nv-rms-client.git"
 license = "Apache-2.0"
 version = "0.0.14"
 edition = "2024"
