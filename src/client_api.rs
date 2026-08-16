@@ -388,6 +388,16 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::UpdateSwitchSystemPasswordRequest,
     ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError>;
 
+    async fn batch_collect_switch_spdm_attestation_evidence(
+        &self,
+        _cmd: rms::BatchCollectSwitchSpdmAttestationEvidenceRequest,
+    ) -> Result<rms::BatchCollectSwitchSpdmAttestationEvidenceResponse, RackManagerError> {
+        Err(tonic::Status::unimplemented(
+            "switch SPDM attestation evidence collection is not implemented",
+        )
+        .into())
+    }
+
     async fn get_version(&self) -> Result<rms::GetVersionResponse, RackManagerError>;
 
     async fn get_firmware_job_status(
@@ -732,6 +742,16 @@ impl RmsApi for RackManagerApi {
         cmd: rms::UpdateSwitchSystemPasswordRequest,
     ) -> Result<rms::UpdateSwitchSystemPasswordResponse, RackManagerError> {
         Ok(self.client.update_switch_system_password(cmd).await?)
+    }
+
+    async fn batch_collect_switch_spdm_attestation_evidence(
+        &self,
+        cmd: rms::BatchCollectSwitchSpdmAttestationEvidenceRequest,
+    ) -> Result<rms::BatchCollectSwitchSpdmAttestationEvidenceResponse, RackManagerError> {
+        Ok(self
+            .client
+            .batch_collect_switch_spdm_attestation_evidence(cmd)
+            .await?)
     }
 
     async fn get_version(&self) -> Result<rms::GetVersionResponse, RackManagerError> {
