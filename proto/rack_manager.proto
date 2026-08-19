@@ -646,6 +646,12 @@ service RackManager {
    */
   rpc UpdateSwitchSystemPassword(UpdateSwitchSystemPasswordRequest) returns (UpdateSwitchSystemPasswordResponse) {}
 
+  /*
+   * BatchCollectSwitchSpdmAttestationEvidence synchronously generates and
+   * retrieves fresh SPDM evidence from caller-supplied switch trays.
+   */
+  rpc BatchCollectSwitchSpdmAttestationEvidence(BatchCollectSwitchSpdmAttestationEvidenceRequest) returns (BatchCollectSwitchSpdmAttestationEvidenceResponse) {}
+
   /*---------------------------------------------------------------------------
    * Utility RPCs
    *-------------------------------------------------------------------------*/
@@ -1355,6 +1361,43 @@ message ListSwitchSystemImagesResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if retrieved, RETURN_CODE_FAILURE otherwise
   string images_json = 3; // JSON array containing image information
   string error_message = 4; // Error details if query failed
+}
+
+// BatchCollectSwitchSpdmAttestationEvidenceRequest challenges one or more switch trays.
+message BatchCollectSwitchSpdmAttestationEvidenceRequest {
+  repeated NodeInfo targets = 1; // Switch trays from which RMS collects evidence
+  bytes nonce = 2; // Caller-generated nonce bound into every SPDM measurement
+  optional string domain = 3; // Optional site selector; defaults to --default-switch-domain when unset
+}
+
+// SwitchSpdmComponentEvidence contains the opaque evidence for one SPDM component.
+message SwitchSpdmComponentEvidence {
+  bytes measurements = 1; // Opaque signed-measurement value
+  bytes certificate_chain = 2; // Opaque certificate-chain value
+}
+
+// SwitchSpdmComponentResult reports collection status for one discovered component.
+message SwitchSpdmComponentResult {
+  string component_id = 1; // SPDM component identifier
+  ReturnCode status = 2; // Collection status for this component
+  string error_message = 3; // Collection error when status is FAILURE
+  SwitchSpdmComponentEvidence evidence = 4; // Present only when collection succeeded
+}
+
+// SwitchSpdmAttestationTargetResult reports evidence collection for one switch tray.
+message SwitchSpdmAttestationTargetResult {
+  string node_id = 1; // Switch tray node identifier
+  ReturnCode status = 2; // SUCCESS only when every discovered component succeeded
+  optional string error_message = 3; // Target-level discovery or initialization error; unset when status is SUCCESS
+  repeated SwitchSpdmComponentResult components = 4; // Per-component status and evidence
+  google.protobuf.Timestamp collection_timestamp = 5; // When RMS finished collecting (or failed to collect) this target's evidence
+}
+
+// BatchCollectSwitchSpdmAttestationEvidenceResponse contains normalized switch evidence.
+message BatchCollectSwitchSpdmAttestationEvidenceResponse {
+  ReturnCode status = 1; // SUCCESS only when every target and component succeeded
+  string message = 2; // Batch collection summary
+  repeated SwitchSpdmAttestationTargetResult results = 3; // One entry per requested switch tray
 }
 
 // SetScaleUpFabricTelemetryInterfaceStateRequest enables or disables the FabricTelemetryInterface.

@@ -81,6 +81,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "rack_manager.JobStatus.updated_at",
             "#[cfg_attr(feature = \"serde\", serde(default, with = \"crate::timestamp_serde\"))]",
         )
+        .field_attribute(
+            "rack_manager.SwitchSpdmAttestationTargetResult.collection_timestamp",
+            "#[cfg_attr(feature = \"serde\", serde(default, with = \"crate::timestamp_serde\"))]",
+        )
         .include_file("prost_common.rs")
         .build_server(build_server)
         .build_client(build_client)

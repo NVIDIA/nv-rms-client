@@ -55,14 +55,12 @@ pub fn rms_client_cert_info(
 ) -> Option<ClientCert> {
     // First from args
     if let Some(client_cert) = client_cert {
-        if let Some(client_key) = client_key {
+        {
+            let client_key = client_key?;
             return Some(ClientCert {
                 cert_path: client_cert,
                 key_path: client_key,
             });
-        } else {
-            // cannot use client cert without key
-            return None;
         }
     }
 
