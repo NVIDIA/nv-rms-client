@@ -192,6 +192,9 @@ message NodeInfo {
   optional Endpoint bmc_endpoint = 4; // BMC connection info and credentials
   optional Endpoint host_endpoint = 5; // Host connection info and credentials
   optional NodeDescriptor node_descriptor = 6; // Flexible node identity used when type is missing or NODE_TYPE_UNSPECIFIED
+  // Supplemental host-side endpoints. Each RPC defines whether it consumes
+  // this field and, if so, the allowed cardinality and semantics.
+  repeated Endpoint additional_host_endpoints = 7;
 }
 
 // NodeSet represents a collection of nodes, reusable wherever a node list is needed.

@@ -35,6 +35,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ".rack_manager_v2",
             "#[cfg_attr(feature = \"serde\", derive(serde::Deserialize, serde::Serialize))]",
         )
+        // Preserve the serialized shape for callers that do not use the additive field.
+        .field_attribute(
+            "rack_manager.NodeInfo.additional_host_endpoints",
+            "#[cfg_attr(feature = \"serde\", serde(default, skip_serializing_if = \"Vec::is_empty\"))]",
+        )
         // prost_types::Timestamp does not implement serde, so each timestamp field
         // needs the crate adapter while the rest of the package can use type_attribute.
         .field_attribute(
