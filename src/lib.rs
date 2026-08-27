@@ -70,7 +70,9 @@ pub use client_api::*;
 
 #[cfg(test)]
 mod proto_model_tests {
-    use super::protos::rack_manager::NodeType;
+    use prost::Message as _;
+
+    use super::protos::rack_manager::{Endpoint, NetworkInterface, NodeInfo, NodeType};
 
     #[test]
     fn vrnvl72_node_types_have_stable_wire_values_and_names() {
@@ -94,6 +96,39 @@ mod proto_model_tests {
             NodeType::from_str_name("SWITCH_VRNVL72_NVIDIA"),
             Some(NodeType::SwitchVrnvl72Nvidia)
         );
+    }
+
+    #[test]
+    fn additional_host_endpoints_use_protobuf_field_seven() {
+        let node = NodeInfo {
+            additional_host_endpoints: vec![Endpoint {
+                interface: Some(NetworkInterface {
+                    ip_address: "192.0.2.11".to_owned(),
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }],
+            ..Default::default()
+        };
+
+        assert_eq!(
+            node.encode_to_vec(),
+            [
+                0x3a, 0x0e, 0x0a, 0x0c, 0x0a, 0x0a, b'1', b'9', b'2', b'.', b'0', b'.', b'2', b'.',
+                b'1', b'1',
+            ]
+        );
+    }
+
+    #[test]
+    fn node_info_without_additional_host_endpoints_decodes_with_an_empty_list()
+    -> Result<(), prost::DecodeError> {
+        let node = NodeInfo::decode([0x0a, 0x05, b's', b'w', b'-', b'0', b'1'].as_slice())?;
+
+        assert_eq!(node.node_id, "sw-01");
+        assert!(node.additional_host_endpoints.is_empty());
+
+        Ok(())
     }
 }
 
