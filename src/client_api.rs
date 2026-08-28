@@ -788,8 +788,8 @@ impl tonic_client_wrapper::ConnectionProvider<RackManagerClientT> for RmsTlsConn
         loop {
             match RmsTlsClient::retry_build_rms(
                 &RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(RetryConfig {
-                    // We do our own retry counting
-                    retries: 1,
+                    // The provider loop owns retry counting. Each iteration makes one attempt.
+                    retries: 0,
                     interval: self.retry_config.interval,
                 }),
             )
@@ -879,8 +879,8 @@ impl tonic_client_wrapper::ConnectionProvider<RackManagerV2ClientT> for RmsTlsCo
         loop {
             match RmsTlsClient::retry_build_rms(
                 &RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(RetryConfig {
-                    // Count retries here so the provider applies the configured attempt limit.
-                    retries: 1,
+                    // The provider loop owns retry counting. Each iteration makes one attempt.
+                    retries: 0,
                     interval: self.retry_config.interval,
                 }),
             )
@@ -951,5 +951,95 @@ impl tonic_client_wrapper::ConnectionProvider<RackManagerV2ClientT> for RmsTlsCo
 
     fn connection_url(&self) -> &str {
         self.url.as_str()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    use tokio::net::TcpListener;
+    use tonic_client_wrapper::ConnectionProvider as _;
+
+    use super::*;
+
+    #[derive(Clone, Copy, Debug)]
+    enum ApiVersion {
+        V1,
+        V2,
+    }
+
+    async fn failed_connection_attempts(api_version: ApiVersion) -> usize {
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("test listener should bind");
+        let url = format!(
+            "http://{}",
+            listener
+                .local_addr()
+                .expect("test listener should have an address")
+        );
+        let attempts = Arc::new(AtomicUsize::new(0));
+        let observed_attempts = Arc::clone(&attempts);
+        let accept_task = tokio::spawn(async move {
+            loop {
+                let (connection, _) = listener
+                    .accept()
+                    .await
+                    .expect("test listener should accept connections");
+                observed_attempts.fetch_add(1, Ordering::Relaxed);
+                drop(connection);
+            }
+        });
+
+        let retry_config = RetryConfig {
+            retries: 0,
+            interval: Duration::ZERO,
+        };
+        let client_config = RmsClientConfig::new(None, None, None, false);
+        let result = tokio::time::timeout(Duration::from_secs(1), async {
+            match api_version {
+                ApiVersion::V1 => RmsTlsConnectionProvider {
+                    url,
+                    client_config,
+                    retry_config,
+                }
+                .provide_connection()
+                .await
+                .map(|_| ()),
+                ApiVersion::V2 => RmsTlsConnectionProviderV2 {
+                    url,
+                    client_config,
+                    retry_config,
+                }
+                .provide_connection()
+                .await
+                .map(|_| ()),
+            }
+        })
+        .await
+        .expect("failed connection should return without hanging");
+        assert!(result.is_err());
+
+        accept_task.abort();
+        assert!(
+            accept_task
+                .await
+                .expect_err("accept task should be cancelled")
+                .is_cancelled()
+        );
+        attempts.load(Ordering::Relaxed)
+    }
+
+    #[tokio::test]
+    async fn zero_retries_means_one_connection_attempt() {
+        for api_version in [ApiVersion::V1, ApiVersion::V2] {
+            assert_eq!(
+                failed_connection_attempts(api_version).await,
+                1,
+                "{api_version:?} made more than one connection attempt"
+            );
+        }
     }
 }
