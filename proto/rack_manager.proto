@@ -363,6 +363,22 @@ service RackManager {
    */
   rpc BatchGetPowerState(BatchGetPowerStateRequest) returns (BatchGetPowerStateResponse) {}
 
+  /*
+   * ExecuteColdReboot orchestrates the full DGX GB200 rack COLD reboot sequence on
+   * caller-supplied nodes (no inventory registration required): gracefully shut down
+   * the compute trays over BMC, power off the power shelves, wait for capacitor
+   * discharge, power the shelves back on, wait for the compute/switch tray BMCs and
+   * switch NVOS to come up, then power on the compute nodes. Returns a coordinator
+   * job ID immediately; poll
+   * GetJobStatus on it: while running, execution_state is RUNNING and state_description
+   * reports the current stage by its rack-reboot runbook step number(s) (e.g. "Rack reboot
+   * step 7-8: ..."); on completion or failure the full per-stage stage timeline is written
+   * to result_json. Runbook steps 9 (switch fabric provisioning) and 13 (post-reboot
+   * host/GPU verification) are out of scope. The sequence is fail-fast with no automated
+   * rollback.
+   */
+  rpc ExecuteColdReboot(ExecuteColdRebootRequest) returns (ExecuteColdRebootResponse) {}
+
   /*---------------------------------------------------------------------------
    * Inventory Control RPCs
    *-------------------------------------------------------------------------*/
@@ -1305,6 +1321,39 @@ message GetScaleUpFabricStateResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if retrieved, RETURN_CODE_FAILURE otherwise
   string state_json = 3; // JSON object containing ScaleUpFabric state information
   string error_message = 4; // Error details if query failed
+}
+
+/*
+ * ExecuteColdRebootRequest describes a full rack cold reboot over caller-supplied nodes.
+ *
+ * `nodes` lists every participating device (compute trays, switch trays, and power
+ * shelves) as full NodeInfo with direct connection information. All devices must belong
+ * to a single rack, and the set must include at least one power shelf, one compute
+ * tray, and one switch tray — a request that fails this composition check is rejected
+ * before any power action. Switch NodeInfo must carry both bmc_endpoint (for BMC
+ * reachability gating) and host_endpoint (for NVOS readiness). `domain` selects the
+ * NVL/mTLS material used to build the switch NVUE clients for the NVOS-readiness probe
+ * (steps 7-8). The optional timeout fields override the per-stage minimum-wait floor,
+ * poll maximum, and poll interval; each unset or 0 field falls back to the server
+ * default.
+ */
+message ExecuteColdRebootRequest {
+  NodeSet nodes = 1; // Participating devices: compute + power-shelf + switch trays (full NodeInfo)
+  optional string domain = 2; // Optional NVL domain selecting switch mTLS material for the NVOS-readiness probe
+  optional uint32 prestage_shutdown_floor_seconds = 3; // Min wait after issuing the compute graceful shutdown before probing (default 0)
+  optional uint32 prestage_shutdown_poll_max_seconds = 4; // Max wait for compute to power down before the shelves are cut (default 300)
+  optional uint32 discharge_floor_seconds = 5; // Min wait after shelf power-off before probing (default 180)
+  optional uint32 discharge_poll_max_seconds = 6; // Max wait for BMCs to become unreachable (default 600)
+  optional uint32 bmc_up_floor_seconds = 7; // Min wait after shelf power-on before probing (default 120)
+  optional uint32 bmc_up_poll_max_seconds = 8; // Max wait for BMCs to become reachable (default 600)
+  optional uint32 nvos_hello_backoff_seconds = 9; // Base delay for the exponential backoff between switch nvue-hello attempts (default 30)
+  optional uint32 compute_boot_wait_seconds = 10; // Fixed wait for the compute OS to boot after power-on (default 300); the BMC cannot report OS readiness
+  optional uint32 poll_interval_seconds = 11; // Poll cadence for all stages (default 15)
+}
+
+// ExecuteColdRebootResponse returns the coordinator job for tracking the reboot.
+message ExecuteColdRebootResponse {
+  NodeBatchResponse response = 1; // response.job_id is the coordinator job ID for GetJobStatus
 }
 
 /*******************************************************************************
