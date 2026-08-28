@@ -438,6 +438,12 @@ service RackManager {
   rpc GetNodeFirmwareInventory(GetNodeFirmwareInventoryRequest) returns (GetNodeFirmwareInventoryResponse) {}
 
   /*
+   * BatchGetFirmwareInventory retrieves firmware information for caller-
+   * supplied nodes without requiring them to be registered in RMS.
+   */
+  rpc BatchGetFirmwareInventory(BatchGetFirmwareInventoryRequest) returns (BatchGetFirmwareInventoryResponse) {}
+
+  /*
    * UpdateFirmware initiates a firmware update on a specific node asynchronously.
    * Returns a job ID immediately. Use GetFirmwareJobStatus to track progress.
    * Works for all node types (compute, powershelf, switch).
@@ -862,6 +868,17 @@ message GetNodeFirmwareInventoryRequest {
 message GetNodeFirmwareInventoryResponse {
   ReturnCode status = 2; // RETURN_CODE_SUCCESS if retrieved, RETURN_CODE_FAILURE otherwise
   repeated FirmwareInventoryInfo firmware_list = 3; // List of firmware components on the node
+}
+
+// BatchGetFirmwareInventoryRequest retrieves firmware for unregistered nodes.
+message BatchGetFirmwareInventoryRequest {
+  NodeSet nodes = 2; // Caller-supplied node connection details
+}
+
+// BatchGetFirmwareInventoryResponse returns firmware grouped by requested node.
+message BatchGetFirmwareInventoryResponse {
+  NodeBatchResponse response = 1;
+  repeated NodeFirmwareInventory nodes = 2; // Inventory for each successfully queried node
 }
 
 // FirmwareTarget pairs a firmware component target with its firmware package file.

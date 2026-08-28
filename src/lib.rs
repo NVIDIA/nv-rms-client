@@ -72,7 +72,9 @@ pub use client_api::*;
 mod proto_model_tests {
     use prost::Message as _;
 
-    use super::protos::rack_manager::{Endpoint, NetworkInterface, NodeInfo, NodeType};
+    use super::protos::rack_manager::{
+        BatchGetFirmwareInventoryRequest, Endpoint, NetworkInterface, NodeInfo, NodeSet, NodeType,
+    };
 
     #[test]
     fn vrnvl72_node_types_have_stable_wire_values_and_names() {
@@ -127,6 +129,28 @@ mod proto_model_tests {
 
         assert_eq!(node.node_id, "sw-01");
         assert!(node.additional_host_endpoints.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn batch_firmware_inventory_request_uses_node_set_field_two() -> Result<(), prost::DecodeError>
+    {
+        let request = BatchGetFirmwareInventoryRequest {
+            nodes: Some(NodeSet {
+                nodes: vec![NodeInfo {
+                    node_id: "compute-01".to_owned(),
+                    ..Default::default()
+                }],
+            }),
+        };
+
+        let encoded = request.encode_to_vec();
+        assert_eq!(encoded.first(), Some(&0x12));
+        assert_eq!(
+            BatchGetFirmwareInventoryRequest::decode(encoded.as_slice())?,
+            request
+        );
 
         Ok(())
     }
@@ -251,5 +275,7 @@ mod tests {
         // Timestamp-backed responses
         assert_serde::<rms::GetFirmwareJobStatusResponse>();
         assert_serde::<rms::GetSwitchSystemImageJobStatusResponse>();
+        assert_serde::<rms::BatchGetFirmwareInventoryRequest>();
+        assert_serde::<rms::BatchGetFirmwareInventoryResponse>();
     }
 }
