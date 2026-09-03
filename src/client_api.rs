@@ -212,6 +212,11 @@ pub trait RmsApi: Send + Sync + 'static {
         cmd: rms::BatchGetFirmwareInventoryRequest,
     ) -> Result<rms::BatchGetFirmwareInventoryResponse, RackManagerError>;
 
+    async fn compare_firmware_object(
+        &self,
+        cmd: rms::CompareFirmwareObjectRequest,
+    ) -> Result<rms::CompareFirmwareObjectResponse, RackManagerError>;
+
     async fn get_rack_firmware_inventory(
         &self,
         cmd: rms::GetRackFirmwareInventoryRequest,
@@ -510,6 +515,13 @@ impl RmsApi for RackManagerApi {
         cmd: rms::BatchGetFirmwareInventoryRequest,
     ) -> Result<rms::BatchGetFirmwareInventoryResponse, RackManagerError> {
         Ok(self.client.batch_get_firmware_inventory(cmd).await?)
+    }
+
+    async fn compare_firmware_object(
+        &self,
+        cmd: rms::CompareFirmwareObjectRequest,
+    ) -> Result<rms::CompareFirmwareObjectResponse, RackManagerError> {
+        Ok(self.client.compare_firmware_object(cmd).await?)
     }
 
     async fn get_rack_firmware_inventory(
