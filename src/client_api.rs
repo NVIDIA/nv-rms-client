@@ -807,29 +807,11 @@ pub struct RmsTlsConnectionProvider {
 #[async_trait::async_trait]
 impl tonic_client_wrapper::ConnectionProvider<RackManagerClientT> for RmsTlsConnectionProvider {
     async fn provide_connection(&self) -> Result<RackManagerClientT, Status> {
-        let mut retries = 0;
-
-        loop {
-            match RmsTlsClient::retry_build_rms(
-                &RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(RetryConfig {
-                    // We do our own retry counting
-                    retries: 1,
-                    interval: self.retry_config.interval,
-                }),
-            )
+        let api_config =
+            RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(self.retry_config);
+        RmsTlsClient::retry_build_rms(&api_config)
             .await
             .map_err(Into::into)
-            {
-                Ok(client) => return Ok(client),
-                Err(e) => {
-                    retries += 1;
-
-                    if retries > self.retry_config.retries {
-                        return Err(e);
-                    }
-                }
-            }
-        }
     }
 
     async fn connection_is_stale(&self, last_connected: SystemTime) -> bool {
@@ -898,34 +880,14 @@ pub struct RmsTlsConnectionProviderV2 {
 #[async_trait::async_trait]
 impl tonic_client_wrapper::ConnectionProvider<RackManagerV2ClientT> for RmsTlsConnectionProviderV2 {
     async fn provide_connection(&self) -> Result<RackManagerV2ClientT, Status> {
-        let mut retries = 0;
-
-        loop {
-            match RmsTlsClient::retry_build_rms(
-                &RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(RetryConfig {
-                    // Count retries here so the provider applies the configured attempt limit.
-                    retries: 1,
-                    interval: self.retry_config.interval,
-                }),
-            )
+        let api_config =
+            RmsApiConfig::new(&self.url, &self.client_config).with_retry_config(self.retry_config);
+        RmsTlsClient::retry_build_rms(&api_config)
             .await
+            .map_err(Status::from)?;
+        RmsTlsClient::new(&self.client_config)
+            .build_rms_client_v2(&self.url)
             .map_err(Into::into)
-            {
-                Ok(_) => {
-                    return RmsTlsClient::new(&self.client_config)
-                        .build_rms_client_v2(&self.url)
-                        .map_err(Into::into);
-                }
-
-                Err(e) => {
-                    retries += 1;
-
-                    if retries > self.retry_config.retries {
-                        return Err(e);
-                    }
-                }
-            }
-        }
     }
 
     async fn connection_is_stale(&self, last_connected: SystemTime) -> bool {
@@ -975,5 +937,124 @@ impl tonic_client_wrapper::ConnectionProvider<RackManagerV2ClientT> for RmsTlsCo
 
     fn connection_url(&self) -> &str {
         self.url.as_str()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::time::Duration;
+
+    use tokio::net::TcpListener;
+    use tonic_client_wrapper::ConnectionProvider as _;
+
+    use super::*;
+
+    #[derive(Clone, Copy, Debug)]
+    enum ApiVersion {
+        V1,
+        V2,
+    }
+
+    async fn failed_connection_attempts(
+        api_version: ApiVersion,
+        retry_config: RetryConfig,
+    ) -> (usize, Duration) {
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("test listener should bind");
+        let url = format!(
+            "http://{}",
+            listener
+                .local_addr()
+                .expect("test listener should have an address")
+        );
+        let attempts = Arc::new(AtomicUsize::new(0));
+        let observed_attempts = Arc::clone(&attempts);
+        let accept_task = tokio::spawn(async move {
+            loop {
+                let (connection, _) = listener
+                    .accept()
+                    .await
+                    .expect("test listener should accept connections");
+                observed_attempts.fetch_add(1, Ordering::Relaxed);
+                drop(connection);
+            }
+        });
+
+        let client_config = RmsClientConfig::new(None, None, None, false);
+        let started_at = tokio::time::Instant::now();
+        let result = tokio::time::timeout(Duration::from_secs(2), async {
+            match api_version {
+                ApiVersion::V1 => RmsTlsConnectionProvider {
+                    url,
+                    client_config,
+                    retry_config,
+                }
+                .provide_connection()
+                .await
+                .map(|_| ()),
+                ApiVersion::V2 => RmsTlsConnectionProviderV2 {
+                    url,
+                    client_config,
+                    retry_config,
+                }
+                .provide_connection()
+                .await
+                .map(|_| ()),
+            }
+        })
+        .await
+        .expect("failed connection should return without hanging");
+        let elapsed = started_at.elapsed();
+        assert!(result.is_err());
+
+        accept_task.abort();
+        assert!(
+            accept_task
+                .await
+                .expect_err("accept task should be cancelled")
+                .is_cancelled()
+        );
+        (attempts.load(Ordering::Relaxed), elapsed)
+    }
+
+    #[tokio::test]
+    async fn zero_retries_means_one_connection_attempt() {
+        for api_version in [ApiVersion::V1, ApiVersion::V2] {
+            let (attempts, _) = failed_connection_attempts(
+                api_version,
+                RetryConfig {
+                    retries: 0,
+                    interval: Duration::from_secs(1),
+                },
+            )
+            .await;
+            assert_eq!(
+                attempts, 1,
+                "{api_version:?} made more than one connection attempt"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn retries_after_the_configured_interval() {
+        let interval = Duration::from_millis(100);
+
+        for api_version in [ApiVersion::V1, ApiVersion::V2] {
+            let (attempts, elapsed) = failed_connection_attempts(
+                api_version,
+                RetryConfig {
+                    retries: 1,
+                    interval,
+                },
+            )
+            .await;
+            assert_eq!(attempts, 2, "{api_version:?} made the wrong attempt count");
+            assert!(
+                elapsed >= interval,
+                "{api_version:?} retried after {elapsed:?}, before the {interval:?} interval"
+            );
+        }
     }
 }
