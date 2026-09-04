@@ -73,7 +73,8 @@ mod proto_model_tests {
     use prost::Message as _;
 
     use super::protos::rack_manager::{
-        BatchGetFirmwareInventoryRequest, Endpoint, NetworkInterface, NodeInfo, NodeSet, NodeType,
+        BatchGetFirmwareInventoryRequest, CompareFirmwareObjectRequest, Endpoint,
+        FirmwareComparisonStatus, NetworkInterface, NodeInfo, NodeSet, NodeType,
     };
 
     #[test]
@@ -153,6 +154,26 @@ mod proto_model_tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn firmware_manifest_comparison_api_has_stable_wire_values() {
+        assert_eq!(FirmwareComparisonStatus::Matched as i32, 1);
+        assert_eq!(FirmwareComparisonStatus::Mismatched as i32, 2);
+        assert_eq!(FirmwareComparisonStatus::Missing as i32, 3);
+        assert_eq!(FirmwareComparisonStatus::Unverified as i32, 4);
+
+        let request = CompareFirmwareObjectRequest {
+            config_json: "{}".to_owned(),
+            firmware_type: "prod".to_owned(),
+            nodes: Some(NodeSet::default()),
+            ..Default::default()
+        };
+
+        assert_eq!(request.config_json, "{}");
+        assert_eq!(request.firmware_type, "prod");
+        assert!(request.nodes.is_some());
+        assert_eq!(request.encode_to_vec().first(), Some(&0x0a));
     }
 }
 

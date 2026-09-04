@@ -444,6 +444,13 @@ service RackManager {
   rpc BatchGetFirmwareInventory(BatchGetFirmwareInventoryRequest) returns (BatchGetFirmwareInventoryResponse) {}
 
   /*
+   * CompareFirmwareObject compares the versions in a proposed firmware
+   * manifest with firmware currently installed on caller-supplied nodes. It is
+   * read-only and does not download firmware artifacts or start update jobs.
+   */
+  rpc CompareFirmwareObject(CompareFirmwareObjectRequest) returns (CompareFirmwareObjectResponse) {}
+
+  /*
    * UpdateFirmware initiates a firmware update on a specific node asynchronously.
    * Returns a job ID immediately. Use GetFirmwareJobStatus to track progress.
    * Works for all node types (compute, powershelf, switch).
@@ -879,6 +886,57 @@ message BatchGetFirmwareInventoryRequest {
 message BatchGetFirmwareInventoryResponse {
   NodeBatchResponse response = 1;
   repeated NodeFirmwareInventory nodes = 2; // Inventory for each successfully queried node
+}
+
+// FirmwareComparisonStatus describes one installed-to-proposed version comparison.
+enum FirmwareComparisonStatus {
+  FIRMWARE_COMPARISON_STATUS_UNSPECIFIED = 0;
+  FIRMWARE_COMPARISON_STATUS_MATCHED = 1;
+  FIRMWARE_COMPARISON_STATUS_MISMATCHED = 2;
+  FIRMWARE_COMPARISON_STATUS_MISSING = 3;
+  FIRMWARE_COMPARISON_STATUS_UNVERIFIED = 4;
+}
+
+// FirmwareManifestComponentComparison compares one manifest component with live inventory.
+message FirmwareManifestComponentComparison {
+  string component = 1; // Component name from the proposed manifest
+  string installed_component = 2; // Matching live inventory component, when found
+  string installed_version = 3;
+  string proposed_version = 4;
+  FirmwareComparisonStatus status = 5;
+  string target = 6; // Matching Redfish or logical firmware target
+  string reason = 7; // Human-readable explanation for non-matched results
+  string sku_id = 8; // Optional manifest SKU used to disambiguate fungible components
+}
+
+// NodeFirmwareManifestComparison contains the comparison result for one node.
+message NodeFirmwareManifestComparison {
+  string node_id = 1;
+  bool matches_manifest = 2; // True only when every selected component is verified and matches
+  repeated FirmwareManifestComponentComparison components = 3;
+}
+
+// CompareFirmwareObjectRequest compares a proposed firmware object with caller-supplied nodes.
+message CompareFirmwareObjectRequest {
+  string config_json = 1; // Proposed JSON firmware manifest
+  string firmware_type = 2; // Artifact channel/profile, e.g. "dev" or "prod"
+  // Caller-supplied node connection details. A concrete NodeInfo.type takes precedence;
+  // NodeInfo.node_descriptor is used to resolve the node type when type is unspecified.
+  NodeSet nodes = 3;
+  // If non-empty, compare only listed node types and components.
+  // An empty component list for a listed node type selects all eligible components.
+  map<int32, FirmwareObjectComponentFilter> component_filters = 4;
+  // Descriptor filters are resolved to node types and supplement component_filters.
+  // A component_filters entry wins when both selectors resolve to the same node type.
+  repeated NodeDescriptorFirmwareObjectComponentFilter node_descriptor_component_filters = 5;
+}
+
+// CompareFirmwareObjectResponse reports comparison and per-node query results.
+message CompareFirmwareObjectResponse {
+  NodeBatchResponse response = 1;
+  string object_id = 2;
+  bool matches_manifest = 3; // True only when every requested node succeeds and fully matches
+  repeated NodeFirmwareManifestComparison nodes = 4;
 }
 
 // FirmwareTarget pairs a firmware component target with its firmware package file.
