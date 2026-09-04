@@ -918,14 +918,17 @@ message NodeFirmwareManifestComparison {
 
 // CompareFirmwareObjectRequest compares a proposed firmware object with caller-supplied nodes.
 message CompareFirmwareObjectRequest {
-  string config_json = 2; // Proposed JSON firmware manifest
-  string firmware_type = 3; // Artifact channel/profile, e.g. "dev" or "prod"
-  string hardware_type = 4; // Hardware class used to scope the proposed manifest
-  NodeSet nodes = 5; // Caller-supplied node connection details
+  string config_json = 1; // Proposed JSON firmware manifest
+  string firmware_type = 2; // Artifact channel/profile, e.g. "dev" or "prod"
+  // Caller-supplied node connection details. A concrete NodeInfo.type takes precedence;
+  // NodeInfo.node_descriptor is used to resolve the node type when type is unspecified.
+  NodeSet nodes = 3;
   // If non-empty, compare only listed node types and components.
   // An empty component list for a listed node type selects all eligible components.
-  map<int32, FirmwareObjectComponentFilter> component_filters = 6;
-  repeated NodeDescriptorFirmwareObjectComponentFilter node_descriptor_component_filters = 7;
+  map<int32, FirmwareObjectComponentFilter> component_filters = 4;
+  // Descriptor filters are resolved to node types and supplement component_filters.
+  // A component_filters entry wins when both selectors resolve to the same node type.
+  repeated NodeDescriptorFirmwareObjectComponentFilter node_descriptor_component_filters = 5;
 }
 
 // CompareFirmwareObjectResponse reports comparison and per-node query results.

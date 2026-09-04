@@ -166,15 +166,14 @@ mod proto_model_tests {
         let request = CompareFirmwareObjectRequest {
             config_json: "{}".to_owned(),
             firmware_type: "prod".to_owned(),
-            hardware_type: "gb200".to_owned(),
             nodes: Some(NodeSet::default()),
             ..Default::default()
         };
 
         assert_eq!(request.config_json, "{}");
         assert_eq!(request.firmware_type, "prod");
-        assert_eq!(request.hardware_type, "gb200");
         assert!(request.nodes.is_some());
+        assert_eq!(request.encode_to_vec().first(), Some(&0x0a));
     }
 }
 
